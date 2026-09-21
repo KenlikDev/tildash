@@ -14,7 +14,7 @@ kotlin = "2.4.20"
 kotlin-wrappers = "2026.9.1"
 kotlinx-coroutines = "1.11.0"
 material3 = "1.12.0-alpha03"
-ktlintGradle = "14.2.0"
+ktlint = "1.8.0"
 springBoot = "4.1.1"
 springDependencyManagement = "1.1.7"
 
@@ -46,6 +46,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+ktlintCli = { module = "com.pinterest.ktlint:ktlint-cli", version.ref = "ktlint" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -55,6 +56,5 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinSpring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 springDependencyManagement = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }

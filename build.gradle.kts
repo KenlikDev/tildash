@@ -1,4 +1,4 @@
-import org.jlleitschuh.gradle.ktlint.KtlintExtension
+import org.gradle.api.tasks.JavaExec
 
 plugins {
     // Load shared plugins once in the root project classloader.
@@ -9,15 +9,41 @@ plugins {
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.kotlinSpring) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
-    alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.springBoot) apply false
     alias(libs.plugins.springDependencyManagement) apply false
 }
 
-subprojects {
-    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+val ktlintCli by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
 
-    configure<KtlintExtension> {
-        version.set("1.8.0")
+dependencies {
+    add(ktlintCli.name, libs.ktlintCli)
+}
+
+val ktlintSourceFiles = fileTree(rootDir) {
+    include("**/*.kt")
+    include("**/*.kts")
+    exclude("**/build/**")
+    exclude(".gradle/**")
+    exclude(".git/**")
+}
+
+tasks.register<JavaExec>("ktlintCheck") {
+    group = "verification"
+    description = "Run KtLint checks over Kotlin and Kotlin script sources."
+    classpath(ktlintCli)
+    mainClass.set("com.pinterest.ktlint.Main")
+    workingDir(rootDir)
+    inputs.files(ktlintSourceFiles)
+
+    doFirst {
+        val sources = ktlintSourceFiles.files
+            .sortedBy { it.invariantSeparatorsPath }
+            .map { it.relativeTo(rootDir).invariantSeparatorsPath }
+
+        args("--relative")
+        args(sources)
     }
 }
