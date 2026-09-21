@@ -26,13 +26,14 @@ dependencies {
     add(ktlintCli.name, libs.ktlintCli)
 }
 
-val ktlintSourceFiles = fileTree(rootDir) {
-    include("**/*.kt")
-    include("**/*.kts")
-    exclude("**/build/**")
-    exclude(".gradle/**")
-    exclude(".git/**")
-}
+val ktlintSourceFiles =
+    fileTree(rootDir) {
+        include("**/*.kt")
+        include("**/*.kts")
+        exclude("**/build/**")
+        exclude(".gradle/**")
+        exclude(".git/**")
+    }
 
 tasks.register<JavaExec>("ktlintCheck") {
     group = "verification"
@@ -43,9 +44,10 @@ tasks.register<JavaExec>("ktlintCheck") {
     inputs.files(ktlintSourceFiles)
 
     doFirst {
-        val sources = ktlintSourceFiles.files
-            .sortedBy { it.invariantSeparatorsPath }
-            .map { it.relativeTo(rootDir).invariantSeparatorsPath }
+        val sources =
+            ktlintSourceFiles.files
+                .sortedBy { it.invariantSeparatorsPath }
+                .map { it.relativeTo(rootDir).invariantSeparatorsPath }
 
         args("--relative")
         args(sources)
