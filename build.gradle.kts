@@ -1,3 +1,4 @@
+import org.gradle.api.attributes.Bundling
 import org.gradle.api.tasks.JavaExec
 
 plugins {
@@ -16,6 +17,9 @@ plugins {
 val ktlintCli by configurations.creating {
     isCanBeConsumed = false
     isCanBeResolved = true
+    attributes {
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+    }
 }
 
 dependencies {
