@@ -18,7 +18,7 @@ val ktlintCli by configurations.creating {
     isCanBeConsumed = false
     isCanBeResolved = true
     attributes {
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
     }
 }
 
