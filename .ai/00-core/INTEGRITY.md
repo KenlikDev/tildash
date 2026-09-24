@@ -16,3 +16,15 @@ A truthful red state is preferable to a fabricated green state.
 Pressure, frustration, urgency, or a request to "make it pass somehow" never authorizes an integrity violation.
 
 When diagnosis is incomplete, preserve the original failure and state exactly what evidence is missing.
+
+## Integration integrity
+
+- Never merge an unverified task branch into `ai/integration`.
+- Never merge a task branch directly into `develop`.
+- Never bypass repository protection on `ai/integration` or `develop`.
+- The canonical integration path is:
+  task branch -> `ai/integration` -> `develop`.
+- A task branch being green does not prove that the combined integration branch is green.
+- After integrating a task branch, verify the resulting `ai/integration` state.
+- Never treat the existence of a PR as evidence that its code is safe or correct.
+- Never integrate unrelated changes into `ai/integration` merely because they are available.

@@ -5,14 +5,29 @@
 ```
 main
   <- release PRs
+
 develop
-  <- feature/fix/refactor/test/security/docs/chore PRs
+  <- PRs from `ai/integration` only
+
+ai/integration
+  <- PRs from short-lived task branches
+
 short-lived task branches
 ```
 
 Never develop directly on `main` or `develop`.
 
-Recommended names:
+`ai/integration` is a permanent integration branch used to combine verified task branches before the final human-controlled merge into `develop`.
+
+Canonical flow:
+
+```
+task branch -> ai/integration -> develop
+```
+
+Never merge a task branch directly into `develop`.
+
+Recommended task branch names:
 `feature/<description>`
 `fix/<description>`
 `refactor/<description>`
@@ -25,9 +40,50 @@ Recommended names:
 
 ## Protected branches
 
-`main` and `develop` should require pull requests, required CI checks, resolved review findings, and no force pushes or deletion.
+`main`, `develop`, and `ai/integration` are integration boundaries and must be protected.
 
-Never bypass repository protection.
+Required repository policy for `ai/integration`:
+- pull requests are required;
+- direct updates are not allowed;
+- force pushes are not allowed;
+- branch deletion is not allowed;
+- non-fast-forward updates are not allowed;
+- required CI checks must pass before merge;
+- the branch must be up to date with its base before merge;
+- unresolved review threads must block merge;
+- merge method is squash unless preserving topology is materially necessary and explicitly justified;
+- repository protection must not be bypassed.
+
+Required repository policy for `develop`:
+- pull requests are required;
+- only `ai/integration` is an allowed source under the project workflow;
+- direct updates are not allowed;
+- force pushes are not allowed;
+- branch deletion is not allowed;
+- required CI checks must pass;
+- the final `ai/integration` -> `develop` merge is human-controlled;
+- repository protection must not be bypassed.
+
+GitHub rulesets are the enforcement mechanism. The documented workflow is not a substitute for repository protection.
+
+## Integration rules
+
+A task branch may enter `ai/integration` only when:
+1. the applicable project instructions have been read;
+2. the task branch diff has been inspected;
+3. acceptance criteria are satisfied;
+4. focused checks pass;
+5. broader applicable checks pass;
+6. no unresolved merge conflict remains;
+7. the change is within task scope;
+8. the resulting integration state is re-verified after merge.
+
+Do not merge code simply because:
+- it compiles;
+- another branch already contains similar changes;
+- the PR is open or marked ready;
+- the change is convenient to integrate;
+- the branch has passed checks that do not cover the combined integration state.
 
 ## Pull requests
 
@@ -36,9 +92,15 @@ A PR must explain:
 - scope;
 - behavior;
 - verification evidence;
-- limitations or follow-up work.
+- limitations or follow-up work;
+- source branch;
+- target branch.
 
-AI review is not a fictional second human reviewer. Final integration remains a human decision while the project has only one human maintainer.
+For task integration, the normal target is `ai/integration`.
+
+For final development integration, the normal source is `ai/integration` and the target is `develop`.
+
+AI review is not a fictional second human reviewer. Final integration into `develop` remains a human decision.
 
 ## Commits
 
@@ -62,3 +124,9 @@ Examples:
 One coherent change per commit. Never use a commit to hide a failing check.
 
 AI may prepare or execute Git operations only when explicitly authorized by the project owner.
+
+## Branch cleanup
+
+After a task branch has been successfully integrated and is no longer needed for review, recovery, follow-up work, or traceability, it may be deleted.
+
+Never delete `ai/integration` as part of routine cleanup.
