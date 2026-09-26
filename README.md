@@ -30,7 +30,11 @@ The iOS application is opened from `/app/iosApp` in Xcode.
 - Web/JS tests: `./gradlew :app:shared:jsTest`
 - iOS simulator tests: `./gradlew :app:shared:iosSimulatorArm64Test`
 
-## Engineering standards
+## Engineering documentation
+
+- [Architecture](docs/ARCHITECTURE.md) — current system boundaries and dependency direction.
+- [Engineering Policies](docs/ENGINEERING_POLICIES.md) — versioning, API compatibility, migrations, deprecation, and documentation policy.
+- [Architecture Decision Records](docs/adr/README.md) — durable architectural decisions.
 
 The canonical AI and engineering rules are maintained under `.ai/`. Do not create parallel instruction systems.
 
