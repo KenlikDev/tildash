@@ -121,3 +121,32 @@ Breaking examples include:
 - changing the versioned resource semantics.
 
 A compatibility decision belongs in the pull request and, for durable architectural changes, an ADR.
+
+
+## Authentication
+
+Application endpoints under `/api/v1/**` require server-side authentication.
+
+The backend accepts OAuth 2.1 / OpenID Connect-compatible bearer access tokens when resource-server mode is enabled. Token issuance is performed by the configured identity provider; the Tildash backend does not mint user tokens.
+
+The current authenticated identity is available to authenticated clients at:
+
+`GET /api/v1/auth/me`
+
+The response is a transport DTO:
+
+```json
+{
+  "subject": "provider-user-subject",
+  "roles": [
+    "learner",
+    "teacher"
+  ]
+}
+```
+
+The `subject` value is the authenticated token subject. Roles are the known application roles mapped by the backend. Unknown token role values are not exposed as application roles.
+
+Interactive KMP authentication uses Authorization Code with PKCE. KMP applications must not contain confidential client secrets and must store tokens using platform-secure mechanisms.
+
+Authentication failures return RFC 9457 Problem Details with HTTP 401. Authorization failures return RFC 9457 Problem Details with HTTP 403. Security errors must not expose tokens, stack traces, exception class names, or other security internals.
