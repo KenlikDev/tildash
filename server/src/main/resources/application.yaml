@@ -1,9 +1,17 @@
 spring:
   application:
     name: tildash-server
+  mvc:
+    problemdetails:
+      enabled: true
 
 management:
   endpoints:
     web:
       exposure:
         include: health
+
+springdoc:
+  packages-to-scan: com.kenlikdev.tildash.server.api
+  swagger-ui:
+    path: /swagger-ui.html
