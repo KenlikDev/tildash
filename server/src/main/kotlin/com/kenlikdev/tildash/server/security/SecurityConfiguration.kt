@@ -8,8 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.authentication.HttpStatusEntryPoint
-import org.springframework.http.HttpStatus
 
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
@@ -25,8 +23,9 @@ class SecurityConfiguration(
     ): SecurityFilterChain {
         http
             .csrf { it.disable() }
-            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .exceptionHandling {
+            .sessionManagement {
+                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }.exceptionHandling {
                 it.authenticationEntryPoint(securityHandler)
                     .accessDeniedHandler(securityHandler)
             }.authorizeHttpRequests {
@@ -46,13 +45,16 @@ class SecurityConfiguration(
         if (properties.resourceServer.enabled) {
             http.oauth2ResourceServer {
                 it.jwt { jwt ->
-                    jwt.jwtAuthenticationConverter(
-                        jwtAuthenticationConverter(properties.jwt.rolesClaim),
-                    )
+                    jwt.jwtAuthenticationConverter(jwtAuthenticationConverter(properties.jwt.rolesClaim))
                 }
             }
         }
 
         return http.build()
     }
+
+    @Bean
+    fun jwtAuthenticationConverter(): org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter =
+        createJwtAuthenticationConverter(properties.jwt.rolesClaim)
 }
+
