@@ -36,7 +36,7 @@ class JwtRoleAuthenticationConverter(
     }
 }
 
-fun jwtAuthenticationConverter(
+fun createJwtAuthenticationConverter(
     rolesClaim: String,
 ): JwtAuthenticationConverter =
     JwtAuthenticationConverter().apply {
