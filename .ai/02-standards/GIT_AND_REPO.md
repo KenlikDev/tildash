@@ -130,3 +130,19 @@ AI may prepare or execute Git operations only when explicitly authorized by the 
 After a task branch has been successfully integrated and is no longer needed for review, recovery, follow-up work, or traceability, it may be deleted.
 
 Never delete `ai/integration` as part of routine cleanup.
+
+
+## Integration branch synchronization
+
+After a squash-based promotion from `ai/integration` into `develop`, the protected branches may have different commit ancestry even when their file content is aligned at the promotion point.
+
+Before the next final `ai/integration -> develop` promotion, synchronize `ai/integration` with the current `develop` ancestry through a dedicated short-lived task branch and pull request.
+
+The synchronization PR must:
+- preserve the current `ai/integration` tree;
+- add the current `develop` tip as an ancestor;
+- use a normal merge commit when preserving topology requires it;
+- contain no unrelated source changes;
+- pass the normal integration verification after merge.
+
+The `ai/integration` ruleset must permit the topology-preserving merge method needed for this synchronization. Ordinary task PRs should continue to use squash merges.
