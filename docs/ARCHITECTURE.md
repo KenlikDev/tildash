@@ -88,14 +88,17 @@ The current backend is still foundation-stage infrastructure. Public domain endp
 
 The public HTTP API is a transport contract, not a direct exposure of domain internals.
 
-When API development begins:
+Implemented API foundation rules:
 
+- public application endpoints use the `/api/v1/...` namespace;
 - requests and responses use explicit DTOs;
 - domain models are not serialized directly as the public contract;
-- validation occurs at the boundary;
-- authorization is enforced server-side;
-- error responses are stable and documented;
-- actuator and operational endpoints remain separate from the public API.
+- validation occurs at the HTTP boundary;
+- authorization is enforced server-side once security is introduced;
+- API errors use RFC 9457 Problem Details;
+- actuator and documentation endpoints remain separate from the public API.
+
+Detailed transport conventions are defined in `docs/API.md`.
 
 The API compatibility rules are defined in `docs/ENGINEERING_POLICIES.md`.
 

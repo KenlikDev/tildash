@@ -1,0 +1,19 @@
+package com.kenlikdev.tildash.server.api
+
+import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.info.Info
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+
+@Configuration(proxyBeanMethods = false)
+class OpenApiConfiguration {
+    @Bean
+    fun tildashOpenApi(): OpenAPI =
+        OpenAPI()
+            .info(
+                Info()
+                    .title("Tildash API")
+                    .version("1.0.0")
+                    .description("Public HTTP API for the Tildash platform."),
+            )
+}
