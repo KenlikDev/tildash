@@ -16,6 +16,13 @@ Before substantive work:
 10. For backend work, read `02-standards/SPRING_BACKEND.md`.
 11. Never infer unseen files, logs, command output, dependency state, or runtime behavior.
 
+For branch, commit, PR, merge, or release operations:
+- treat `ai/integration` as the permanent AI integration branch;
+- never merge task branches directly into `develop`;
+- use the canonical path `task branch -> ai/integration -> develop`;
+- before declaring `ai/integration` ready for `develop`, verify the integrated result rather than relying only on checks previously run on the task branch;
+- never bypass the repository rules protecting `ai/integration` or `develop`.
+
 ## Evidence states
 
 Use:

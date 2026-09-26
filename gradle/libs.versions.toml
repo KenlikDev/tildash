@@ -14,6 +14,7 @@ kotlin = "2.4.20"
 kotlin-wrappers = "2026.9.1"
 kotlinx-coroutines = "1.11.0"
 material3 = "1.12.0-alpha03"
+ktlint = "1.8.0"
 springBoot = "4.1.1"
 springDependencyManagement = "1.1.7"
 
@@ -45,6 +46,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+ktlintCli = { module = "com.pinterest.ktlint:ktlint-cli", version.ref = "ktlint" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
