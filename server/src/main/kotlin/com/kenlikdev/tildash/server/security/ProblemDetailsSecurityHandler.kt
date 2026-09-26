@@ -2,6 +2,7 @@ package com.kenlikdev.tildash.server.security
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
@@ -68,7 +69,4 @@ class ProblemDetailsSecurityHandler(
         objectMapper.writeValue(response.outputStream, problem)
     }
 
-    private object HttpHeaders {
-        const val WWW_AUTHENTICATE = "WWW-Authenticate"
-    }
 }
