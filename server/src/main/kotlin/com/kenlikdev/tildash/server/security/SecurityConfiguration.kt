@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
 import org.springframework.security.web.SecurityFilterChain
 
 @Configuration(proxyBeanMethods = false)
@@ -25,10 +26,13 @@ class SecurityConfiguration(
             .csrf { it.disable() }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }.exceptionHandling {
-                it.authenticationEntryPoint(securityHandler)
+            }
+            .exceptionHandling {
+                it
+                    .authenticationEntryPoint(securityHandler)
                     .accessDeniedHandler(securityHandler)
-            }.authorizeHttpRequests {
+            }
+            .authorizeHttpRequests {
                 it
                     .requestMatchers(
                         "/actuator/health",
@@ -36,17 +40,24 @@ class SecurityConfiguration(
                         "/v3/api-docs/**",
                         "/swagger-ui.html",
                         "/swagger-ui/**",
-                    ).permitAll()
-                    .requestMatchers("/api/v1/**").authenticated()
-                    .anyRequest().denyAll()
-            }.httpBasic { it.disable() }
+                    )
+                    .permitAll()
+                    .requestMatchers("/api/v1/**")
+                    .authenticated()
+                    .anyRequest()
+                    .denyAll()
+            }
+            .httpBasic { it.disable() }
             .formLogin { it.disable() }
 
         if (properties.resourceServer.enabled) {
             http.oauth2ResourceServer {
-                it.jwt { jwt ->
-                    jwt.jwtAuthenticationConverter(jwtAuthenticationConverter(properties.jwt.rolesClaim))
-                }
+                it
+                    .authenticationEntryPoint(securityHandler)
+                    .accessDeniedHandler(securityHandler)
+                    .jwt { jwt ->
+                        jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
+                    }
             }
         }
 
@@ -54,7 +65,6 @@ class SecurityConfiguration(
     }
 
     @Bean
-    fun jwtAuthenticationConverter(): org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter =
+    fun jwtAuthenticationConverter(): JwtAuthenticationConverter =
         createJwtAuthenticationConverter(properties.jwt.rolesClaim)
 }
-
