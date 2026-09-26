@@ -14,7 +14,10 @@ class CurrentIdentityProvider {
             "The current security context is not authenticated."
         }
 
-        val subject = authentication.name
+        val subject =
+            authentication.name
+                ?: throw IllegalStateException("The authenticated identity has no subject.")
+
         check(subject.isNotBlank()) {
             "The authenticated identity has no subject."
         }
