@@ -34,8 +34,7 @@ class ApiFoundationTests {
             .perform(
                 get("/api/v1/missing")
                     .accept(MediaType.APPLICATION_PROBLEM_JSON),
-            )
-            .andExpect(status().isNotFound)
+            ).andExpect(status().isNotFound)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.title").value("Not Found"))
