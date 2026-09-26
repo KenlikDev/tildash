@@ -12,13 +12,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @SpringBootTest
 @AutoConfigureMockMvc
 class TildashServerApplicationTests {
-
     @Autowired
     private lateinit var mockMvc: MockMvc
 
     @Test
     fun healthEndpointReportsUp() {
-        mockMvc.perform(get("/actuator/health"))
+        mockMvc
+            .perform(get("/actuator/health"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.status").value("UP"))
     }

@@ -1,4 +1,3 @@
 package com.kenlikdev.tildash
 
-fun sayHello(to: String): String =
-    "Hello, $to!"
+fun sayHello(to: String): String = "Hello, $to!"

@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlinSpring)
     alias(libs.plugins.springBoot)
     alias(libs.plugins.springDependencyManagement)
+    jacoco
 }
 
 group = "com.kenlikdev.tildash"
@@ -41,4 +42,14 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        csv.required.set(false)
+    }
 }
