@@ -141,3 +141,40 @@ A material architectural change requires:
 4. focused verification;
 5. broader verification for affected targets;
 6. documentation updated with the final verified behavior.
+
+
+## Security boundary
+
+Authentication and authorization are enforced at the server boundary before application use cases execute.
+
+The implemented security flow is:
+
+```
+HTTP request
+   |
+   v
+Spring Security filter chain
+   |
+   +--> authentication / bearer token validation
+   |
+   +--> request authorization
+   |
+   v
+application-level identity
+   |
+   v
+Application Service / Use Case
+   |
+   v
+Domain
+```
+
+The security adapter owns Spring Security types. Application and domain code should consume application-level identity and authorization concepts rather than framework principals.
+
+The supported application roles are learner, teacher, reviewer, and administrator. Method-level authorization is enabled for use cases that require finer-grained server-side decisions.
+
+Authentication and authorization errors use the same RFC 9457 Problem Details contract defined in `docs/API.md`.
+
+Security architecture, threat model, client authentication contract, and deployment requirements are defined in `docs/SECURITY.md` and ADR-0007.
+
+Resource-server authentication is configurable and provider-neutral. Production deployments must supply a trusted issuer and HTTPS/TLS. Identity persistence remains behind the persistence boundary and is not part of the HTTP security adapter.
