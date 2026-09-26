@@ -19,6 +19,7 @@ on:
 jobs:
   dependency-review:
     name: Dependency review
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
