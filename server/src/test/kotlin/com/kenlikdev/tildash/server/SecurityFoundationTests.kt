@@ -1,15 +1,16 @@
 package com.kenlikdev.tildash.server
 
-import com.kenlikdev.tildash.server.api.auth.CurrentIdentityController
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
@@ -18,9 +19,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.beans.factory.annotation.Autowired
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 @SpringBootTest
 @Import(SecurityFoundationTests.TestSecurityConfiguration::class)
@@ -93,7 +91,7 @@ class SecurityFoundationTests {
     @Test
     fun jwtRolesAreMappedToKnownAuthorities() {
         val jwt =
-            org.springframework.security.oauth2.jwt.Jwt
+            Jwt
                 .withTokenValue("test-token")
                 .header("alg", "RS256")
                 .claim("sub", "user-123")
