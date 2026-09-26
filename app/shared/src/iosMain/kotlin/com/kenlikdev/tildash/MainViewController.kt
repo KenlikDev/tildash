@@ -1,5 +1,7 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package com.kenlikdev.tildash
 
 import androidx.compose.ui.window.ComposeUIViewController
 
-fun mainViewController() = ComposeUIViewController { App() }
+fun MainViewController() = ComposeUIViewController { App() }
