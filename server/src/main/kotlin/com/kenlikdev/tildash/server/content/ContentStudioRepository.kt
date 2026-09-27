@@ -346,8 +346,7 @@ class JdbcContentStudioRepository(
                 val revision = rs.getInt("revision_no")
                 val payload = objectMapper.readTree(rs.getString("payload"))
                 StoredPreview(node, revision, payload)
-            }
-            .firstOrNull()
+            }.firstOrNull()
 
     override fun publishSnapshot(
         contentId: ContentId,
@@ -368,8 +367,7 @@ class JdbcContentStudioRepository(
                 ) { rs, _ ->
                     rs.getObject("source_revision_id", UUID::class.java) to
                         rs.getObject("provenance_id", UUID::class.java)
-                }
-                .firstOrNull()
+                }.firstOrNull()
                 ?: throw IllegalStateException("Content has no source revision: ${contentId.value}")
 
         val version =
