@@ -33,8 +33,7 @@ class SecurityFoundationTests {
             .perform(
                 get("/api/v1/auth/me")
                     .accept(MediaType.APPLICATION_PROBLEM_JSON),
-            )
-            .andExpect(status().isUnauthorized)
+            ).andExpect(status().isUnauthorized)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().string("WWW-Authenticate", "Bearer"))
             .andExpect(jsonPath("$.type").value("urn:tildash:problem:unauthorized"))
@@ -110,8 +109,9 @@ class SecurityFoundationTests {
         fun teacherProtectedService(): TeacherProtectedService = TeacherProtectedServiceImpl()
 
         @Bean
-        fun securityProbeController(service: TeacherProtectedService): SecurityProbeController =
-            SecurityProbeController(service)
+        fun securityProbeController(
+            service: TeacherProtectedService,
+        ): SecurityProbeController = SecurityProbeController(service)
     }
 
     interface TeacherProtectedService {
