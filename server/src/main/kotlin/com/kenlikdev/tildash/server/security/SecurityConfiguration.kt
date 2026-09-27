@@ -20,7 +20,7 @@ class SecurityConfiguration(
 ) {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        http.csrf { it.disable() }
+        http.csrf { it.ignoringRequestMatchers("/api/v1/**") }
 
         http.sessionManagement {
             it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
