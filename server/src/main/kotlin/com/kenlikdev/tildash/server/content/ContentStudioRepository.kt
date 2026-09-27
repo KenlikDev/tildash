@@ -252,18 +252,36 @@ class JdbcContentStudioRepository(
         val nodes =
             jdbc.query(
                 """
-                with recursive content_tree as (
-                    select id, kind, parent_id, source_locale, state, position, updated_at
+                with recursive ancestors as (
+                    select id, kind, parent_id, source_locale, state, position, updated_at, array[id] as path
+                    from tildash.content_nodes
+                    where id = :rootId
+                    union all
+                    select parent.id, parent.kind, parent.parent_id, parent.source_locale,
+                           parent.state, parent.position, parent.updated_at, ancestors.path || parent.id
+                    from tildash.content_nodes parent
+                    join ancestors on ancestors.parent_id = parent.id
+                    where not parent.id = any(ancestors.path)
+                ),
+                descendants as (
+                    select id, kind, parent_id, source_locale, state, position, updated_at, array[id] as path
                     from tildash.content_nodes
                     where id = :rootId
                     union all
                     select child.id, child.kind, child.parent_id, child.source_locale,
-                           child.state, child.position, child.updated_at
+                           child.state, child.position, child.updated_at, descendants.path || child.id
                     from tildash.content_nodes child
-                    join content_tree parent on child.parent_id = parent.id
+                    join descendants parent on child.parent_id = parent.id
+                    where not child.id = any(descendants.path)
                 )
-                select id, kind, parent_id, source_locale, state, position, updated_at
-                from content_tree
+                select distinct on (id)
+                       id, kind, parent_id, source_locale, state, position, updated_at
+                from (
+                    select id, kind, parent_id, source_locale, state, position, updated_at from ancestors
+                    union all
+                    select id, kind, parent_id, source_locale, state, position, updated_at from descendants
+                ) tree
+                order by id
                 """.trimIndent(),
                 MapSqlParameterSource("rootId", UUID.fromString(contentId.value)),
             ) { rs, _ -> mapNode(rs).node }
