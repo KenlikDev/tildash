@@ -286,7 +286,7 @@ class ContentStudioIntegrationTests {
                             ),
                         ),
                 ).andExpect(status().isCreated)
-            .andReturn()
+                .andReturn()
 
         val response = objectMapper.readTree(result.response.contentAsString)
         val id = response.get("id")?.asText()
