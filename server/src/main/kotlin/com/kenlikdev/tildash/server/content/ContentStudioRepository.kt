@@ -183,13 +183,13 @@ class JdbcContentStudioRepository(
     override fun findNode(id: ContentId): StoredContentNode? =
         jdbc
             .query(
-            """
-            select id, kind, parent_id, source_locale, state, position, updated_at
-            from tildash.content_nodes
-            where id = :id
-            """.trimIndent(),
-            MapSqlParameterSource("id", UUID.fromString(id.value)),
-        ) { rs, _ -> mapNode(rs) }
+                """
+                select id, kind, parent_id, source_locale, state, position, updated_at
+                from tildash.content_nodes
+                where id = :id
+                """.trimIndent(),
+                MapSqlParameterSource("id", UUID.fromString(id.value)),
+            ) { rs, _ -> mapNode(rs) }
             .firstOrNull()
 
     override fun nextRevision(contentId: ContentId): Int =
@@ -327,26 +327,26 @@ class JdbcContentStudioRepository(
     override fun preview(contentId: ContentId): StoredPreview? =
         jdbc
             .query(
-            """
-            select n.id, n.kind, n.parent_id, n.source_locale, n.state, n.position, n.updated_at,
-                   sr.revision_no, sr.payload
-            from tildash.content_nodes n
-            left join lateral (
-                select revision_no, payload
-                from tildash.content_source_revisions
-                where content_node_id = n.id
-                order by revision_no desc
-                limit 1
-            ) sr on true
-            where n.id = :id
-            """.trimIndent(),
-            MapSqlParameterSource("id", UUID.fromString(contentId.value)),
-        ) { rs, _ ->
-            val node = mapNode(rs).node
-            val revision = rs.getInt("revision_no")
-            val payload = objectMapper.readTree(rs.getString("payload"))
-            StoredPreview(node, revision, payload)
-        }
+                """
+                select n.id, n.kind, n.parent_id, n.source_locale, n.state, n.position, n.updated_at,
+                       sr.revision_no, sr.payload
+                from tildash.content_nodes n
+                left join lateral (
+                    select revision_no, payload
+                    from tildash.content_source_revisions
+                    where content_node_id = n.id
+                    order by revision_no desc
+                    limit 1
+                ) sr on true
+                where n.id = :id
+                """.trimIndent(),
+                MapSqlParameterSource("id", UUID.fromString(contentId.value)),
+            ) { rs, _ ->
+                val node = mapNode(rs).node
+                val revision = rs.getInt("revision_no")
+                val payload = objectMapper.readTree(rs.getString("payload"))
+                StoredPreview(node, revision, payload)
+            }
             .firstOrNull()
 
     override fun publishSnapshot(
@@ -357,18 +357,19 @@ class JdbcContentStudioRepository(
         val source =
             jdbc
                 .query(
-                """
-                select sr.id as source_revision_id, sr.provenance_id
-                from tildash.content_source_revisions sr
-                where sr.content_node_id = :id
-                order by sr.revision_no desc
-                limit 1
-                """.trimIndent(),
-                MapSqlParameterSource("id", UUID.fromString(contentId.value)),
-            ) { rs, _ ->
-                rs.getObject("source_revision_id", UUID::class.java) to
-                    rs.getObject("provenance_id", UUID::class.java)
-            }.firstOrNull()
+                    """
+                    select sr.id as source_revision_id, sr.provenance_id
+                    from tildash.content_source_revisions sr
+                    where sr.content_node_id = :id
+                    order by sr.revision_no desc
+                    limit 1
+                    """.trimIndent(),
+                    MapSqlParameterSource("id", UUID.fromString(contentId.value)),
+                ) { rs, _ ->
+                    rs.getObject("source_revision_id", UUID::class.java) to
+                        rs.getObject("provenance_id", UUID::class.java)
+                }
+                .firstOrNull()
                 ?: throw IllegalStateException("Content has no source revision: ${contentId.value}")
 
         val version =
@@ -460,7 +461,10 @@ class JdbcContentStudioRepository(
                 id = rs.getObject("id", UUID::class.java),
                 event =
                     ContentWorkflowEvent(
-                        action = com.kenlikdev.tildash.content.workflow.ContentWorkflowAction.valueOf(rs.getString("action")),
+                        action =
+                            com.kenlikdev.tildash.content.workflow.ContentWorkflowAction.valueOf(
+                                rs.getString("action"),
+                            ),
                         actorSubject = rs.getString("actor_subject"),
                         fromState = ContentState.valueOf(rs.getString("from_state")),
                         toState = ContentState.valueOf(rs.getString("to_state")),
