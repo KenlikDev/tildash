@@ -1,15 +1,13 @@
 package com.kenlikdev.tildash.server
 
-import kotlin.test.assertNotNull
-import kotlin.test.assertFailsWith
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.context.annotation.Import
 import org.springframework.dao.DataAccessException
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -18,6 +16,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -42,8 +42,7 @@ class ContentStudioIntegrationTests {
                 get("/api/v1/content/$lessonId/preview")
                     .with(user("teacher").roles("TEACHER"))
                     .accept(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.state").value("DRAFT"))
             .andExpect(jsonPath("$.revision").value(1))
             .andExpect(jsonPath("$.payload.value").value("Lesson"))
@@ -53,8 +52,7 @@ class ContentStudioIntegrationTests {
                 post("/api/v1/content/$lessonId/submit")
                     .with(user("teacher").roles("TEACHER"))
                     .accept(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.state").value("SUBMITTED"))
 
         mockMvc
@@ -62,8 +60,7 @@ class ContentStudioIntegrationTests {
                 post("/api/v1/content/$lessonId/review/start")
                     .with(user("reviewer").roles("REVIEWER"))
                     .accept(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.state").value("UNDER_REVIEW"))
 
         mockMvc
@@ -72,8 +69,7 @@ class ContentStudioIntegrationTests {
                     .with(user("reviewer").roles("REVIEWER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(mapOf("reason" to "Improve the exercise wording."))),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.state").value("UNDER_REVIEW"))
 
         mockMvc
@@ -81,8 +77,7 @@ class ContentStudioIntegrationTests {
                 post("/api/v1/content/$lessonId/review/approve")
                     .with(user("reviewer").roles("REVIEWER"))
                     .accept(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.state").value("APPROVED"))
 
         mockMvc
@@ -90,8 +85,7 @@ class ContentStudioIntegrationTests {
                 post("/api/v1/content/$lessonId/publish")
                     .with(user("reviewer").roles("REVIEWER"))
                     .accept(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.state").value("PUBLISHED"))
 
         mockMvc
@@ -99,8 +93,7 @@ class ContentStudioIntegrationTests {
                 get("/api/v1/content/$lessonId/review-history")
                     .with(user("reviewer").roles("REVIEWER"))
                     .accept(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(5))
             .andExpect(jsonPath("$[1].action").value("START_REVIEW"))
             .andExpect(jsonPath("$[2].action").value("FEEDBACK"))
@@ -111,8 +104,7 @@ class ContentStudioIntegrationTests {
                 post("/api/v1/content/$lessonId/archive")
                     .with(user("reviewer").roles("REVIEWER"))
                     .accept(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.state").value("ARCHIVED"))
     }
 
@@ -126,8 +118,7 @@ class ContentStudioIntegrationTests {
                 post("/api/v1/content/$lessonId/publish")
                     .with(user("teacher").roles("TEACHER"))
                     .accept(MediaType.APPLICATION_PROBLEM_JSON),
-            )
-            .andExpect(status().isForbidden)
+            ).andExpect(status().isForbidden)
     }
 
     @Test
@@ -141,8 +132,7 @@ class ContentStudioIntegrationTests {
                 post("/api/v1/content/$lessonId/submit")
                     .with(user("teacher").roles("TEACHER"))
                     .accept(MediaType.APPLICATION_PROBLEM_JSON),
-            )
-            .andExpect(status().isConflict)
+            ).andExpect(status().isConflict)
             .andExpect(jsonPath("$.type").value("urn:tildash:problem:validation-failed"))
             .andExpect(jsonPath("$.errors[0].code").value("INVALID_LESSON_PARENT"))
             .andExpect(jsonPath("$.status").value(409))
@@ -156,12 +146,14 @@ class ContentStudioIntegrationTests {
         mockMvc.perform(
             post("/api/v1/content/$lessonId/submit")
                 .with(user("teacher").roles("TEACHER")),
-        ).andExpect(status().isOk)
+        )
+            .andExpect(status().isOk)
 
         mockMvc.perform(
             post("/api/v1/content/$lessonId/review/start")
                 .with(user("reviewer").roles("REVIEWER")),
-        ).andExpect(status().isOk)
+        )
+            .andExpect(status().isOk)
 
         mockMvc
             .perform(
@@ -169,8 +161,7 @@ class ContentStudioIntegrationTests {
                     .with(user("reviewer").roles("REVIEWER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(mapOf("reason" to "Fix the source citation."))),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.state").value("DRAFT"))
 
         mockMvc
@@ -178,8 +169,7 @@ class ContentStudioIntegrationTests {
                 get("/api/v1/content/$lessonId/review-history")
                     .with(user("teacher").roles("TEACHER"))
                     .accept(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$[2].action").value("REJECT"))
             .andExpect(jsonPath("$[2].reason").value("Fix the source citation."))
     }
@@ -220,8 +210,7 @@ class ContentStudioIntegrationTests {
                             revisionRequest("Updated lesson"),
                         ),
                     ),
-            )
-            .andExpect(status().isCreated)
+            ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.revision").value(2))
 
         publishLesson(lessonId)
@@ -232,8 +221,7 @@ class ContentStudioIntegrationTests {
                     .with(user("teacher").roles("TEACHER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(revisionRequest("Illegal update"))),
-            )
-            .andExpect(status().isConflict)
+            ).andExpect(status().isConflict)
     }
 
     private fun publishLesson(lessonId: String) {
@@ -241,29 +229,25 @@ class ContentStudioIntegrationTests {
             .perform(
                 post("/api/v1/content/$lessonId/submit")
                     .with(user("teacher").roles("TEACHER")),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
 
         mockMvc
             .perform(
                 post("/api/v1/content/$lessonId/review/start")
                     .with(user("reviewer").roles("REVIEWER")),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
 
         mockMvc
             .perform(
                 post("/api/v1/content/$lessonId/review/approve")
                     .with(user("reviewer").roles("REVIEWER")),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
 
         mockMvc
             .perform(
                 post("/api/v1/content/$lessonId/publish")
                     .with(user("reviewer").roles("REVIEWER")),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
     }
 
     private fun createNode(
@@ -286,7 +270,8 @@ class ContentStudioIntegrationTests {
                                     "parentId" to parentId,
                                     "sourceLocale" to "crh",
                                     "position" to 0,
-                                    "payload" to mapOf(
+                                    "payload" to
+                                        mapOf(
                                         "type" to "TEXT",
                                         "value" to value,
                                     ),
@@ -300,8 +285,7 @@ class ContentStudioIntegrationTests {
                                 ),
                             ),
                         ),
-                )
-                .andExpect(status().isCreated)
+                ).andExpect(status().isCreated)
                 .andReturn()
 
         val response = objectMapper.readTree(result.response.contentAsString)
