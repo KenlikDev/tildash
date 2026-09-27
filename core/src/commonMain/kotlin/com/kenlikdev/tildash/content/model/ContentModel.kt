@@ -15,7 +15,7 @@ value class ContentId(
     companion object {
         private val UUID_PATTERN =
             Regex(
-                "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+                "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
             )
     }
 }
@@ -27,9 +27,6 @@ value class LanguageTag(
     init {
         require(value.isNotBlank()) {
             "Language tag must not be blank."
-        }
-        require(value.length <= 35) {
-            "Language tag must not exceed 35 characters."
         }
         require(value.none(Char::isWhitespace)) {
             "Language tag must not contain whitespace."
