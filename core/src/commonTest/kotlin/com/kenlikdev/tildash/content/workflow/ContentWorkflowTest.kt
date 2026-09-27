@@ -3,9 +3,9 @@ package com.kenlikdev.tildash.content.workflow
 import com.kenlikdev.tildash.content.model.ContentState
 import com.kenlikdev.tildash.content.validation.ReviewOutcome
 import com.kenlikdev.tildash.content.validation.ReviewResult
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.Test
 import kotlin.time.Instant
 
 class ContentWorkflowTest {
@@ -15,7 +15,8 @@ class ContentWorkflowTest {
 
     @Test
     fun teacherCanSubmitDraftForReview() {
-        val transition = ContentWorkflow.transition(
+        val transition =
+            ContentWorkflow.transition(
             state = ContentState.DRAFT,
             actor = actor,
             command = ContentWorkflowCommand.SUBMIT_FOR_REVIEW,
@@ -72,7 +73,8 @@ class ContentWorkflowTest {
 
     @Test
     fun reviewerMovesSubmittedContentIntoReview() {
-        val transition = ContentWorkflow.transition(
+        val transition =
+            ContentWorkflow.transition(
             state = ContentState.SUBMITTED,
             actor = reviewer,
             command = ContentWorkflowCommand.START_REVIEW,
@@ -100,7 +102,8 @@ class ContentWorkflowTest {
 
     @Test
     fun rejectionReturnsContentToDraft() {
-        val transition = ContentWorkflow.transition(
+        val transition =
+            ContentWorkflow.transition(
             state = ContentState.UNDER_REVIEW,
             actor = reviewer,
             command = ContentWorkflowCommand.REJECT,
@@ -140,7 +143,8 @@ class ContentWorkflowTest {
 
     @Test
     fun cleanValidationAllowsPublication() {
-        val transition = ContentWorkflow.transition(
+        val transition =
+            ContentWorkflow.transition(
             state = ContentState.APPROVED,
             actor = reviewer,
             command = ContentWorkflowCommand.PUBLISH,
@@ -155,7 +159,8 @@ class ContentWorkflowTest {
 
     @Test
     fun publishedContentCanOnlyBeArchived() {
-        val transition = ContentWorkflow.transition(
+        val transition =
+            ContentWorkflow.transition(
             state = ContentState.PUBLISHED,
             actor = reviewer,
             command = ContentWorkflowCommand.ARCHIVE,
@@ -169,7 +174,8 @@ class ContentWorkflowTest {
 
     @Test
     fun reviewerFeedbackIsAuditableWithoutChangingState() {
-        val transition = ContentWorkflow.transition(
+        val transition =
+            ContentWorkflow.transition(
             state = ContentState.UNDER_REVIEW,
             actor = reviewer,
             command = ContentWorkflowCommand.ADD_FEEDBACK,
