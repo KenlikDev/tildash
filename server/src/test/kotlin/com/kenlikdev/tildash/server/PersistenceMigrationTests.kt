@@ -1,11 +1,11 @@
 package com.kenlikdev.tildash.server
 
-import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
+import kotlin.test.assertEquals
 
 @SpringBootTest
 @Import(PostgresTestConfiguration::class)
