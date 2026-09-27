@@ -269,10 +269,10 @@ class JdbcContentStudioRepository(
                     where id = :rootId
                     union all
                     select child.id, child.kind, child.parent_id, child.source_locale,
-                           child.state, child.position, child.updated_at, descendants.path || child.id
+                           child.state, child.position, child.updated_at, parent.path || child.id
                     from tildash.content_nodes child
                     join descendants parent on child.parent_id = parent.id
-                    where not child.id = any(descendants.path)
+                    where not child.id = any(parent.path)
                 )
                 select distinct on (id)
                        id, kind, parent_id, source_locale, state, position, updated_at
