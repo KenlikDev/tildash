@@ -50,8 +50,7 @@ class SecurityFoundationTests {
                 get("/api/v1/auth/me")
                     .with(user("teacher-123").roles("TEACHER", "REVIEWER"))
                     .accept(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.subject").value("teacher-123"))
             .andExpect(jsonPath("$.roles[0]").value("reviewer"))
@@ -65,8 +64,7 @@ class SecurityFoundationTests {
                 get("/api/v1/security-test/teacher")
                     .with(user("learner").roles("LEARNER"))
                     .accept(MediaType.APPLICATION_PROBLEM_JSON),
-            )
-            .andExpect(status().isForbidden)
+            ).andExpect(status().isForbidden)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("urn:tildash:problem:forbidden"))
             .andExpect(jsonPath("$.title").value("Forbidden"))
@@ -109,12 +107,10 @@ class SecurityFoundationTests {
     @TestConfiguration(proxyBeanMethods = false)
     class TestSecurityConfiguration {
         @Bean
-        fun teacherProtectedService(): TeacherProtectedService =
-            TeacherProtectedServiceImpl()
+        fun teacherProtectedService(): TeacherProtectedService = TeacherProtectedServiceImpl()
 
         @Bean
-        fun securityProbeController(service: TeacherProtectedService): SecurityProbeController =
-            SecurityProbeController(service)
+        fun securityProbeController(service: TeacherProtectedService): SecurityProbeController = SecurityProbeController(service)
     }
 
     interface TeacherProtectedService {
