@@ -36,7 +36,8 @@ class ContentSchemaTests {
                 where table_schema = 'tildash'
                 """.trimIndent(),
                 String::class.java,
-            ).toSet()
+            )
+            .toSet()
 
         assertEquals(expectedTables, actualTables.intersect(expectedTables))
     }
