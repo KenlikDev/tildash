@@ -12,7 +12,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import com.kenlikdev.tildash.server.security.JwtRoleAuthenticationConverter
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -44,11 +44,11 @@ class SecurityFoundationTests {
     }
 
     @Test
-    @WithMockUser(username = "teacher-123", roles = ["TEACHER", "REVIEWER"])
     fun authenticatedIdentityUsesApplicationContract() {
         mockMvc
             .perform(
                 get("/api/v1/auth/me")
+                    .with(user("teacher-123").roles("TEACHER", "REVIEWER"))
                     .accept(MediaType.APPLICATION_JSON),
             )
             .andExpect(status().isOk)
@@ -59,11 +59,11 @@ class SecurityFoundationTests {
     }
 
     @Test
-    @WithMockUser(roles = ["LEARNER"])
     fun learnerCannotInvokeTeacherOnlyUseCase() {
         mockMvc
             .perform(
                 get("/api/v1/security-test/teacher")
+                    .with(user("learner").roles("LEARNER"))
                     .accept(MediaType.APPLICATION_PROBLEM_JSON),
             )
             .andExpect(status().isForbidden)
@@ -75,11 +75,11 @@ class SecurityFoundationTests {
     }
 
     @Test
-    @WithMockUser(roles = ["TEACHER"])
     fun teacherCanInvokeTeacherOnlyUseCase() {
         mockMvc
             .perform(
                 get("/api/v1/security-test/teacher")
+                    .with(user("teacher").roles("TEACHER"))
                     .accept(MediaType.APPLICATION_JSON),
             )
             .andExpect(status().isOk)
