@@ -69,8 +69,8 @@ object ContentWorkflow {
         validation: ReviewResult,
         reason: String?,
         occurredAt: Instant,
-    ): ContentWorkflowTransition {
-        return when (command) {
+    ): ContentWorkflowTransition =
+        when (command) {
             ContentWorkflowCommand.SUBMIT_FOR_REVIEW -> {
                 requireRole(actor, WorkflowActorRole.TEACHER, WorkflowActorRole.ADMINISTRATOR)
                 requireState(state, ContentState.DRAFT, command)
