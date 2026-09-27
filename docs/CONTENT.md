@@ -164,11 +164,18 @@ The server persistence adapter owns relational mapping, JSONB encoding, transact
 
 Public HTTP DTOs must remain separate from these domain and persistence structures.
 
+## Content authoring and review
+
+The backend implements a deterministic lesson authoring and review workflow. Teachers and administrators can create content nodes and append source revisions while content is in DRAFT. Reviewers and administrators can start review, add feedback, approve, reject, publish, and archive.
+
+Submission, approval, and publication re-run deterministic validation. Published and archived content cannot be edited through the authoring workflow.
+
+The workflow history is stored as immutable database events. The durable workflow decision is recorded in ADR-0006 and the HTTP contract is documented in docs/API.md.
+
 ## Deferred work
 
 This issue does not implement:
 
-- reviewer workflow transitions;
 - identity persistence;
 - domain repository implementations;
 - moderation APIs;
