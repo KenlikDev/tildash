@@ -48,6 +48,8 @@ Content payloads are modeled in `core` as typed values (`Text`, `Vocabulary`, an
 
 The state vocabulary is draft, submitted, under review, approved, published, and archived.
 
+Deterministic content validation is implemented separately in the shared core. It validates structural, provenance/licensing, localization-lineage, payload, media, and exercise-consistency rules before review or publication. Validation warnings remain distinct from a clean pass.
+
 Issue #12 defines the state values. State transition rules remain part of the separate review workflow decision in ADR-0006.
 
 ## Alternatives considered

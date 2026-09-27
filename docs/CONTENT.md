@@ -144,6 +144,18 @@ The example or vocabulary payload can use `ContentPayload.Text` or `ContentPaylo
 
 Literary or regional forms are represented by the normal `ContentVariantType` and `LanguageTag` values.
 
+## Deterministic validation
+
+Lesson validation is implemented in core and is independent from HTTP, persistence, and AI providers.
+
+Validation produces stable issue codes with ERROR or WARNING severity and an explicit PASS, PASS_WITH_WARNINGS, or FAIL outcome.
+
+Deterministic rules cover content-tree structure, source revision presence and uniqueness, localization lineage, provenance and licensing consistency, payload compatibility, media-reference syntax, and exercise consistency.
+
+Submission is blocked by errors. Publication is allowed only for a clean PASS; PASS_WITH_WARNINGS remains explicitly distinct from PASS.
+
+AI-assisted review remains a separate future capability and cannot replace deterministic validation or turn a deterministic error into a pass.
+
 ## Boundaries
 
 The shared `core` model must not depend on Spring, JDBC, Flyway, PostgreSQL, or HTTP frameworks.
