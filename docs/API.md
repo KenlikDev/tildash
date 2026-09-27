@@ -150,3 +150,92 @@ The `subject` value is the authenticated token subject. Roles are the known appl
 Interactive KMP authentication uses Authorization Code with PKCE. KMP applications must not contain confidential client secrets and must store tokens using platform-secure mechanisms.
 
 Authentication failures return RFC 9457 Problem Details with HTTP 401. Authorization failures return RFC 9457 Problem Details with HTTP 403. Security errors must not expose tokens, stack traces, exception class names, or other security internals.
+
+
+## Content Studio workflow
+
+Content authoring and review use the /api/v1/content/** namespace.
+
+### Authoring
+
+POST /api/v1/content/nodes
+
+Creates a content node in DRAFT state and creates its first source revision.
+
+Requires TEACHER or ADMINISTRATOR.
+
+GET /api/v1/content/{contentId}/preview
+
+Returns the latest source revision for preview.
+
+Requires TEACHER, REVIEWER, or ADMINISTRATOR.
+
+POST /api/v1/content/{contentId}/source-revisions
+
+Appends a new source revision. Editing is permitted only while the node is DRAFT.
+
+Requires TEACHER or ADMINISTRATOR.
+
+### Review lifecycle
+
+POST /api/v1/content/{contentId}/submit
+
+Runs deterministic lesson validation and moves a valid draft from DRAFT to SUBMITTED.
+
+Validation errors block submission.
+
+Requires TEACHER or ADMINISTRATOR.
+
+POST /api/v1/content/{contentId}/review/start
+
+Moves submitted content to UNDER_REVIEW.
+
+Requires REVIEWER or ADMINISTRATOR.
+
+POST /api/v1/content/{contentId}/review/feedback
+
+Adds auditable reviewer feedback without changing the current state.
+
+Requires REVIEWER or ADMINISTRATOR.
+
+POST /api/v1/content/{contentId}/review/approve
+
+Runs deterministic validation and moves UNDER_REVIEW content to APPROVED only when validation is a clean PASS.
+
+Requires REVIEWER or ADMINISTRATOR.
+
+POST /api/v1/content/{contentId}/review/reject
+
+Requires a non-blank reason and returns UNDER_REVIEW content to DRAFT.
+
+Requires REVIEWER or ADMINISTRATOR.
+
+POST /api/v1/content/{contentId}/publish
+
+Re-runs deterministic validation, moves APPROVED content to PUBLISHED, and creates an immutable publication snapshot.
+
+Requires REVIEWER or ADMINISTRATOR.
+
+POST /api/v1/content/{contentId}/archive
+
+Moves PUBLISHED content to ARCHIVED.
+
+Requires REVIEWER or ADMINISTRATOR.
+
+GET /api/v1/content/{contentId}/review-history
+
+Returns immutable workflow and feedback history.
+
+Requires TEACHER, REVIEWER, or ADMINISTRATOR.
+
+### Workflow invariants
+
+- Teachers cannot publish or approve directly.
+- Review state transitions are server-side rules, not UI conventions.
+- Validation errors are blocking.
+- Warnings remain distinct from a clean pass.
+- Published versions reference immutable source/provenance history.
+- Published and archived content cannot be edited through the authoring endpoint.
+- Workflow history is append-only.
+
+Malformed content requests use RFC 9457 Problem Details. Validation and workflow conflicts use stable problem types rather than framework exception names.
