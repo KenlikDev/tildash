@@ -110,7 +110,8 @@ class SecurityFoundationTests {
         fun teacherProtectedService(): TeacherProtectedService = TeacherProtectedServiceImpl()
 
         @Bean
-        fun securityProbeController(service: TeacherProtectedService): SecurityProbeController = SecurityProbeController(service)
+        fun securityProbeController(service: TeacherProtectedService): SecurityProbeController =
+            SecurityProbeController(service)
     }
 
     interface TeacherProtectedService {
