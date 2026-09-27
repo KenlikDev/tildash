@@ -349,7 +349,7 @@ class ContentStudioService(
             when (kind) {
                 ContentKind.COURSE,
                 ContentKind.LESSON,
-                ContentKind.EXAMPLE, -> {
+                ContentKind.EXAMPLE -> {
                     payload is ContentPayload.Text
                 }
 
@@ -441,11 +441,7 @@ private fun ProvenanceRequest.toDomain(): Provenance =
         verifiedAt = null,
     )
 
-private fun AuthenticatedIdentity.asPersonReference() =
-    PersonReference(
-        displayName = subject,
-        externalId = subject,
-    )
+private fun AuthenticatedIdentity.asPersonReference() = PersonReference(displayName = subject, externalId = subject)
 
 private fun kotlin.time.Instant.toJavaOffsetDateTime() =
     java.time.Instant
