@@ -78,8 +78,7 @@ class SecurityFoundationTests {
                 get("/api/v1/security-test/teacher")
                     .with(user("teacher").roles("TEACHER"))
                     .accept(MediaType.APPLICATION_JSON),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(content().string("teacher-access"))
     }
 
@@ -110,7 +109,7 @@ class SecurityFoundationTests {
 
         @Bean
         fun securityProbeController(
-            service: TeacherProtectedService,
+            service: TeacherProtectedService
         ): SecurityProbeController = SecurityProbeController(service)
     }
 
