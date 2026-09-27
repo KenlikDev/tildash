@@ -131,7 +131,7 @@ class ContentValidator {
                 issues += error(
                     ValidationCode.DUPLICATE_CONTENT_ID,
                     "Content ID '${id.value}' appears more than once.",
-                    "nodes[$$id]",
+                    "nodes[$id]",
                 )
             }
 
@@ -142,21 +142,21 @@ class ContentValidator {
                     issues += error(
                         ValidationCode.INVALID_ROOT_PARENT,
                         "Course '${node.id.value}' must not have a parent.",
-                        "nodes[$${node.id.value}].parentId",
+                        "nodes[${node.id.value}].parentId",
                     )
 
                 node.kind != ContentKind.COURSE && node.parentId == null ->
                     issues += error(
                         ValidationCode.MISSING_PARENT,
                         "Non-course node '${node.id.value}' must have a parent.",
-                        "nodes[$${node.id.value}].parentId",
+                        "nodes[${node.id.value}].parentId",
                     )
 
                 node.parentId != null && node.parentId !in nodeIdSet ->
                     issues += error(
                         ValidationCode.MISSING_PARENT,
                         "Parent '${node.parentId.value}' for node '${node.id.value}' is missing.",
-                        "nodes[$${node.id.value}].parentId",
+                        "nodes[${node.id.value}].parentId",
                     )
             }
         }
@@ -199,7 +199,7 @@ class ContentValidator {
                         issues += error(
                             ValidationCode.CONTENT_TREE_CYCLE,
                             "Content tree contains a parent cycle involving '${current.value}'.",
-                            "nodes[$$current]",
+                            "nodes[$current]",
                         )
                     }
                     break
@@ -224,7 +224,7 @@ class ContentValidator {
                         issues += error(
                             ValidationCode.DUPLICATE_SIBLING_POSITION,
                             "Sibling position $position is used by multiple nodes: $ids.",
-                            "nodes[parent=$$parentId]",
+                            "nodes[parent=$parentId]",
                         )
                     }
             }
@@ -246,7 +246,7 @@ class ContentValidator {
                         issues += error(
                             ValidationCode.DUPLICATE_SOURCE_REVISION,
                             "Source revision $revision for '${contentId.value}' is duplicated.",
-                            "sourceRevisions[$$contentId]",
+                            "sourceRevisions[$contentId]",
                         )
                     }
                 }
@@ -268,7 +268,7 @@ class ContentValidator {
                     issues += error(
                         ValidationCode.MISSING_SOURCE_REVISION,
                         "Content node '${node.id.value}' has no source revision.",
-                        "sourceRevisions[$${node.id.value}]",
+                        "sourceRevisions[${node.id.value}]",
                     )
                 }
             }
@@ -285,7 +285,7 @@ class ContentValidator {
                 issues += warning(
                     ValidationCode.UNKNOWN_COPYRIGHT_STATUS,
                     "Copyright status for '${node.id.value}' is unknown.",
-                    "sourceRevisions[$${node.id.value}].provenance.copyrightStatus",
+                    "sourceRevisions[${node.id.value}].provenance.copyrightStatus",
                 )
 
             CopyrightStatus.LICENSED,
@@ -293,8 +293,8 @@ class ContentValidator {
                 if (provenance.license == null) {
                     issues += error(
                         ValidationCode.MISSING_LICENSE,
-                        "Content '${node.id.value}' declares $${provenance.copyrightStatus} but has no license reference.",
-                        "sourceRevisions[$${node.id.value}].provenance.license",
+                        "Content '${node.id.value}' declares ${provenance.copyrightStatus} but has no license reference.",
+                        "sourceRevisions[${node.id.value}].provenance.license",
                     )
                 }
 
@@ -305,13 +305,13 @@ class ContentValidator {
                             warning(
                                 ValidationCode.MISSING_LICENSE,
                                 "In-copyright content '${node.id.value}' has no license or permission reference yet.",
-                                "sourceRevisions[$${node.id.value}].provenance.license",
+                                "sourceRevisions[${node.id.value}].provenance.license",
                             )
                         } else {
                             error(
                                 ValidationCode.MISSING_LICENSE,
                                 "In-copyright content '${node.id.value}' cannot pass review without a license or permission reference.",
-                                "sourceRevisions[$${node.id.value}].provenance.license",
+                                "sourceRevisions[${node.id.value}].provenance.license",
                             )
                         }
                 }
@@ -321,7 +321,7 @@ class ContentValidator {
                     issues += error(
                         ValidationCode.RESTRICTED_CONTENT_PUBLISHED,
                         "Restricted content '${node.id.value}' cannot be published.",
-                        "nodes[$${node.id.value}].state",
+                        "nodes[${node.id.value}].state",
                     )
                 }
 
@@ -347,8 +347,8 @@ class ContentValidator {
                 if (duplicates.size > 1) {
                     issues += error(
                         ValidationCode.DUPLICATE_LOCALIZATION_REVISION,
-                        "Localization revision $${key.third} for '${key.first.value}' and locale '${key.second.value}' is duplicated.",
-                        "localizationRevisions[$$key]",
+                        "Localization revision ${key.third} for '${key.first.value}' and locale '${key.second.value}' is duplicated.",
+                        "localizationRevisions[$key]",
                     )
                 }
             }
@@ -358,7 +358,7 @@ class ContentValidator {
                 issues += error(
                     ValidationCode.INVALID_LOCALIZATION_LINEAGE,
                     "Localization '${revision.contentId.value}' is outside the validated lesson.",
-                    "localizationRevisions[$${revision.contentId.value}]",
+                    "localizationRevisions[${revision.contentId.value}]",
                 )
                 return@forEach
             }
@@ -371,8 +371,8 @@ class ContentValidator {
             if (!sourceExists) {
                 issues += error(
                     ValidationCode.INVALID_LOCALIZATION_LINEAGE,
-                    "Localization revision $${revision.revision} for '${revision.contentId.value}' derives from missing source revision $${revision.derivedFromSourceRevision}.",
-                    "localizationRevisions[$${revision.contentId.value}].derivedFromSourceRevision",
+                    "Localization revision ${revision.revision} for '${revision.contentId.value}' derives from missing source revision ${revision.derivedFromSourceRevision}.",
+                    "localizationRevisions[${revision.contentId.value}].derivedFromSourceRevision",
                 )
             }
         }
@@ -396,7 +396,7 @@ class ContentValidator {
                 issues += error(
                     ValidationCode.UNKNOWN_EXERCISE_CONTENT,
                     "Exercises are attached to content '${contentId.value}', which is outside the validated lesson.",
-                    "exercises[$$contentId]",
+                    "exercises[$contentId]",
                 )
             }
 
@@ -405,7 +405,7 @@ class ContentValidator {
                     issues += error(
                         ValidationCode.DUPLICATE_EXERCISE_ID,
                         "Exercise '${exercise.id}' is duplicated.",
-                        "exercises[$${contentId}][${exercise.id}]",
+                        "exercises[${contentId}][${exercise.id}]",
                     )
                 }
 
@@ -413,7 +413,7 @@ class ContentValidator {
                     issues += error(
                         ValidationCode.EMPTY_EXERCISE_PROMPT,
                         "Exercise '${exercise.id}' must have a non-blank prompt.",
-                        "exercises[$${contentId}][${exercise.id}].prompt",
+                        "exercises[${contentId}][${exercise.id}].prompt",
                     )
                 }
 
@@ -421,7 +421,7 @@ class ContentValidator {
                     issues += error(
                         ValidationCode.EMPTY_EXPECTED_ANSWER,
                         "Exercise '${exercise.id}' must define at least one expected answer.",
-                        "exercises[$${contentId}][${exercise.id}].expectedAnswers",
+                        "exercises[${contentId}][${exercise.id}].expectedAnswers",
                     )
                 }
 
@@ -430,7 +430,7 @@ class ContentValidator {
                     issues += error(
                         ValidationCode.EMPTY_EXPECTED_ANSWER,
                         "Exercise '${exercise.id}' contains a blank expected answer.",
-                        "exercises[$${contentId}][${exercise.id}].expectedAnswers",
+                        "exercises[${contentId}][${exercise.id}].expectedAnswers",
                     )
                 }
 
@@ -438,7 +438,7 @@ class ContentValidator {
                     issues += error(
                         ValidationCode.DUPLICATE_EXPECTED_ANSWER,
                         "Exercise '${exercise.id}' contains duplicate expected answers.",
-                        "exercises[$${contentId}][${exercise.id}].expectedAnswers",
+                        "exercises[${contentId}][${exercise.id}].expectedAnswers",
                     )
                 }
 
@@ -448,7 +448,7 @@ class ContentValidator {
                         issues += error(
                             ValidationCode.EXERCISE_OPTION_SET_INVALID,
                             "Exercise '${exercise.id}' must have at least two non-blank options.",
-                            "exercises[$${contentId}][${exercise.id}].options",
+                            "exercises[${contentId}][${exercise.id}].options",
                         )
                     }
 
@@ -456,7 +456,7 @@ class ContentValidator {
                         issues += error(
                             ValidationCode.EXERCISE_OPTION_SET_INVALID,
                             "Exercise '${exercise.id}' must not contain duplicate options.",
-                            "exercises[$${contentId}][${exercise.id}].options",
+                            "exercises[${contentId}][${exercise.id}].options",
                         )
                     }
 
@@ -464,7 +464,7 @@ class ContentValidator {
                         issues += error(
                             ValidationCode.EXPECTED_ANSWER_NOT_IN_OPTIONS,
                             "Every expected answer for exercise '${exercise.id}' must be present in its option set.",
-                            "exercises[$${contentId}][${exercise.id}]",
+                            "exercises[${contentId}][${exercise.id}]",
                         )
                     }
                 }
@@ -492,7 +492,7 @@ class ContentValidator {
                             issues += error(
                                 ValidationCode.INVALID_CONTENT_PAYLOAD,
                                 "Content kind '${node.kind}' requires a text payload.",
-                                "sourceRevisions[$$contentId].payload",
+                                "sourceRevisions[$contentId].payload",
                             )
                         }
 
@@ -501,7 +501,7 @@ class ContentValidator {
                             issues += error(
                                 ValidationCode.INVALID_CONTENT_PAYLOAD,
                                 "Vocabulary content requires a vocabulary payload.",
-                                "sourceRevisions[$$contentId].payload",
+                                "sourceRevisions[$contentId].payload",
                             )
 
                     ContentKind.MEDIA_REFERENCE -> {
@@ -509,7 +509,7 @@ class ContentValidator {
                             issues += error(
                                 ValidationCode.INVALID_MEDIA_REFERENCE_PAYLOAD,
                                 "Media reference content requires a media-reference payload.",
-                                "sourceRevisions[$$contentId].payload",
+                                "sourceRevisions[$contentId].payload",
                             )
                         } else {
                             validateMediaReference(contentId, payload, issues)
@@ -528,7 +528,7 @@ class ContentValidator {
             issues += error(
                 ValidationCode.INVALID_MEDIA_URI,
                 "Media URI '${payload.uri}' must contain a valid URI scheme and must not contain whitespace.",
-                "sourceRevisions[$$contentId].payload.uri",
+                "sourceRevisions[$contentId].payload.uri",
             )
         }
 
@@ -537,7 +537,7 @@ class ContentValidator {
             issues += error(
                 ValidationCode.INVALID_MEDIA_TYPE,
                 "Media type '${mediaType}' must use type/subtype syntax.",
-                "sourceRevisions[$$contentId].payload.mediaType",
+                "sourceRevisions[$contentId].payload.mediaType",
             )
         }
     }
