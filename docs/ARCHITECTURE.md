@@ -106,9 +106,11 @@ The API compatibility rules are defined in `docs/ENGINEERING_POLICIES.md`.
 
 Persistence is an infrastructure concern behind repository interfaces or equivalent application boundaries.
 
-The repository currently has no production persistence implementation. When introduced, schema changes must use explicit, versioned migrations and must be compatible with the deployment strategy.
+The backend persistence foundation uses PostgreSQL, Spring Data JDBC, and Flyway. Schema changes are explicit, versioned migrations under `server/src/main/resources/db/migration/`.
 
-The migration policy is defined in `docs/ENGINEERING_POLICIES.md` and ADR-0004.
+No domain repository interface or aggregate table is introduced yet because no owning persistence contract has been defined. The persistence infrastructure remains behind application/domain boundaries.
+
+Local PostgreSQL setup and the test database strategy are documented in `docs/DATABASE.md`. The durable decision is recorded in ADR-0004.
 
 ## Content and provenance boundary
 
