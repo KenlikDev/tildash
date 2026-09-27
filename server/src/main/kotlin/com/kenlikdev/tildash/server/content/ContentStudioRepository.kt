@@ -18,16 +18,16 @@ import com.kenlikdev.tildash.content.workflow.ContentWorkflowEvent
 import com.kenlikdev.tildash.server.api.content.PayloadRequest
 import com.kenlikdev.tildash.server.api.content.PayloadType
 import com.kenlikdev.tildash.server.api.content.ProvenanceRequest
-import java.sql.ResultSet
-import java.sql.Timestamp
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.util.UUID
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ObjectMapper
+import java.sql.ResultSet
+import java.sql.Timestamp
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.util.UUID
 
 data class StoredContentNode(
     val node: ContentNode,
@@ -536,22 +536,27 @@ class JdbcContentStudioRepository(
 
     private fun encodePayload(request: PayloadRequest): String =
         when (request.type) {
-            PayloadType.TEXT ->
+            PayloadType.TEXT -> {
                 objectMapper.writeValueAsString(mapOf("value" to requireNotNull(request.value)))
-            PayloadType.VOCABULARY ->
+            }
+
+            PayloadType.VOCABULARY -> {
                 objectMapper.writeValueAsString(
                     mapOf(
                         "term" to requireNotNull(request.term),
                         "gloss" to requireNotNull(request.gloss),
                     ),
                 )
-            PayloadType.MEDIA_REFERENCE ->
+            }
+
+            PayloadType.MEDIA_REFERENCE -> {
                 objectMapper.writeValueAsString(
                     mapOf(
                         "uri" to requireNotNull(request.uri),
                         "mediaType" to request.mediaType,
                     ),
                 )
+            }
         }
 
     private fun decodePayload(
@@ -560,24 +565,36 @@ class JdbcContentStudioRepository(
     ): ContentPayload {
         val tree = objectMapper.readTree(json)
         return when (kind) {
-            ContentKind.VOCABULARY ->
+            ContentKind.VOCABULARY -> {
                 ContentPayload.Vocabulary(
-                    term = tree.get("term")?.asText() ?: throw IllegalArgumentException("Vocabulary payload is missing term."),
-                    gloss = tree.get("gloss")?.asText() ?: throw IllegalArgumentException("Vocabulary payload is missing gloss."),
+                    term =
+                        tree.get("term")?.asText()
+                            ?: throw IllegalArgumentException("Vocabulary payload is missing term."),
+                    gloss =
+                        tree.get("gloss")?.asText()
+                            ?: throw IllegalArgumentException("Vocabulary payload is missing gloss."),
                 )
+            }
 
-            ContentKind.MEDIA_REFERENCE ->
+            ContentKind.MEDIA_REFERENCE -> {
                 ContentPayload.MediaReference(
-                    uri = tree.get("uri")?.asText() ?: throw IllegalArgumentException("Media payload is missing uri."),
+                    uri =
+                        tree.get("uri")?.asText()
+                            ?: throw IllegalArgumentException("Media payload is missing uri."),
                     mediaType = tree.get("mediaType")?.asText(),
                 )
+            }
 
-            else ->
+            else -> {
                 ContentPayload.Text(
-                    value = tree.get("value")?.asText() ?: throw IllegalArgumentException("Text payload is missing value."),
+                    value =
+                        tree.get("value")?.asText()
+                            ?: throw IllegalArgumentException("Text payload is missing value."),
                 )
+            }
         }
     }
+
 }
 
 private fun kotlin.time.Instant.toJavaOffsetDateTime(): OffsetDateTime =
@@ -585,8 +602,7 @@ private fun kotlin.time.Instant.toJavaOffsetDateTime(): OffsetDateTime =
         .ofEpochSecond(epochSeconds, nanosecondsOfSecond.toLong())
         .atOffset(ZoneOffset.UTC)
 
-private fun Timestamp.toKotlinInstant() =
-    kotlin.time.Instant.fromEpochMilliseconds(toInstant().toEpochMilli())
+private fun Timestamp.toKotlinInstant() = kotlin.time.Instant.fromEpochMilliseconds(toInstant().toEpochMilli())
 
 private fun Timestamp.toOffsetDateTimeUtc(): OffsetDateTime =
     toInstant().atOffset(ZoneOffset.UTC)
