@@ -4,7 +4,7 @@ CREATE TABLE tildash.content_nodes (
         kind IN ('COURSE', 'LESSON', 'EXAMPLE', 'VOCABULARY', 'MEDIA_REFERENCE')
     ),
     parent_id UUID REFERENCES tildash.content_nodes(id),
-    source_locale VARCHAR(35) NOT NULL,
+    source_locale TEXT NOT NULL,
     state VARCHAR(32) NOT NULL CHECK (
         state IN ('DRAFT', 'SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'PUBLISHED', 'ARCHIVED')
     ),
@@ -24,7 +24,7 @@ CREATE TABLE tildash.content_provenance (
     source_locator TEXT,
     author_name TEXT,
     speaker_name TEXT,
-    dialect VARCHAR(35),
+    dialect TEXT,
     variant_type VARCHAR(32) CHECK (
         variant_type IS NULL
         OR variant_type IN ('LITERARY', 'COLLOQUIAL', 'REGIONAL', 'DIALECTAL', 'HISTORICAL', 'VARIANT')
@@ -61,7 +61,7 @@ CREATE TABLE tildash.content_source_revisions (
 CREATE TABLE tildash.content_localization_revisions (
     id UUID PRIMARY KEY,
     content_node_id UUID NOT NULL REFERENCES tildash.content_nodes(id),
-    locale VARCHAR(35) NOT NULL,
+    locale TEXT NOT NULL,
     revision_no INTEGER NOT NULL CHECK (revision_no > 0),
     variant_type VARCHAR(32) NOT NULL CHECK (
         variant_type IN ('LITERARY', 'COLLOQUIAL', 'REGIONAL', 'DIALECTAL', 'HISTORICAL', 'VARIANT')
