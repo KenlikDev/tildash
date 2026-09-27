@@ -110,7 +110,9 @@ Multi-step state changes that must be atomic belong in one application-level tra
 
 Spring Data JDBC, JDBC access, Flyway, datasource configuration, and PostgreSQL-specific SQL belong to the server infrastructure boundary.
 
-Application and domain code should depend on explicit repository/application contracts rather than JDBC connections, Spring Data implementations, Flyway APIs, or PostgreSQL driver types.
+Application and domain code should depend on explicit repository/application contracts rather than JDBC connections, Spring Data implementations, Flyway APIs, PostgreSQL driver types, or JSONB persistence encodings.
+
+The canonical content model is documented in `docs/CONTENT.md`.
 
 ## Migration safety
 
