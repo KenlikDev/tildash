@@ -2,7 +2,6 @@ package com.kenlikdev.tildash.content.model
 
 import kotlin.time.Instant
 
-@JvmInline
 value class ContentId(
     val value: String,
 ) {
@@ -20,7 +19,6 @@ value class ContentId(
     }
 }
 
-@JvmInline
 value class LanguageTag(
     val value: String,
 ) {
