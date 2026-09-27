@@ -5,8 +5,8 @@ import com.kenlikdev.tildash.content.model.ContentKind
 import com.kenlikdev.tildash.content.model.ContentNode
 import com.kenlikdev.tildash.content.model.ContentPayload
 import com.kenlikdev.tildash.content.model.ContentState
-import com.kenlikdev.tildash.content.model.CopyrightStatus
 import com.kenlikdev.tildash.content.model.ContentVariantType
+import com.kenlikdev.tildash.content.model.CopyrightStatus
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.content.model.LicenseReference
 import com.kenlikdev.tildash.content.model.PersonReference
@@ -32,11 +32,11 @@ import com.kenlikdev.tildash.server.api.content.ReviewHistoryResponse
 import com.kenlikdev.tildash.server.security.AuthenticatedIdentity
 import com.kenlikdev.tildash.server.security.CurrentIdentityProvider
 import com.kenlikdev.tildash.server.security.Role
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.UUID
-import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
 class ContentNotFoundException(
     val contentId: ContentId,
@@ -349,10 +349,17 @@ class ContentStudioService(
             when (kind) {
                 ContentKind.COURSE,
                 ContentKind.LESSON,
-                ContentKind.EXAMPLE,
-                -> payload is ContentPayload.Text
-                ContentKind.VOCABULARY -> payload is ContentPayload.Vocabulary
-                ContentKind.MEDIA_REFERENCE -> payload is ContentPayload.MediaReference
+                ContentKind.EXAMPLE, -> {
+                    payload is ContentPayload.Text
+                }
+
+                ContentKind.VOCABULARY -> {
+                    payload is ContentPayload.Vocabulary
+                }
+
+                ContentKind.MEDIA_REFERENCE -> {
+                    payload is ContentPayload.MediaReference
+                }
             }
         if (!valid) {
             throw IllegalArgumentException("Payload type does not match content kind '$kind'.")
@@ -399,20 +406,23 @@ class ContentStudioService(
 
 private fun PayloadRequest.toDomain(): ContentPayload =
     when (type) {
-        PayloadType.TEXT ->
+        PayloadType.TEXT -> {
             ContentPayload.Text(requireNotNull(value) { "Text payload requires value." })
+        }
 
-        PayloadType.VOCABULARY ->
+        PayloadType.VOCABULARY -> {
             ContentPayload.Vocabulary(
                 term = requireNotNull(term) { "Vocabulary payload requires term." },
                 gloss = requireNotNull(gloss) { "Vocabulary payload requires gloss." },
             )
+        }
 
-        PayloadType.MEDIA_REFERENCE ->
+        PayloadType.MEDIA_REFERENCE -> {
             ContentPayload.MediaReference(
                 uri = requireNotNull(uri) { "Media payload requires uri." },
                 mediaType = mediaType,
             )
+        }
     }
 
 private fun ProvenanceRequest.toDomain(): Provenance =
@@ -442,5 +452,4 @@ private fun kotlin.time.Instant.toJavaOffsetDateTime() =
         .ofEpochSecond(epochSeconds, nanosecondsOfSecond.toLong())
         .atOffset(ZoneOffset.UTC)
 
-private fun OffsetDateTime.toKotlinInstant() =
-    kotlin.time.Instant.fromEpochMilliseconds(toInstant().toEpochMilli())
+private fun OffsetDateTime.toKotlinInstant() = kotlin.time.Instant.fromEpochMilliseconds(toInstant().toEpochMilli())
