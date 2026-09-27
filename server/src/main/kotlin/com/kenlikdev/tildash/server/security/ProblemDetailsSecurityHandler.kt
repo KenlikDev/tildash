@@ -17,8 +17,7 @@ import java.net.URI
 @Component
 class ProblemDetailsSecurityHandler(
     private val objectMapper: ObjectMapper,
-) :
-    AuthenticationEntryPoint,
+) : AuthenticationEntryPoint,
     AccessDeniedHandler {
     override fun commence(
         request: HttpServletRequest,
