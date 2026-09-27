@@ -503,6 +503,7 @@ class ContentValidator {
                                 "Vocabulary content requires a vocabulary payload.",
                                 "sourceRevisions[$contentId].payload",
                             )
+                        }
 
                     ContentKind.MEDIA_REFERENCE -> {
                         if (payload !is ContentPayload.MediaReference) {
