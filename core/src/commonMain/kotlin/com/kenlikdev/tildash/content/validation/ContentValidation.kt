@@ -101,26 +101,29 @@ class ContentValidator {
         val nodesById = input.nodes.groupBy { it.id }
 
         if (nodesById[input.lessonId].isNullOrEmpty()) {
-            issues += validationError(
-                ValidationCode.LESSON_NOT_FOUND,
-                "Lesson '${input.lessonId.value}' is not present in the content tree.",
-                "lessonId",
-            )
+            issues +=
+                validationError(
+                    ValidationCode.LESSON_NOT_FOUND,
+                    "Lesson '${input.lessonId.value}' is not present in the content tree.",
+                    "lessonId",
+                )
         } else if (nodesById.getValue(input.lessonId).size > 1) {
-            issues += validationError(
-                ValidationCode.DUPLICATE_CONTENT_ID,
-                "Lesson '${input.lessonId.value}' appears more than once.",
-                "lessonId",
-            )
+            issues +=
+                validationError(
+                    ValidationCode.DUPLICATE_CONTENT_ID,
+                    "Lesson '${input.lessonId.value}' appears more than once.",
+                    "lessonId",
+                )
         }
 
         val lesson = nodesById[input.lessonId]?.singleOrNull()
         if (lesson != null && lesson.kind != ContentKind.LESSON) {
-            issues += validationError(
-                ValidationCode.TARGET_IS_NOT_LESSON,
-                "Validation target '${input.lessonId.value}' must be a lesson node.",
-                "lessonId",
-            )
+            issues +=
+                validationError(
+                    ValidationCode.TARGET_IS_NOT_LESSON,
+                    "Validation target '${input.lessonId.value}' must be a lesson node.",
+                    "lessonId",
+                )
         }
 
         nodesById
@@ -128,47 +131,52 @@ class ContentValidator {
             .keys
             .filter { it != input.lessonId }
             .forEach { id ->
-                issues += validationError(
-                    ValidationCode.DUPLICATE_CONTENT_ID,
-                    "Content ID '${id.value}' appears more than once.",
-                    "nodes[$id]",
-                )
+                issues +=
+                    validationError(
+                        ValidationCode.DUPLICATE_CONTENT_ID,
+                        "Content ID '${id.value}' appears more than once.",
+                        "nodes[$id]",
+                    )
             }
 
         val nodeIdSet = nodesById.keys
         input.nodes.forEach { node ->
             when {
                 node.kind == ContentKind.COURSE && node.parentId != null ->
-                    issues += validationError(
-                        ValidationCode.INVALID_ROOT_PARENT,
-                        "Course '${node.id.value}' must not have a parent.",
-                        "nodes[${node.id.value}].parentId",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.INVALID_ROOT_PARENT,
+                            "Course '${node.id.value}' must not have a parent.",
+                            "nodes[${node.id.value}].parentId",
+                        )
 
                 node.kind != ContentKind.COURSE && node.parentId == null ->
-                    issues += validationError(
-                        ValidationCode.MISSING_PARENT,
-                        "Non-course node '${node.id.value}' must have a parent.",
-                        "nodes[${node.id.value}].parentId",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.MISSING_PARENT,
+                            "Non-course node '${node.id.value}' must have a parent.",
+                            "nodes[${node.id.value}].parentId",
+                        )
 
                 node.parentId != null && node.parentId !in nodeIdSet ->
-                    issues += validationError(
-                        ValidationCode.MISSING_PARENT,
-                        "Parent '${node.parentId.value}' for node '${node.id.value}' is missing.",
-                        "nodes[${node.id.value}].parentId",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.MISSING_PARENT,
+                            "Parent '${node.parentId.value}' for node '${node.id.value}' is missing.",
+                            "nodes[${node.id.value}].parentId",
+                        )
             }
         }
 
         if (lesson != null) {
             val parent = lesson.parentId?.let { nodesById[it]?.singleOrNull() }
             if (parent != null && parent.kind != ContentKind.COURSE) {
-                issues += validationError(
-                    ValidationCode.INVALID_LESSON_PARENT,
-                    "Lesson '${lesson.id.value}' must be a direct child of a course.",
-                    "lesson.parentId",
-                )
+                issues +=
+                    validationError(
+                        ValidationCode.INVALID_LESSON_PARENT,
+                        "Lesson '${lesson.id.value}' must be a direct child of a course.",
+                        "lesson.parentId",
+                    )
             }
 
             validateTreeCycles(input.nodes, issues)
@@ -196,11 +204,12 @@ class ContentValidator {
             while (current != null) {
                 if (!visited.add(current)) {
                     if (reported.add(current)) {
-                        issues += validationError(
-                            ValidationCode.CONTENT_TREE_CYCLE,
-                            "Content tree contains a parent cycle involving '${current.value}'.",
-                            "nodes[$current]",
-                        )
+                        issues +=
+                            validationError(
+                                ValidationCode.CONTENT_TREE_CYCLE,
+                                "Content tree contains a parent cycle involving '${current.value}'.",
+                                "nodes[$current]",
+                            )
                     }
                     break
                 }
@@ -221,11 +230,12 @@ class ContentValidator {
                     .filterValues { it.size > 1 }
                     .forEach { (position, duplicates) ->
                         val ids = duplicates.joinToString { it.id.value }
-                        issues += validationError(
-                            ValidationCode.DUPLICATE_SIBLING_POSITION,
-                            "Sibling position $position is used by multiple nodes: $ids.",
-                            "nodes[parent=$parentId]",
-                        )
+                        issues +=
+                            validationError(
+                                ValidationCode.DUPLICATE_SIBLING_POSITION,
+                                "Sibling position $position is used by multiple nodes: $ids.",
+                                "nodes[parent=$parentId]",
+                            )
                     }
             }
     }
@@ -243,11 +253,12 @@ class ContentValidator {
                 .filterValues { it.size > 1 }
                 .forEach { (revision, duplicates) ->
                     if (duplicates.size > 1) {
-                        issues += validationError(
-                            ValidationCode.DUPLICATE_SOURCE_REVISION,
-                            "Source revision $revision for '${contentId.value}' is duplicated.",
-                            "sourceRevisions[$contentId]",
-                        )
+                        issues +=
+                            validationError(
+                                ValidationCode.DUPLICATE_SOURCE_REVISION,
+                                "Source revision $revision for '${contentId.value}' is duplicated.",
+                                "sourceRevisions[$contentId]",
+                            )
                     }
                 }
 
@@ -265,11 +276,12 @@ class ContentValidator {
             .filter { it.id in descendants && it.kind != ContentKind.COURSE }
             .forEach { node ->
                 if (revisionsByContent[node.id].isNullOrEmpty()) {
-                    issues += validationError(
-                        ValidationCode.MISSING_SOURCE_REVISION,
-                        "Content node '${node.id.value}' has no source revision.",
-                        "sourceRevisions[${node.id.value}]",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.MISSING_SOURCE_REVISION,
+                            "Content node '${node.id.value}' has no source revision.",
+                            "sourceRevisions[${node.id.value}]",
+                        )
                 }
             }
     }
@@ -281,51 +293,69 @@ class ContentValidator {
     ) {
         val provenance = revision.provenance
         when (provenance.copyrightStatus) {
-            CopyrightStatus.UNKNOWN ->
-                issues += validationWarning(
-                    ValidationCode.UNKNOWN_COPYRIGHT_STATUS,
-                    "Copyright status for '${node.id.value}' is unknown.",
-                    "sourceRevisions[${node.id.value}].provenance.copyrightStatus",
-                )
-
-            CopyrightStatus.LICENSED,
-            CopyrightStatus.PERMISSION_GRANTED ->
-                if (provenance.license == null) {
-                    issues += validationError(
-                        ValidationCode.MISSING_LICENSE,
-                        "Content '${node.id.value}' declares ${provenance.copyrightStatus} but has no license reference.",
-                        "sourceRevisions[${node.id.value}].provenance.license",
+            CopyrightStatus.UNKNOWN -> {
+                issues +=
+                    validationWarning(
+                        ValidationCode.UNKNOWN_COPYRIGHT_STATUS,
+                        "Copyright status for '${node.id.value}' is unknown.",
+                        "sourceRevisions[${node.id.value}].provenance.copyrightStatus",
                     )
-                }
+            }
 
-            CopyrightStatus.IN_COPYRIGHT ->
+            CopyrightStatus.LICENSED -> {
                 if (provenance.license == null) {
                     issues +=
-                        if (node.state == ContentState.DRAFT || node.state == ContentState.SUBMITTED) {
+                        validationError(
+                            ValidationCode.MISSING_LICENSE,
+                            "Content '${node.id.value}' declares ${provenance.copyrightStatus} but has no license reference.",
+                            "sourceRevisions[${node.id.value}].provenance.license",
+                        )
+                }
+            }
+
+            CopyrightStatus.PERMISSION_GRANTED -> {
+                if (provenance.license == null) {
+                    issues +=
+                        validationError(
+                            ValidationCode.MISSING_LICENSE,
+                            "Content '${node.id.value}' declares ${provenance.copyrightStatus} but has no license reference.",
+                            "sourceRevisions[${node.id.value}].provenance.license",
+                        )
+                }
+            }
+
+            CopyrightStatus.IN_COPYRIGHT -> {
+                if (provenance.license == null) {
+                    if (node.state == ContentState.DRAFT || node.state == ContentState.SUBMITTED) {
+                        issues +=
                             validationWarning(
                                 ValidationCode.MISSING_LICENSE,
                                 "In-copyright content '${node.id.value}' has no license or permission reference yet.",
                                 "sourceRevisions[${node.id.value}].provenance.license",
                             )
-                        } else {
+                    } else {
+                        issues +=
                             validationError(
                                 ValidationCode.MISSING_LICENSE,
                                 "In-copyright content '${node.id.value}' cannot pass review without a license or permission reference.",
                                 "sourceRevisions[${node.id.value}].provenance.license",
                             )
-                        }
+                    }
                 }
+            }
 
-            CopyrightStatus.RESTRICTED ->
+            CopyrightStatus.RESTRICTED -> {
                 if (node.state == ContentState.PUBLISHED) {
-                    issues += validationError(
-                        ValidationCode.RESTRICTED_CONTENT_PUBLISHED,
-                        "Restricted content '${node.id.value}' cannot be published.",
-                        "nodes[${node.id.value}].state",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.RESTRICTED_CONTENT_PUBLISHED,
+                            "Restricted content '${node.id.value}' cannot be published.",
+                            "nodes[${node.id.value}].state",
+                        )
                 }
+            }
 
-            CopyrightStatus.PUBLIC_DOMAIN -> Unit
+            CopyrightStatus.PUBLIC_DOMAIN -> {}
         }
     }
 
@@ -345,21 +375,23 @@ class ContentValidator {
             .filterValues { it.size > 1 }
             .forEach { (key, duplicates) ->
                 if (duplicates.size > 1) {
-                    issues += validationError(
-                        ValidationCode.DUPLICATE_LOCALIZATION_REVISION,
-                        "Localization revision ${key.third} for '${key.first.value}' and locale '${key.second.value}' is duplicated.",
-                        "localizationRevisions[$key]",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.DUPLICATE_LOCALIZATION_REVISION,
+                            "Localization revision ${key.third} for '${key.first.value}' and locale '${key.second.value}' is duplicated.",
+                            "localizationRevisions[$key]",
+                        )
                 }
             }
 
         input.localizationRevisions.forEach { revision ->
             if (revision.contentId !in nodeIdSet || revision.contentId !in descendants) {
-                issues += validationError(
-                    ValidationCode.INVALID_LOCALIZATION_LINEAGE,
-                    "Localization '${revision.contentId.value}' is outside the validated lesson.",
-                    "localizationRevisions[${revision.contentId.value}]",
-                )
+                issues +=
+                    validationError(
+                        ValidationCode.INVALID_LOCALIZATION_LINEAGE,
+                        "Localization '${revision.contentId.value}' is outside the validated lesson.",
+                        "localizationRevisions[${revision.contentId.value}]",
+                    )
                 return@forEach
             }
 
@@ -369,11 +401,12 @@ class ContentValidator {
                 }
 
             if (!sourceExists) {
-                issues += validationError(
-                    ValidationCode.INVALID_LOCALIZATION_LINEAGE,
-                    "Localization revision ${revision.revision} for '${revision.contentId.value}' derives from missing source revision ${revision.derivedFromSourceRevision}.",
-                    "localizationRevisions[${revision.contentId.value}].derivedFromSourceRevision",
-                )
+                issues +=
+                    validationError(
+                        ValidationCode.INVALID_LOCALIZATION_LINEAGE,
+                        "Localization revision ${revision.revision} for '${revision.contentId.value}' derives from missing source revision ${revision.derivedFromSourceRevision}.",
+                        "localizationRevisions[${revision.contentId.value}].derivedFromSourceRevision",
+                    )
             }
         }
     }
@@ -393,79 +426,88 @@ class ContentValidator {
 
         input.exercisesByContentId.forEach { (contentId, exercises) ->
             if (contentId !in nodeIdSet || contentId !in descendants) {
-                issues += validationError(
-                    ValidationCode.UNKNOWN_EXERCISE_CONTENT,
-                    "Exercises are attached to content '${contentId.value}', which is outside the validated lesson.",
-                    "exercises[$contentId]",
-                )
+                issues +=
+                    validationError(
+                        ValidationCode.UNKNOWN_EXERCISE_CONTENT,
+                        "Exercises are attached to content '${contentId.value}', which is outside the validated lesson.",
+                        "exercises[$contentId]",
+                    )
             }
 
             exercises.forEach { exercise ->
                 if (!seenExerciseIds.add(exercise.id)) {
-                    issues += validationError(
-                        ValidationCode.DUPLICATE_EXERCISE_ID,
-                        "Exercise '${exercise.id}' is duplicated.",
-                        "exercises[${contentId}][${exercise.id}]",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.DUPLICATE_EXERCISE_ID,
+                            "Exercise '${exercise.id}' is duplicated.",
+                            "exercises[$contentId][${exercise.id}]",
+                        )
                 }
 
                 if (exercise.prompt.isBlank()) {
-                    issues += validationError(
-                        ValidationCode.EMPTY_EXERCISE_PROMPT,
-                        "Exercise '${exercise.id}' must have a non-blank prompt.",
-                        "exercises[${contentId}][${exercise.id}].prompt",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.EMPTY_EXERCISE_PROMPT,
+                            "Exercise '${exercise.id}' must have a non-blank prompt.",
+                            "exercises[$contentId][${exercise.id}].prompt",
+                        )
                 }
 
                 if (exercise.expectedAnswers.isEmpty()) {
-                    issues += validationError(
-                        ValidationCode.EMPTY_EXPECTED_ANSWER,
-                        "Exercise '${exercise.id}' must define at least one expected answer.",
-                        "exercises[${contentId}][${exercise.id}].expectedAnswers",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.EMPTY_EXPECTED_ANSWER,
+                            "Exercise '${exercise.id}' must define at least one expected answer.",
+                            "exercises[$contentId][${exercise.id}].expectedAnswers",
+                        )
                 }
 
                 val normalizedAnswers = exercise.expectedAnswers.map { it.trim().lowercase() }
                 if (normalizedAnswers.any { it.isBlank() }) {
-                    issues += validationError(
-                        ValidationCode.EMPTY_EXPECTED_ANSWER,
-                        "Exercise '${exercise.id}' contains a blank expected answer.",
-                        "exercises[${contentId}][${exercise.id}].expectedAnswers",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.EMPTY_EXPECTED_ANSWER,
+                            "Exercise '${exercise.id}' contains a blank expected answer.",
+                            "exercises[$contentId][${exercise.id}].expectedAnswers",
+                        )
                 }
 
                 if (normalizedAnswers.toSet().size != normalizedAnswers.size) {
-                    issues += validationError(
-                        ValidationCode.DUPLICATE_EXPECTED_ANSWER,
-                        "Exercise '${exercise.id}' contains duplicate expected answers.",
-                        "exercises[${contentId}][${exercise.id}].expectedAnswers",
-                    )
+                    issues +=
+                        validationError(
+                            ValidationCode.DUPLICATE_EXPECTED_ANSWER,
+                            "Exercise '${exercise.id}' contains duplicate expected answers.",
+                            "exercises[$contentId][${exercise.id}].expectedAnswers",
+                        )
                 }
 
                 if (exercise.options.isNotEmpty()) {
                     val normalizedOptions = exercise.options.map { it.trim().lowercase() }
                     if (normalizedOptions.size < 2 || normalizedOptions.any { it.isBlank() }) {
-                        issues += validationError(
-                            ValidationCode.EXERCISE_OPTION_SET_INVALID,
-                            "Exercise '${exercise.id}' must have at least two non-blank options.",
-                            "exercises[${contentId}][${exercise.id}].options",
-                        )
+                        issues +=
+                            validationError(
+                                ValidationCode.EXERCISE_OPTION_SET_INVALID,
+                                "Exercise '${exercise.id}' must have at least two non-blank options.",
+                                "exercises[$contentId][${exercise.id}].options",
+                            )
                     }
 
                     if (normalizedOptions.toSet().size != normalizedOptions.size) {
-                        issues += validationError(
-                            ValidationCode.EXERCISE_OPTION_SET_INVALID,
-                            "Exercise '${exercise.id}' must not contain duplicate options.",
-                            "exercises[${contentId}][${exercise.id}].options",
-                        )
+                        issues +=
+                            validationError(
+                                ValidationCode.EXERCISE_OPTION_SET_INVALID,
+                                "Exercise '${exercise.id}' must not contain duplicate options.",
+                                "exercises[$contentId][${exercise.id}].options",
+                            )
                     }
 
                     if (normalizedAnswers.any { it !in normalizedOptions }) {
-                        issues += validationError(
-                            ValidationCode.EXPECTED_ANSWER_NOT_IN_OPTIONS,
-                            "Every expected answer for exercise '${exercise.id}' must be present in its option set.",
-                            "exercises[${contentId}][${exercise.id}]",
-                        )
+                        issues +=
+                            validationError(
+                                ValidationCode.EXPECTED_ANSWER_NOT_IN_OPTIONS,
+                                "Every expected answer for exercise '${exercise.id}' must be present in its option set.",
+                                "exercises[$contentId][${exercise.id}]",
+                            )
                     }
                 }
             }
@@ -485,33 +527,58 @@ class ContentValidator {
                 val payload = revision?.payload ?: return@forEach
 
                 when (node.kind) {
-                    ContentKind.COURSE,
-                    ContentKind.LESSON,
-                    ContentKind.EXAMPLE ->
+                    ContentKind.COURSE -> {
                         if (payload !is ContentPayload.Text) {
-                            issues += validationError(
-                                ValidationCode.INVALID_CONTENT_PAYLOAD,
-                                "Content kind '${node.kind}' requires a text payload.",
-                                "sourceRevisions[$contentId].payload",
-                            )
+                            issues +=
+                                validationError(
+                                    ValidationCode.INVALID_CONTENT_PAYLOAD,
+                                    "Content kind '${node.kind}' requires a text payload.",
+                                    "sourceRevisions[$contentId].payload",
+                                )
                         }
+                    }
 
-                    ContentKind.VOCABULARY ->
-                        if (payload !is ContentPayload.Vocabulary) {
-                            issues += validationError(
-                                ValidationCode.INVALID_CONTENT_PAYLOAD,
-                                "Vocabulary content requires a vocabulary payload.",
-                                "sourceRevisions[$contentId].payload",
-                            )
+                    ContentKind.LESSON -> {
+                        if (payload !is ContentPayload.Text) {
+                            issues +=
+                                validationError(
+                                    ValidationCode.INVALID_CONTENT_PAYLOAD,
+                                    "Content kind '${node.kind}' requires a text payload.",
+                                    "sourceRevisions[$contentId].payload",
+                                )
                         }
+                    }
+
+                    ContentKind.EXAMPLE -> {
+                        if (payload !is ContentPayload.Text) {
+                            issues +=
+                                validationError(
+                                    ValidationCode.INVALID_CONTENT_PAYLOAD,
+                                    "Content kind '${node.kind}' requires a text payload.",
+                                    "sourceRevisions[$contentId].payload",
+                                )
+                        }
+                    }
+
+                    ContentKind.VOCABULARY -> {
+                        if (payload !is ContentPayload.Vocabulary) {
+                            issues +=
+                                validationError(
+                                    ValidationCode.INVALID_CONTENT_PAYLOAD,
+                                    "Vocabulary content requires a vocabulary payload.",
+                                    "sourceRevisions[$contentId].payload",
+                                )
+                        }
+                    }
 
                     ContentKind.MEDIA_REFERENCE -> {
                         if (payload !is ContentPayload.MediaReference) {
-                            issues += validationError(
-                                ValidationCode.INVALID_MEDIA_REFERENCE_PAYLOAD,
-                                "Media reference content requires a media-reference payload.",
-                                "sourceRevisions[$contentId].payload",
-                            )
+                            issues +=
+                                validationError(
+                                    ValidationCode.INVALID_MEDIA_REFERENCE_PAYLOAD,
+                                    "Media reference content requires a media-reference payload.",
+                                    "sourceRevisions[$contentId].payload",
+                                )
                         } else {
                             validateMediaReference(contentId, payload, issues)
                         }
@@ -526,20 +593,22 @@ class ContentValidator {
         issues: MutableList<ValidationIssue>,
     ) {
         if (!MEDIA_URI_PATTERN.matches(payload.uri)) {
-            issues += validationError(
-                ValidationCode.INVALID_MEDIA_URI,
-                "Media URI '${payload.uri}' must contain a valid URI scheme and must not contain whitespace.",
-                "sourceRevisions[$contentId].payload.uri",
-            )
+            issues +=
+                validationError(
+                    ValidationCode.INVALID_MEDIA_URI,
+                    "Media URI '${payload.uri}' must contain a valid URI scheme and must not contain whitespace.",
+                    "sourceRevisions[$contentId].payload.uri",
+                )
         }
 
         val mediaType = payload.mediaType
         if (mediaType != null && !MEDIA_TYPE_PATTERN.matches(mediaType)) {
-            issues += validationError(
-                ValidationCode.INVALID_MEDIA_TYPE,
-                "Media type '${mediaType}' must use type/subtype syntax.",
-                "sourceRevisions[$contentId].payload.mediaType",
-            )
+            issues +=
+                validationError(
+                    ValidationCode.INVALID_MEDIA_TYPE,
+                    "Media type '$mediaType' must use type/subtype syntax.",
+                    "sourceRevisions[$contentId].payload.mediaType",
+                )
         }
     }
 
