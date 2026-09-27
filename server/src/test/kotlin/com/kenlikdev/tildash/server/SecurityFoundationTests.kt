@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.server
 
+import com.kenlikdev.tildash.server.security.JwtRoleAuthenticationConverter
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,7 +11,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
-import com.kenlikdev.tildash.server.security.JwtRoleAuthenticationConverter
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
