@@ -46,6 +46,31 @@ class ContentWorkflowTest {
     }
 
     @Test
+    fun validationErrorsBlockSubmission() {
+        val validation =
+            ReviewResult(
+                listOf(
+                    com.kenlikdev.tildash.content.validation.ValidationIssue(
+                        code = com.kenlikdev.tildash.content.validation.ValidationCode.MISSING_LICENSE,
+                        severity = com.kenlikdev.tildash.content.validation.ValidationSeverity.ERROR,
+                        message = "Missing license.",
+                    ),
+                ),
+            )
+
+        assertFailsWith<ContentWorkflowViolation> {
+            ContentWorkflow.transition(
+                state = ContentState.DRAFT,
+                actor = actor,
+                command = ContentWorkflowCommand.SUBMIT_FOR_REVIEW,
+                validation = validation,
+                reason = null,
+                occurredAt = now,
+            )
+        }
+    }
+
+    @Test
     fun reviewerMovesSubmittedContentIntoReview() {
         val transition = ContentWorkflow.transition(
             state = ContentState.SUBMITTED,
