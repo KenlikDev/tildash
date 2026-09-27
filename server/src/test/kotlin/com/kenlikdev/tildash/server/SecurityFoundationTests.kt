@@ -50,8 +50,7 @@ class SecurityFoundationTests {
                 post("/api/v1/missing")
                     .with(user("api-test-user"))
                     .accept(MediaType.APPLICATION_PROBLEM_JSON),
-            )
-            .andExpect(status().isNotFound)
+            ).andExpect(status().isNotFound)
     }
 
     @Test
