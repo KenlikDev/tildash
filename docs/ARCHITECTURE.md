@@ -116,13 +116,13 @@ Local PostgreSQL setup and the test database strategy are documented in `docs/DA
 
 Educational content is modeled as a generic stable-ID tree with explicit source revisions, provenance, localization revisions, and published version snapshots.
 
-The canonical model is implemented in `core` and the first relational schema is implemented in `server` migration V2. The model supports courses, lessons, examples, vocabulary, and media references without language-specific persistence branches.
+The canonical model is implemented in `core` and the first relational schema is implemented in `server` migration V2. The model supports courses, lessons, examples, vocabulary, and media references without language-specific persistence branches. Deterministic lesson validation is also implemented in `core` as a provider-neutral contract.
 
 Source content and localization are separate revision streams. Provenance is first-class and carried by source revisions. Published versions reference immutable history so they can be reconstructed later.
 
 The state vocabulary is draft, submitted, under review, approved, published, and archived. The state vocabulary is implemented now; transition workflow behavior remains future application work covered by ADR-0006.
 
-Detailed domain rules are documented in `docs/CONTENT.md`; the durable decision is recorded in ADR-0005.
+Detailed domain rules are documented in `docs/CONTENT.md`; deterministic validation rules are documented in `docs/CONTENT_VALIDATION.md`; durable content boundaries are recorded in ADR-0005 and deterministic validation in ADR-0008.
 
 ## Review workflow boundary
 
