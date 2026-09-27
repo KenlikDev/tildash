@@ -120,7 +120,7 @@ class SecurityFoundationTests {
         fun access(): String
     }
 
-    class TeacherProtectedServiceImpl : TeacherProtectedService {
+    open class TeacherProtectedServiceImpl : TeacherProtectedService {
         override fun access(): String = "teacher-access"
     }
 
