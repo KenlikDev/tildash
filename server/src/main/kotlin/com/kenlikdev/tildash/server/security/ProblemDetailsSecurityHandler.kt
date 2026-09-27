@@ -17,7 +17,9 @@ import java.net.URI
 @Component
 class ProblemDetailsSecurityHandler(
     private val objectMapper: ObjectMapper,
-) : AuthenticationEntryPoint, AccessDeniedHandler {
+) :
+    AuthenticationEntryPoint,
+    AccessDeniedHandler {
     override fun commence(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -68,5 +70,4 @@ class ProblemDetailsSecurityHandler(
         response.contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
         objectMapper.writeValue(response.outputStream, problem)
     }
-
 }
