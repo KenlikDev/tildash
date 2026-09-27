@@ -173,7 +173,6 @@ object ContentWorkflow {
                 )
             }
         }
-    }
 
     private fun transitionTo(
         action: ContentWorkflowAction,
