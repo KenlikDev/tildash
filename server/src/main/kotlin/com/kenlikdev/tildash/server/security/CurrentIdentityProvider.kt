@@ -26,7 +26,7 @@ class CurrentIdentityProvider {
             subject = subject,
             roles =
                 authentication.authorities
-                    .mapNotNull { Role.fromAuthority(it.authority) }
+                    .mapNotNull { it.authority?.let(Role::fromAuthority) }
                     .toSet(),
         )
     }
