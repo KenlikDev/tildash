@@ -15,3 +15,10 @@ springdoc:
   packages-to-scan: com.kenlikdev.tildash.server.api
   swagger-ui:
     path: /swagger-ui.html
+
+tildash:
+  security:
+    resource-server:
+      enabled: ${TILDASH_SECURITY_RESOURCE_SERVER_ENABLED:false}
+    jwt:
+      roles-claim: ${TILDASH_SECURITY_JWT_ROLES_CLAIM:roles}

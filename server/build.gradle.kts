@@ -23,6 +23,8 @@ dependencies {
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.webmvc)
+    implementation(libs.spring.boot.starter.security)
+    implementation(libs.spring.boot.starter.oauth2.resource.server)
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.kotlin.reflect)
     implementation(libs.jackson.module.kotlin)
@@ -30,6 +32,7 @@ dependencies {
     testImplementation(libs.spring.boot.starter.actuator.test)
     testImplementation(libs.spring.boot.starter.validation.test)
     testImplementation(libs.spring.boot.starter.webmvc.test)
+    testImplementation(libs.spring.security.test)
     testImplementation(libs.kotlin.test.junit5)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
