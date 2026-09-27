@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -40,6 +41,17 @@ class SecurityFoundationTests {
             .andExpect(jsonPath("$.title").value("Unauthorized"))
             .andExpect(jsonPath("$.status").value(401))
             .andExpect(jsonPath("$.instance").value("/api/v1/auth/me"))
+    }
+
+    @Test
+    fun bearerApiDoesNotRequireCsrfToken() {
+        mockMvc
+            .perform(
+                post("/api/v1/missing")
+                    .with(user("api-test-user"))
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON),
+            )
+            .andExpect(status().isNotFound)
     }
 
     @Test
