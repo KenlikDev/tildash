@@ -23,9 +23,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import kotlin.test.assertEquals
 
 @SpringBootTest
-@Import(PostgresTestConfiguration::class)
 @AutoConfigureMockMvc
-@Import(SecurityFoundationTests.TestSecurityConfiguration::class)
+@Import(
+    PostgresTestConfiguration::class,
+    SecurityFoundationTests.TestSecurityConfiguration::class,
+)
 class SecurityFoundationTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
