@@ -401,7 +401,7 @@ class JdbcContentStudioRepository(
 
         jdbc.query(
             """
-            select id, locale, variant_type, revision_no, payload, localization_revision_id
+            select id, locale, variant_type, revision_no, payload, id as localization_revision_id
             from (
                 select lr.*,
                        row_number() over (
