@@ -4,7 +4,7 @@
 
 This document describes the architecture that is implemented today and the explicit boundaries that constrain upcoming feature work.
 
-The repository currently provides a Kotlin Multiplatform client foundation, a small shared core, and a Spring Boot backend. Security and persistence infrastructure are implemented; product domains such as learning, content workflows, community, and AI are not implemented yet.
+The repository currently provides a Kotlin Multiplatform client foundation, a small shared core, and a Spring Boot backend. Security, persistence, and the canonical content model are implemented; product domains such as community and AI are not implemented yet.
 
 ## Repository topology
 
@@ -82,7 +82,7 @@ Repository / External Gateway
 
 Controllers are transport adapters. They validate and translate external input but must not become containers for business rules.
 
-The current backend remains foundation-stage infrastructure. Public domain endpoints and application services are future work; security and persistence are established as infrastructure boundaries.
+The current backend remains foundation-stage infrastructure. Public domain endpoints and application services are future work; security, persistence, and content contracts are established as infrastructure/domain boundaries.
 
 ## Public API boundary
 
@@ -114,9 +114,15 @@ Local PostgreSQL setup and the test database strategy are documented in `docs/DA
 
 ## Content and provenance boundary
 
-Educational content must remain distinguishable from its provenance and moderation metadata.
+Educational content is modeled as a generic stable-ID tree with explicit source revisions, provenance, localization revisions, and published version snapshots.
 
-The current repository does not yet implement the content model. ADR-0005 records the architectural boundary that future content features must preserve: content data, provenance, localization/version history, and review state are separate concepts.
+The canonical model is implemented in `core` and the first relational schema is implemented in `server` migration V2. The model supports courses, lessons, examples, vocabulary, and media references without language-specific persistence branches.
+
+Source content and localization are separate revision streams. Provenance is first-class and carried by source revisions. Published versions reference immutable history so they can be reconstructed later.
+
+The state vocabulary is draft, submitted, under review, approved, published, and archived. The state vocabulary is implemented now; transition workflow behavior remains future application work covered by ADR-0006.
+
+Detailed domain rules are documented in `docs/CONTENT.md`; the durable decision is recorded in ADR-0005.
 
 ## Review workflow boundary
 
