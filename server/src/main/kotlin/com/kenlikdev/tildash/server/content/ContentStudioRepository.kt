@@ -181,14 +181,16 @@ class JdbcContentStudioRepository(
     }
 
     override fun findNode(id: ContentId): StoredContentNode? =
-        jdbc.query(
+        jdbc
+            .query(
             """
             select id, kind, parent_id, source_locale, state, position, updated_at
             from tildash.content_nodes
             where id = :id
             """.trimIndent(),
             MapSqlParameterSource("id", UUID.fromString(id.value)),
-        ) { rs, _ -> mapNode(rs) }.firstOrNull()
+        ) { rs, _ -> mapNode(rs) }
+            .firstOrNull()
 
     override fun nextRevision(contentId: ContentId): Int =
         jdbc.queryForObject(
@@ -323,7 +325,8 @@ class JdbcContentStudioRepository(
     }
 
     override fun preview(contentId: ContentId): StoredPreview? =
-        jdbc.query(
+        jdbc
+            .query(
             """
             select n.id, n.kind, n.parent_id, n.source_locale, n.state, n.position, n.updated_at,
                    sr.revision_no, sr.payload
@@ -343,7 +346,8 @@ class JdbcContentStudioRepository(
             val revision = rs.getInt("revision_no")
             val payload = objectMapper.readTree(rs.getString("payload"))
             StoredPreview(node, revision, payload)
-        }.firstOrNull()
+        }
+            .firstOrNull()
 
     override fun publishSnapshot(
         contentId: ContentId,
@@ -351,7 +355,8 @@ class JdbcContentStudioRepository(
         publishedAt: OffsetDateTime,
     ): Int {
         val source =
-            jdbc.query(
+            jdbc
+                .query(
                 """
                 select sr.id as source_revision_id, sr.provenance_id
                 from tildash.content_source_revisions sr
@@ -594,7 +599,6 @@ class JdbcContentStudioRepository(
             }
         }
     }
-
 }
 
 private fun kotlin.time.Instant.toJavaOffsetDateTime(): OffsetDateTime =
@@ -604,5 +608,4 @@ private fun kotlin.time.Instant.toJavaOffsetDateTime(): OffsetDateTime =
 
 private fun Timestamp.toKotlinInstant() = kotlin.time.Instant.fromEpochMilliseconds(toInstant().toEpochMilli())
 
-private fun Timestamp.toOffsetDateTimeUtc(): OffsetDateTime =
-    toInstant().atOffset(ZoneOffset.UTC)
+private fun Timestamp.toOffsetDateTimeUtc() = toInstant().atOffset(ZoneOffset.UTC)
