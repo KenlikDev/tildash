@@ -349,7 +349,8 @@ class ContentStudioService(
             when (kind) {
                 ContentKind.COURSE,
                 ContentKind.LESSON,
-                ContentKind.EXAMPLE -> {
+                ContentKind.EXAMPLE,
+                -> {
                     payload is ContentPayload.Text
                 }
 
