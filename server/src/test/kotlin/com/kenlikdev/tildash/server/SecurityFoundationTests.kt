@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
+import com.kenlikdev.tildash.server.security.JwtRoleAuthenticationConverter
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
