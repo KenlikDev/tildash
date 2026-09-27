@@ -4,6 +4,15 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  datasource:
+    url: ${TILDASH_DATABASE_URL:jdbc:postgresql://localhost:5432/tildash}
+    username: ${TILDASH_DATABASE_USERNAME:tildash}
+    password: ${TILDASH_DATABASE_PASSWORD:tildash-dev}
+  flyway:
+    enabled: ${TILDASH_FLYWAY_ENABLED:true}
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    clean-disabled: true
 
 management:
   endpoints:

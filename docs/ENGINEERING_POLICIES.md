@@ -40,7 +40,7 @@ OpenAPI is the source for the machine-readable public API contract once the HTTP
 
 ## Database migration policy
 
-Schema changes must be represented by versioned, source-controlled migrations.
+Schema changes must be represented by Flyway versioned, source-controlled migrations.
 
 Migrations must:
 
@@ -51,7 +51,7 @@ Migrations must:
 - be tested against the supported database version;
 - avoid destructive changes that are not compatible with the deployment sequence.
 
-The migration framework will be selected and recorded before production persistence is introduced. The repository must not carry an unverified migration dependency merely to reserve the capability.
+The migration framework is Flyway. The repository must keep Flyway dependencies, PostgreSQL-specific Flyway support, and migration scripts aligned with the supported PostgreSQL version.
 
 Rollback must be treated separately from schema downgrade. Forward-compatible corrective migrations are preferred to destructive automated downgrades.
 

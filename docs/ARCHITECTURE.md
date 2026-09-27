@@ -4,7 +4,7 @@
 
 This document describes the architecture that is implemented today and the explicit boundaries that constrain upcoming feature work.
 
-The repository currently provides a Kotlin Multiplatform client foundation, a small shared core, and a Spring Boot backend. Product domains such as identity, persistence, learning, content workflows, community, and AI are not implemented yet.
+The repository currently provides a Kotlin Multiplatform client foundation, a small shared core, and a Spring Boot backend. Security and persistence infrastructure are implemented; product domains such as learning, content workflows, community, and AI are not implemented yet.
 
 ## Repository topology
 
@@ -82,7 +82,7 @@ Repository / External Gateway
 
 Controllers are transport adapters. They validate and translate external input but must not become containers for business rules.
 
-The current backend is still foundation-stage infrastructure. Public domain endpoints, persistence, identity, and application services are future work.
+The current backend remains foundation-stage infrastructure. Public domain endpoints and application services are future work; security and persistence are established as infrastructure boundaries.
 
 ## Public API boundary
 
@@ -94,7 +94,7 @@ Implemented API foundation rules:
 - requests and responses use explicit DTOs;
 - domain models are not serialized directly as the public contract;
 - validation occurs at the HTTP boundary;
-- authorization is enforced server-side once security is introduced;
+- authorization is enforced server-side;
 - API errors use RFC 9457 Problem Details;
 - actuator and documentation endpoints remain separate from the public API.
 
@@ -106,9 +106,11 @@ The API compatibility rules are defined in `docs/ENGINEERING_POLICIES.md`.
 
 Persistence is an infrastructure concern behind repository interfaces or equivalent application boundaries.
 
-The repository currently has no production persistence implementation. When introduced, schema changes must use explicit, versioned migrations and must be compatible with the deployment strategy.
+The backend persistence foundation uses PostgreSQL, Spring Data JDBC, and Flyway. Schema changes are explicit, versioned migrations under `server/src/main/resources/db/migration/`.
 
-The migration policy is defined in `docs/ENGINEERING_POLICIES.md` and ADR-0004.
+No domain repository interface or aggregate table is introduced yet because no owning persistence contract has been defined. The persistence infrastructure remains behind application/domain boundaries.
+
+Local PostgreSQL setup and the test database strategy are documented in `docs/DATABASE.md`. The durable decision is recorded in ADR-0004.
 
 ## Content and provenance boundary
 

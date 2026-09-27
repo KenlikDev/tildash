@@ -23,7 +23,10 @@ import kotlin.test.assertEquals
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(SecurityFoundationTests.TestSecurityConfiguration::class)
+@Import(
+    PostgresTestConfiguration::class,
+    SecurityFoundationTests.TestSecurityConfiguration::class,
+)
 class SecurityFoundationTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
