@@ -126,9 +126,9 @@ Detailed domain rules are documented in `docs/CONTENT.md`; deterministic validat
 
 ## Review workflow boundary
 
-Content and other user-generated changes must be reviewable through explicit workflow state rather than implicit side effects.
+Content authoring and publishing now use explicit workflow state rather than implicit side effects.
 
-The current repository does not yet implement the review workflow. ADR-0006 records the architectural boundary to preserve when it is introduced.
+The current content-studio workflow supports draft editing, submission for review, reviewer feedback, approval, rejection, publication, archival, and immutable workflow history. ADR-0006 records the durable review workflow boundary.
 
 ## Cross-cutting rules
 
