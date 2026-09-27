@@ -19,9 +19,7 @@ class SecurityConfiguration(
     private val securityHandler: ProblemDetailsSecurityHandler,
 ) {
     @Bean
-    fun securityFilterChain(
-        http: HttpSecurity,
-    ): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
             .sessionManagement {
