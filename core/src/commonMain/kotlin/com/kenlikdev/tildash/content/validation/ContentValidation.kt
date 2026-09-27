@@ -259,7 +259,7 @@ class ContentValidator {
             )
         }
 
-        val descendants = descendantsOf(input.lessonId, nodesById.mapValues { it.value.single() })
+        val descendants = descendantsOf(input.lessonId, nodesById.mapNotNullValuesSingle())
         nodesById.values
             .flatten()
             .filter { it.id in descendants && it.kind != ContentKind.COURSE }
@@ -335,7 +335,7 @@ class ContentValidator {
         nodeIdSet: Set<ContentId>,
         nodesById: Map<ContentId, List<ContentNode>>,
     ) {
-        val descendants = descendantsOf(input.lessonId, nodesById.mapValues { it.value.single() })
+        val descendants = descendantsOf(input.lessonId, nodesById.mapNotNullValuesSingle())
         val localizationsByKey =
             input.localizationRevisions.groupBy {
                 Triple(it.contentId, it.locale, it.revision)
