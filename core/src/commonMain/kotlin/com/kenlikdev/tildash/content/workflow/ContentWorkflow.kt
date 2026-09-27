@@ -74,6 +74,7 @@ object ContentWorkflow {
             ContentWorkflowCommand.SUBMIT_FOR_REVIEW -> {
                 requireRole(actor, WorkflowActorRole.TEACHER, WorkflowActorRole.ADMINISTRATOR)
                 requireState(state, ContentState.DRAFT, command)
+                requireSubmitValidation(validation)
                 transitionTo(
                     ContentWorkflowAction.SUBMIT,
                     actor,
@@ -232,6 +233,14 @@ object ContentWorkflow {
             ?: throw ContentWorkflowViolation(
                 "$command requires a non-blank reason.",
             )
+
+    private fun requireSubmitValidation(validation: ReviewResult) {
+        if (!validation.canSubmit) {
+            throw ContentWorkflowViolation(
+                "Cannot submit content while deterministic validation reports errors.",
+            )
+        }
+    }
 
     private fun requireCleanValidation(
         validation: ReviewResult,
