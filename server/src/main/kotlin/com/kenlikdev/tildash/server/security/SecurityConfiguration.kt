@@ -20,35 +20,41 @@ class SecurityConfiguration(
 ) {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        http
-            .csrf { it.disable() }
-            .sessionManagement {
-                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }.exceptionHandling {
-                it
-                    .authenticationEntryPoint(securityHandler)
-                    .accessDeniedHandler(securityHandler)
-            }.authorizeHttpRequests {
-                it
-                    .requestMatchers(
-                        "/actuator/health",
-                        "/v3/api-docs",
-                        "/v3/api-docs/**",
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                    ).permitAll()
-                    .requestMatchers("/api/v1/**")
-                    .authenticated()
-                    .anyRequest()
-                    .denyAll()
-            }.httpBasic { it.disable() }
-            .formLogin { it.disable() }
+        http.csrf { it.disable() }
+
+        http.sessionManagement {
+            it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        }
+
+        http.exceptionHandling {
+            it
+                .authenticationEntryPoint(securityHandler)
+                .accessDeniedHandler(securityHandler)
+        }
+
+        http.authorizeHttpRequests {
+            it
+                .requestMatchers(
+                    "/actuator/health",
+                    "/v3/api-docs",
+                    "/v3/api-docs/**",
+                    "/swagger-ui.html",
+                    "/swagger-ui/**",
+                ).permitAll()
+                .requestMatchers("/api/v1/**")
+                .authenticated()
+                .anyRequest()
+                .denyAll()
+        }
+
+        http.httpBasic { it.disable() }
+        http.formLogin { it.disable() }
 
         if (properties.resourceServer.enabled) {
             http.oauth2ResourceServer {
-                it
-                    .authenticationEntryPoint(securityHandler)
-                    .accessDeniedHandler(securityHandler).jwt { jwt ->
+                it.authenticationEntryPoint(securityHandler)
+                it.accessDeniedHandler(securityHandler)
+                it.jwt { jwt ->
                     jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
                 }
             }
@@ -58,5 +64,6 @@ class SecurityConfiguration(
     }
 
     @Bean
-    fun jwtAuthenticationConverter(): JwtAuthenticationConverter = createJwtAuthenticationConverter(properties.jwt.rolesClaim)
+    fun jwtAuthenticationConverter(): JwtAuthenticationConverter =
+        createJwtAuthenticationConverter(properties.jwt.rolesClaim)
 }
