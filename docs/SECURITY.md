@@ -52,7 +52,7 @@ Identity persistence is intentionally deferred to the persistence work in issue 
 | Authenticated user invoking a forbidden use case | Privilege escalation | Method security and explicit authorities | Object-level policies will be added with domain use cases |
 | Credential or token leakage in logs | Secret disclosure | Security handlers do not log authentication failures or request credentials | Logging configuration must preserve this rule |
 | Security details leaked in HTTP errors | Information disclosure | Stable Problem Details without stack traces or exception class names | Application-specific errors must preserve the same contract |
-| CSRF against bearer-token APIs | Cross-site state change | Stateless API uses bearer authentication and disables server-side session/CSRF flow | Browser clients must still follow token-handling guidance |
+| CSRF against bearer-token APIs | Cross-site state change | Stateful web paths retain CSRF protection; only the stateless bearer API under `/api/v1/**` is explicitly exempted | Browser clients must still follow token-handling guidance |
 | Client secret embedded in KMP application | Credential theft | Interactive login uses Authorization Code with PKCE; public clients do not carry a client secret | Platform-specific redirect registration remains deployment work |
 | Compromised client or stolen access token | Account compromise | TLS and short-lived bearer-token model are deployment requirements | Token lifetime, revocation, device/session policy remain deployment decisions |
 
