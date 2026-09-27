@@ -1,14 +1,14 @@
 package com.kenlikdev.tildash.server
 
-import java.util.UUID
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
+import java.util.UUID
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 @SpringBootTest
 @Import(PostgresTestConfiguration::class)
@@ -28,7 +28,7 @@ class ContentSchemaTests {
                 "content_published_localizations",
             )
 
-        val actualTables =
+        val tableNames =
             jdbcTemplate.queryForList(
                 """
                 select table_name
@@ -37,7 +37,7 @@ class ContentSchemaTests {
                 """.trimIndent(),
                 String::class.java,
             )
-            .toSet()
+        val actualTables = tableNames.toSet()
 
         assertEquals(expectedTables, actualTables.intersect(expectedTables))
     }
