@@ -120,14 +120,14 @@ class ContentWorkflowTest {
     fun warningsDoNotPermitPublication() {
         val validation =
             ReviewResult(
-            listOf(
-                com.kenlikdev.tildash.content.validation.ValidationIssue(
-                    code = com.kenlikdev.tildash.content.validation.ValidationCode.UNKNOWN_COPYRIGHT_STATUS,
-                    severity = com.kenlikdev.tildash.content.validation.ValidationSeverity.WARNING,
-                    message = "Unknown copyright status.",
+                listOf(
+                    com.kenlikdev.tildash.content.validation.ValidationIssue(
+                        code = com.kenlikdev.tildash.content.validation.ValidationCode.UNKNOWN_COPYRIGHT_STATUS,
+                        severity = com.kenlikdev.tildash.content.validation.ValidationSeverity.WARNING,
+                        message = "Unknown copyright status.",
+                    ),
                 ),
-            ),
-        )
+            )
 
         assertEquals(ReviewOutcome.PASS_WITH_WARNINGS, validation.outcome)
         assertFailsWith<ContentWorkflowViolation> {
