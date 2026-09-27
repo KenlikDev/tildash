@@ -97,6 +97,21 @@ class ContentValidationTest {
     }
 
     @Test
+    fun duplicateContentIdIsReportedWithoutThrowing() {
+        val duplicateExample =
+            node(exampleId, ContentKind.EXAMPLE, lessonId, 4)
+
+        val result =
+            validator.validateLesson(
+                validInput(
+                    nodes = validInput().nodes + duplicateExample,
+                ),
+            )
+
+        assertHasCode(result, ValidationCode.DUPLICATE_CONTENT_ID)
+    }
+
+    @Test
     fun duplicateSiblingPositionIsRejected() {
         val secondExampleId = ContentId("550e8400-e29b-41d4-a716-446655440005")
         val nodes =
