@@ -4,10 +4,11 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
 
 @SpringBootTest
-@org.springframework.context.annotation.Import(PostgresTestConfiguration::class)
+@Import(PostgresTestConfiguration::class)
 class PersistenceMigrationTests {
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
