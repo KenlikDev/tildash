@@ -24,13 +24,11 @@ class SecurityConfiguration(
             .csrf { it.disable() }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }
-            .exceptionHandling {
+            }.exceptionHandling {
                 it
                     .authenticationEntryPoint(securityHandler)
                     .accessDeniedHandler(securityHandler)
-            }
-            .authorizeHttpRequests {
+            }.authorizeHttpRequests {
                 it
                     .requestMatchers(
                         "/actuator/health",
@@ -38,24 +36,21 @@ class SecurityConfiguration(
                         "/v3/api-docs/**",
                         "/swagger-ui.html",
                         "/swagger-ui/**",
-                    )
-                    .permitAll()
+                    ).permitAll()
                     .requestMatchers("/api/v1/**")
                     .authenticated()
                     .anyRequest()
                     .denyAll()
-            }
-            .httpBasic { it.disable() }
+            }.httpBasic { it.disable() }
             .formLogin { it.disable() }
 
         if (properties.resourceServer.enabled) {
             http.oauth2ResourceServer {
                 it
                     .authenticationEntryPoint(securityHandler)
-                    .accessDeniedHandler(securityHandler)
-                    .jwt { jwt ->
-                        jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
-                    }
+                    .accessDeniedHandler(securityHandler).jwt { jwt ->
+                    jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
+                }
             }
         }
 
@@ -63,6 +58,5 @@ class SecurityConfiguration(
     }
 
     @Bean
-    fun jwtAuthenticationConverter(): JwtAuthenticationConverter =
-        createJwtAuthenticationConverter(properties.jwt.rolesClaim)
+    fun jwtAuthenticationConverter(): JwtAuthenticationConverter = createJwtAuthenticationConverter(properties.jwt.rolesClaim)
 }
