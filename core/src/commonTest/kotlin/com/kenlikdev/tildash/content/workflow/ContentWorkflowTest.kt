@@ -3,9 +3,9 @@ package com.kenlikdev.tildash.content.workflow
 import com.kenlikdev.tildash.content.model.ContentState
 import com.kenlikdev.tildash.content.validation.ReviewOutcome
 import com.kenlikdev.tildash.content.validation.ReviewResult
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.Test
 import kotlin.time.Instant
 
 class ContentWorkflowTest {
@@ -118,7 +118,8 @@ class ContentWorkflowTest {
 
     @Test
     fun warningsDoNotPermitPublication() {
-        val validation = ReviewResult(
+        val validation =
+            ReviewResult(
             listOf(
                 com.kenlikdev.tildash.content.validation.ValidationIssue(
                     code = com.kenlikdev.tildash.content.validation.ValidationCode.UNKNOWN_COPYRIGHT_STATUS,
