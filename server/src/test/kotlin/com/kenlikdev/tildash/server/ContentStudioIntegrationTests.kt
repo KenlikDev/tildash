@@ -1,11 +1,14 @@
 package com.kenlikdev.tildash.server
 
 import kotlin.test.assertNotNull
+import kotlin.test.assertFailsWith
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.dao.DataAccessException
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
@@ -25,6 +28,9 @@ class ContentStudioIntegrationTests {
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
+
+    @Autowired
+    private lateinit var jdbcTemplate: JdbcTemplate
 
     @Test
     fun teacherCanCreatePreviewSubmitAndReviewerCanPublishLesson() {
@@ -127,14 +133,8 @@ class ContentStudioIntegrationTests {
     @Test
     fun validationErrorsBlockSubmission() {
         val courseId = createNode("COURSE", null, "Course")
-        val lessonId =
-            createNode(
-                "LESSON",
-                courseId,
-                "Lesson",
-                copyrightStatus = "IN_COPYRIGHT",
-                includeLicense = false,
-            )
+        val invalidParentId = createNode("EXAMPLE", courseId, "Invalid parent")
+        val lessonId = createNode("LESSON", invalidParentId, "Lesson")
 
         mockMvc
             .perform(
@@ -144,7 +144,65 @@ class ContentStudioIntegrationTests {
             )
             .andExpect(status().isConflict)
             .andExpect(jsonPath("$.type").value("urn:tildash:problem:validation-failed"))
+            .andExpect(jsonPath("$.errors[0].code").value("INVALID_LESSON_PARENT"))
             .andExpect(jsonPath("$.status").value(409))
+    }
+
+    @Test
+    fun reviewerCanRejectWithAuditableReason() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+
+        mockMvc.perform(
+            post("/api/v1/content/$lessonId/submit")
+                .with(user("teacher").roles("TEACHER")),
+        ).andExpect(status().isOk)
+
+        mockMvc.perform(
+            post("/api/v1/content/$lessonId/review/start")
+                .with(user("reviewer").roles("REVIEWER")),
+        ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/review/reject")
+                    .with(user("reviewer").roles("REVIEWER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(mapOf("reason" to "Fix the source citation."))),
+            )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("DRAFT"))
+
+        mockMvc
+            .perform(
+                get("/api/v1/content/$lessonId/review-history")
+                    .with(user("teacher").roles("TEACHER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[2].action").value("REJECT"))
+            .andExpect(jsonPath("$[2].reason").value("Fix the source citation."))
+    }
+
+    @Test
+    fun publishedNodeAndWorkflowHistoryAreImmutableAtDatabaseBoundary() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+        publishLesson(lessonId)
+
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
+                "update tildash.content_nodes set position = 9 where id = ?::uuid",
+                lessonId,
+            )
+        }
+
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
+                "delete from tildash.content_workflow_events where content_node_id = ?::uuid",
+                lessonId,
+            )
+        }
     }
 
     @Test
