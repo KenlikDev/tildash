@@ -142,29 +142,32 @@ class ContentValidator {
         val nodeIdSet = nodesById.keys
         input.nodes.forEach { node ->
             when {
-                node.kind == ContentKind.COURSE && node.parentId != null ->
+                node.kind == ContentKind.COURSE && node.parentId != null -> {
                     issues +=
                         validationError(
                             ValidationCode.INVALID_ROOT_PARENT,
                             "Course '${node.id.value}' must not have a parent.",
                             "nodes[${node.id.value}].parentId",
                         )
+                }
 
-                node.kind != ContentKind.COURSE && node.parentId == null ->
+                node.kind != ContentKind.COURSE && node.parentId == null -> {
                     issues +=
                         validationError(
                             ValidationCode.MISSING_PARENT,
                             "Non-course node '${node.id.value}' must have a parent.",
                             "nodes[${node.id.value}].parentId",
                         )
+                }
 
-                node.parentId != null && node.parentId !in nodeIdSet ->
+                node.parentId != null && node.parentId !in nodeIdSet -> {
                     issues +=
                         validationError(
                             ValidationCode.MISSING_PARENT,
                             "Parent '${node.parentId.value}' for node '${node.id.value}' is missing.",
                             "nodes[${node.id.value}].parentId",
                         )
+                }
             }
         }
 
