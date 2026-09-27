@@ -105,6 +105,7 @@ class SecurityFoundationTests {
             setOf("ROLE_ADMINISTRATOR", "ROLE_REVIEWER", "ROLE_TEACHER"),
             authentication.authorities
                 .map { it.authority }
+                .mapNotNull { it.authority }
                 .filter { it.startsWith("ROLE_") }
                 .toSet(),
         )
