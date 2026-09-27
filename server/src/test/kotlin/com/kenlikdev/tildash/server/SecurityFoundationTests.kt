@@ -93,15 +93,12 @@ class SecurityFoundationTests {
                 .claim("roles", listOf("teacher", "reviewer", "administrator", "unknown"))
                 .build()
 
-        val authentication = jwtAuthenticationConverter.convert(jwt)
+        val authorities = JwtRoleAuthenticationConverter("roles").convert(jwt)
 
-        assertNotNull(authentication)
         assertEquals(
             setOf("ROLE_ADMINISTRATOR", "ROLE_REVIEWER", "ROLE_TEACHER"),
-            authentication.authorities
-                .map { it.authority }
-                .mapNotNull { it.authority }
-                .filter { it.startsWith("ROLE_") }
+            authorities
+                .mapNotNull { it.getAuthority() }
                 .toSet(),
         )
     }
