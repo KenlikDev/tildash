@@ -73,13 +73,15 @@ class SecurityFoundationTests {
 
     @Test
     fun teacherCanInvokeTeacherOnlyUseCase() {
-        mockMvc
-            .perform(
+        val result =
+            mockMvc.perform(
                 get("/api/v1/security-test/teacher")
                     .with(user("teacher").roles("TEACHER"))
                     .accept(MediaType.APPLICATION_JSON),
-            ).andExpect(status().isOk)
-            .andExpect(content().string("teacher-access"))
+            )
+
+        result.andExpect(status().isOk)
+        result.andExpect(content().string("teacher-access"))
     }
 
     @Test
@@ -108,9 +110,8 @@ class SecurityFoundationTests {
         fun teacherProtectedService(): TeacherProtectedService = TeacherProtectedServiceImpl()
 
         @Bean
-        fun securityProbeController(
-            service: TeacherProtectedService
-        ): SecurityProbeController = SecurityProbeController(service)
+        fun securityProbeController(service: TeacherProtectedService): SecurityProbeController =
+            SecurityProbeController(service)
     }
 
     interface TeacherProtectedService {
