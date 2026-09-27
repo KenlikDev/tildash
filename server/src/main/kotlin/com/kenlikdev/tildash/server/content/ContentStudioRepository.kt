@@ -562,7 +562,10 @@ class JdbcContentStudioRepository(
     }
 }
 
-private fun OffsetDateTime.toJavaOffsetDateTime() = this
+private fun kotlin.time.Instant.toJavaOffsetDateTime(): OffsetDateTime =
+    java.time.Instant
+        .ofEpochSecond(epochSeconds, nanosecondsOfSecond.toLong())
+        .atOffset(ZoneOffset.UTC)
 
 private fun Timestamp.toKotlinInstant() =
     kotlin.time.Instant.fromEpochMilliseconds(toInstant().toEpochMilli())
