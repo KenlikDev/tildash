@@ -143,17 +143,17 @@ class ContentStudioIntegrationTests {
         val courseId = createNode("COURSE", null, "Course")
         val lessonId = createNode("LESSON", courseId, "Lesson")
 
-        mockMvc.perform(
-            post("/api/v1/content/$lessonId/submit")
-                .with(user("teacher").roles("TEACHER")),
-        )
-            .andExpect(status().isOk)
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/submit")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isOk)
 
-        mockMvc.perform(
-            post("/api/v1/content/$lessonId/review/start")
-                .with(user("reviewer").roles("REVIEWER")),
-        )
-            .andExpect(status().isOk)
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/review/start")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
 
         mockMvc
             .perform(
@@ -272,9 +272,9 @@ class ContentStudioIntegrationTests {
                                     "position" to 0,
                                     "payload" to
                                         mapOf(
-                                        "type" to "TEXT",
-                                        "value" to value,
-                                    ),
+                                            "type" to "TEXT",
+                                            "value" to value,
+                                        ),
                                     "provenance" to
                                         mapOf(
                                             "sourceTitle" to "Test source",
@@ -285,8 +285,7 @@ class ContentStudioIntegrationTests {
                                 ),
                             ),
                         ),
-                ).andExpect(status().isCreated)
-                .andReturn()
+                ).andExpect(status().isCreated).andReturn()
 
         val response = objectMapper.readTree(result.response.contentAsString)
         val id = response.get("id")?.asText()
