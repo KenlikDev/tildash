@@ -64,6 +64,5 @@ class SecurityConfiguration(
     }
 
     @Bean
-    fun jwtAuthenticationConverter(): JwtAuthenticationConverter =
-        createJwtAuthenticationConverter(properties.jwt.rolesClaim)
+    fun jwtAuthenticationConverter(): JwtAuthenticationConverter = createJwtAuthenticationConverter(properties.jwt.rolesClaim)
 }
