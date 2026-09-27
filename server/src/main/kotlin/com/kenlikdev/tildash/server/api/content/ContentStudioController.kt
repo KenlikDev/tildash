@@ -73,8 +73,7 @@ class ContentStudioController(
     fun addFeedback(
         @PathVariable contentId: String,
         @Valid @RequestBody request: WorkflowReasonRequest,
-    ): ContentMutationResponse =
-        service.addFeedback(contentId.toContentId(), request.reason)
+    ): ContentMutationResponse = service.addFeedback(contentId.toContentId(), request.reason)
 
     @PostMapping("/{contentId}/review/approve")
     @PreAuthorize("hasAnyRole('REVIEWER', 'ADMINISTRATOR')")
@@ -89,8 +88,7 @@ class ContentStudioController(
     fun reject(
         @PathVariable contentId: String,
         @Valid @RequestBody request: WorkflowReasonRequest,
-    ): ContentMutationResponse =
-        service.reject(contentId.toContentId(), request.reason)
+    ): ContentMutationResponse = service.reject(contentId.toContentId(), request.reason)
 
     @PostMapping("/{contentId}/publish")
     @PreAuthorize("hasAnyRole('REVIEWER', 'ADMINISTRATOR')")
@@ -105,8 +103,7 @@ class ContentStudioController(
     fun archive(
         @PathVariable contentId: String,
         @Valid @RequestBody(required = false) request: WorkflowReasonRequest?,
-    ): ContentMutationResponse =
-        service.archive(contentId.toContentId(), request?.reason)
+    ): ContentMutationResponse = service.archive(contentId.toContentId(), request?.reason)
 
     @GetMapping("/{contentId}/review-history", produces = [MediaType.APPLICATION_JSON_VALUE])
     @PreAuthorize("hasAnyRole('TEACHER', 'REVIEWER', 'ADMINISTRATOR')")
