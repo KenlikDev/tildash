@@ -17,13 +17,13 @@ class ContentWorkflowTest {
     fun teacherCanSubmitDraftForReview() {
         val transition =
             ContentWorkflow.transition(
-            state = ContentState.DRAFT,
-            actor = actor,
-            command = ContentWorkflowCommand.SUBMIT_FOR_REVIEW,
-            validation = ReviewResult(emptyList()),
-            reason = null,
-            occurredAt = now,
-        )
+                state = ContentState.DRAFT,
+                actor = actor,
+                command = ContentWorkflowCommand.SUBMIT_FOR_REVIEW,
+                validation = ReviewResult(emptyList()),
+                reason = null,
+                occurredAt = now,
+            )
 
         assertEquals(ContentState.SUBMITTED, transition.newState)
         assertEquals(ContentWorkflowAction.SUBMIT, transition.event.action)
@@ -75,13 +75,13 @@ class ContentWorkflowTest {
     fun reviewerMovesSubmittedContentIntoReview() {
         val transition =
             ContentWorkflow.transition(
-            state = ContentState.SUBMITTED,
-            actor = reviewer,
-            command = ContentWorkflowCommand.START_REVIEW,
-            validation = ReviewResult(emptyList()),
-            reason = null,
-            occurredAt = now,
-        )
+                state = ContentState.SUBMITTED,
+                actor = reviewer,
+                command = ContentWorkflowCommand.START_REVIEW,
+                validation = ReviewResult(emptyList()),
+                reason = null,
+                occurredAt = now,
+            )
 
         assertEquals(ContentState.UNDER_REVIEW, transition.newState)
     }
@@ -104,13 +104,13 @@ class ContentWorkflowTest {
     fun rejectionReturnsContentToDraft() {
         val transition =
             ContentWorkflow.transition(
-            state = ContentState.UNDER_REVIEW,
-            actor = reviewer,
-            command = ContentWorkflowCommand.REJECT,
-            validation = ReviewResult(emptyList()),
-            reason = "Fix the source attribution.",
-            occurredAt = now,
-        )
+                state = ContentState.UNDER_REVIEW,
+                actor = reviewer,
+                command = ContentWorkflowCommand.REJECT,
+                validation = ReviewResult(emptyList()),
+                reason = "Fix the source attribution.",
+                occurredAt = now,
+            )
 
         assertEquals(ContentState.DRAFT, transition.newState)
         assertEquals("Fix the source attribution.", transition.event.reason)
@@ -145,13 +145,13 @@ class ContentWorkflowTest {
     fun cleanValidationAllowsPublication() {
         val transition =
             ContentWorkflow.transition(
-            state = ContentState.APPROVED,
-            actor = reviewer,
-            command = ContentWorkflowCommand.PUBLISH,
-            validation = ReviewResult(emptyList()),
-            reason = null,
-            occurredAt = now,
-        )
+                state = ContentState.APPROVED,
+                actor = reviewer,
+                command = ContentWorkflowCommand.PUBLISH,
+                validation = ReviewResult(emptyList()),
+                reason = null,
+                occurredAt = now,
+            )
 
         assertEquals(ContentState.PUBLISHED, transition.newState)
         assertEquals(ContentWorkflowAction.PUBLISH, transition.event.action)
@@ -161,13 +161,13 @@ class ContentWorkflowTest {
     fun publishedContentCanOnlyBeArchived() {
         val transition =
             ContentWorkflow.transition(
-            state = ContentState.PUBLISHED,
-            actor = reviewer,
-            command = ContentWorkflowCommand.ARCHIVE,
-            validation = ReviewResult(emptyList()),
-            reason = "Replaced by a revised release.",
-            occurredAt = now,
-        )
+                state = ContentState.PUBLISHED,
+                actor = reviewer,
+                command = ContentWorkflowCommand.ARCHIVE,
+                validation = ReviewResult(emptyList()),
+                reason = "Replaced by a revised release.",
+                occurredAt = now,
+            )
 
         assertEquals(ContentState.ARCHIVED, transition.newState)
     }
@@ -176,13 +176,13 @@ class ContentWorkflowTest {
     fun reviewerFeedbackIsAuditableWithoutChangingState() {
         val transition =
             ContentWorkflow.transition(
-            state = ContentState.UNDER_REVIEW,
-            actor = reviewer,
-            command = ContentWorkflowCommand.ADD_FEEDBACK,
-            validation = ReviewResult(emptyList()),
-            reason = "Please improve the exercise wording.",
-            occurredAt = now,
-        )
+                state = ContentState.UNDER_REVIEW,
+                actor = reviewer,
+                command = ContentWorkflowCommand.ADD_FEEDBACK,
+                validation = ReviewResult(emptyList()),
+                reason = "Please improve the exercise wording.",
+                occurredAt = now,
+            )
 
         assertEquals(ContentState.UNDER_REVIEW, transition.newState)
         assertEquals(ContentWorkflowAction.FEEDBACK, transition.event.action)
