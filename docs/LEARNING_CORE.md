@@ -97,7 +97,7 @@ The model is designed for later persistence and offline synchronization:
 - attempts have deterministic canonical ordering;
 - history is not collapsed into mutable counters only.
 
-Persistence and synchronization remain separate follow-up tasks.
+Durable local persistence for immutable attempts and the synchronization outbox is now implemented in the client storage boundary. Remote synchronization transport and end-to-end offline orchestration remain separate follow-up tasks.
 
 ## Synchronization
 
@@ -107,7 +107,7 @@ Deterministic reconciliation for offline learner attempts is implemented by `Lea
 
 This slice does not implement HTTP/API endpoints, PostgreSQL persistence, offline transport/retry orchestration, audio transport/decoding, learner UI, or AI tutor behavior.
 
-The parent issue #15 remains open until those end-to-end requirements are implemented.
+The parent issue #15 remains open until the end-to-end learner journey and client acceptance criteria are implemented.
 
 ## Verification
 
