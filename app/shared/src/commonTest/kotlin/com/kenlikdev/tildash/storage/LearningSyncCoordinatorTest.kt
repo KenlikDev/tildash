@@ -234,6 +234,7 @@ class LearningSyncCoordinatorTest {
             LearningSyncCoordinator(
                 store = store,
                 transport = transport,
+                delayBeforeRetry = {},
             ).synchronize("device-a")
         }
 
