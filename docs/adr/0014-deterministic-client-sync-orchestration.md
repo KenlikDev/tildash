@@ -60,7 +60,7 @@ Positive:
 
 Trade-offs:
 
-- concrete network transport still needs to be implemented;
+- the concrete network transport is implemented separately by `KtorLearningSyncTransport`;
 - platform composition must provide a scheduler for delays;
 - user-visible retry/error states are a later presentation concern.
 
