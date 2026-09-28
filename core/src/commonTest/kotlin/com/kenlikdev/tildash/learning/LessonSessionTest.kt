@@ -29,16 +29,16 @@ class LessonSessionTest {
     fun completedExercisesAreSkippedInPlanOrder() {
         var progress = LearningProgress.empty()
 
-        progress =
+        val firstSubmission =
             LearningEngine
                 .submit(
                     progress = progress,
-                exercise = first,
-                attemptId = "attempt-1",
-                response = LearnerResponse.Text("hello"),
-                occurredAt = occurredAt,
-                    )
-                .progress
+                    exercise = first,
+                    attemptId = "attempt-1",
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                )
+        progress = firstSubmission.progress
 
         val session = LessonSession.start(plan, progress)
 
@@ -53,9 +53,9 @@ class LessonSessionTest {
             session
                 .submit(
                     attemptId = "attempt-1",
-                response = LearnerResponse.Text("hello"),
-                occurredAt = occurredAt,
-            )
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                )
 
         assertEquals(AnswerOutcome.CORRECT, submission.evaluation.outcome)
         assertEquals(second.id, submission.session.nextExercise?.id)
@@ -70,9 +70,9 @@ class LessonSessionTest {
             session
                 .submit(
                     attemptId = "attempt-1",
-                response = LearnerResponse.Text("wrong"),
-                occurredAt = occurredAt,
-            )
+                    response = LearnerResponse.Text("wrong"),
+                    occurredAt = occurredAt,
+                )
 
         assertEquals(AnswerOutcome.INCORRECT, submission.evaluation.outcome)
         assertEquals(first.id, submission.session.nextExercise?.id)
@@ -87,16 +87,17 @@ class LessonSessionTest {
             session
                 .submit(
                     attemptId = "attempt-1",
-                response = LearnerResponse.Text("hello"),
-                occurredAt = occurredAt,
-            )
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                )
         val resumedSession = LessonSession.start(plan, firstSubmission.session.progress)
         val repeatedSubmission =
-            resumedSession.submit(
-                attemptId = "attempt-1",
-                response = LearnerResponse.Text("hello"),
-                occurredAt = occurredAt,
-            )
+            resumedSession
+                .submit(
+                    attemptId = "attempt-1",
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                )
 
         assertEquals(firstSubmission.session.progress, repeatedSubmission.session.progress)
         assertEquals(second.id, repeatedSubmission.session.nextExercise?.id)
@@ -106,26 +107,27 @@ class LessonSessionTest {
     fun sessionResumesFromPersistedEquivalentProgress() {
         var progress = LearningProgress.empty()
 
-        progress =
+        val firstSubmission =
             LearningEngine
                 .submit(
                     progress = progress,
-                exercise = first,
-                attemptId = "attempt-1",
-                response = LearnerResponse.Text("hello"),
-                occurredAt = occurredAt,
-                    )
-                .progress
-        progress =
+                    exercise = first,
+                    attemptId = "attempt-1",
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                )
+        progress = firstSubmission.progress
+
+        val secondSubmission =
             LearningEngine
                 .submit(
                     progress = progress,
-                exercise = second,
-                attemptId = "attempt-2",
-                response = LearnerResponse.Text("world"),
-                occurredAt = later,
-                    )
-                .progress
+                    exercise = second,
+                    attemptId = "attempt-2",
+                    response = LearnerResponse.Text("world"),
+                    occurredAt = later,
+                )
+        progress = secondSubmission.progress
 
         val resumed = LessonSession.start(plan, progress)
 
@@ -138,30 +140,32 @@ class LessonSessionTest {
     fun finalSuccessfulSubmissionProducesCompletedSession() {
         var session = LessonSession.start(plan)
 
-        session =
+        val firstSubmission =
             session
                 .submit(
                     attemptId = "attempt-1",
-                response = LearnerResponse.Text("hello"),
-                occurredAt = occurredAt,
-                    )
-                .session
-        session =
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                )
+        session = firstSubmission.session
+
+        val secondSubmission =
             session
                 .submit(
                     attemptId = "attempt-2",
-                response = LearnerResponse.Text("world"),
-                occurredAt = later,
-                    )
-                .session
-        session =
+                    response = LearnerResponse.Text("world"),
+                    occurredAt = later,
+                )
+        session = secondSubmission.session
+
+        val thirdSubmission =
             session
                 .submit(
                     attemptId = "attempt-3",
-                response = LearnerResponse.Text("goodbye"),
-                occurredAt = later,
-                    )
-                .session
+                    response = LearnerResponse.Text("goodbye"),
+                    occurredAt = later,
+                )
+        session = thirdSubmission.session
 
         assertEquals(LessonSessionState.COMPLETED, session.state)
         assertNull(session.nextExercise)
@@ -171,30 +175,32 @@ class LessonSessionTest {
     fun completedSessionCannotAcceptAnotherSubmission() {
         var session = LessonSession.start(plan)
 
-        session =
+        val firstSubmission =
             session
                 .submit(
                     "attempt-1",
-                LearnerResponse.Text("hello"),
-                occurredAt,
-                    )
-                .session
-        session =
+                    LearnerResponse.Text("hello"),
+                    occurredAt,
+                )
+        session = firstSubmission.session
+
+        val secondSubmission =
             session
                 .submit(
                     "attempt-2",
-                LearnerResponse.Text("world"),
-                later,
-                    )
-                .session
-        session =
+                    LearnerResponse.Text("world"),
+                    later,
+                )
+        session = secondSubmission.session
+
+        val thirdSubmission =
             session
                 .submit(
                     "attempt-3",
-                LearnerResponse.Text("goodbye"),
-                later,
-                    )
-                .session
+                    LearnerResponse.Text("goodbye"),
+                    later,
+                )
+        session = thirdSubmission.session
 
         assertFailsWith<LessonSessionCompletedException> {
             session.submit("attempt-4", LearnerResponse.Text("hello"), later)
