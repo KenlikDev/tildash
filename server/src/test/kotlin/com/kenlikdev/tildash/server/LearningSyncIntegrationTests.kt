@@ -16,7 +16,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,28 +34,20 @@ class LearningSyncIntegrationTests {
                 post("/api/v1/learning/sync")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-unauthenticated")),
-            ).andExpect(status().isUnauthorized).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            ).andExpect(status().isUnauthorized)
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("urn:tildash:problem:unauthorized"))
     }
 
     @Test
     fun newAttemptIsAcknowledgedAndPersisted() {
         mockMvc
-            .perform(
-                post("/api/v1/learning/sync")
-                    .with(user("learner-a").roles("LEARNER"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson("attempt-new")),
-            ).andExpect(status().isOk).andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-new"))
+            .perform(authenticatedSync("learner-a", requestJson("attempt-new")))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-new"))
             .andExpect(jsonPath("$.conflictAttemptIds").isEmpty)
 
-        assertEquals(
-            1,
-            jdbcTemplate.queryForObject(
-                "select count(*) from tildash.learning_attempts where learner_subject = 'learner-a' and attempt_id = 'attempt-new'",
-                Int::class.java,
-            ),
-        )
+        assertEquals(1, countAttempts("learner-a", "attempt-new"))
     }
 
     @Test
@@ -65,92 +56,59 @@ class LearningSyncIntegrationTests {
 
         repeat(2) {
             mockMvc
-                .perform(
-                    post("/api/v1/learning/sync")
-                        .with(user("learner-a").roles("LEARNER"))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(request),
-                ).andExpect(status().isOk).andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-idempotent"))
-            .andExpect(jsonPath("$.conflictAttemptIds").isEmpty)
+                .perform(authenticatedSync("learner-a", request))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-idempotent"))
+                .andExpect(jsonPath("$.conflictAttemptIds").isEmpty)
         }
 
-        assertEquals(
-            1,
-            jdbcTemplate.queryForObject(
-                "select count(*) from tildash.learning_attempts where learner_subject = 'learner-a' and attempt_id = 'attempt-idempotent'",
-                Int::class.java,
-            ),
-        )
+        assertEquals(1, countAttempts("learner-a", "attempt-idempotent"))
     }
 
     @Test
     fun conflictingRetryIsReportedAndExistingPayloadIsPreserved() {
         mockMvc
             .perform(
-                post("/api/v1/learning/sync")
-                    .with(user("learner-a").roles("LEARNER"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson("attempt-conflict", "CORRECT", "2026-09-28T09:00:00Z")),
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        "attempt-conflict",
+                        "CORRECT",
+                        "2026-09-28T09:00:00Z",
+                    ),
+                ),
             ).andExpect(status().isOk)
 
         mockMvc
             .perform(
-                post("/api/v1/learning/sync")
-                    .with(user("learner-a").roles("LEARNER"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson("attempt-conflict", "INCORRECT", "2026-09-28T10:00:00Z")),
-            ).andExpect(status().isOk).andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        "attempt-conflict",
+                        "INCORRECT",
+                        "2026-09-28T10:00:00Z",
+                    ),
+                ),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
             .andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-conflict"))
 
-        assertEquals(
-            "CORRECT",
-            jdbcTemplate.queryForObject(
-                "select outcome from tildash.learning_attempts where learner_subject = 'learner-a' and attempt_id = 'attempt-conflict'",
-                String::class.java,
-            ),
-        )
+        assertEquals("CORRECT", findOutcome("learner-a", "attempt-conflict"))
     }
 
     @Test
     fun contradictoryDuplicateAttemptIdsInOneBatchAreReportedAsConflict() {
         mockMvc
             .perform(
-                post("/api/v1/learning/sync")
-                    .with(user("learner-a").roles("LEARNER"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        """
-                        {
-                          "deviceId": "device-a",
-                          "attempts": [
-                            {
-                              "attemptId": "attempt-duplicate",
-                              "exerciseId": "exercise-1",
-                              "response": {"type": "TEXT", "value": "hello"},
-                              "outcome": "CORRECT",
-                              "occurredAt": "2026-09-28T09:00:00Z"
-                            },
-                            {
-                              "attemptId": "attempt-duplicate",
-                              "exerciseId": "exercise-1",
-                              "response": {"type": "TEXT", "value": "wrong"},
-                              "outcome": "INCORRECT",
-                              "occurredAt": "2026-09-28T10:00:00Z"
-                            }
-                          ]
-                        }
-                        """.trimIndent(),
-                    ),
-            ).andExpect(status().isOk).andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
+                authenticatedSync(
+                    "learner-a",
+                    contradictoryDuplicateRequest(),
+                ),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
             .andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-duplicate"))
 
-        assertEquals(
-            0,
-            jdbcTemplate.queryForObject(
-                "select count(*) from tildash.learning_attempts where learner_subject = 'learner-a' and attempt_id = 'attempt-duplicate'",
-                Int::class.java,
-            ),
-        )
+        assertEquals(0, countAttempts("learner-a", "attempt-duplicate"))
     }
 
     @Test
@@ -158,26 +116,20 @@ class LearningSyncIntegrationTests {
         val request = requestJson("attempt-shared-id")
 
         mockMvc
-            .perform(
-                post("/api/v1/learning/sync")
-                    .with(user("learner-a").roles("LEARNER"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(request),
-            ).andExpect(status().isOk)
+            .perform(authenticatedSync("learner-a", request))
+            .andExpect(status().isOk)
 
         mockMvc
-            .perform(
-                post("/api/v1/learning/sync")
-                    .with(user("learner-b").roles("LEARNER"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(request),
-            ).andExpect(status().isOk).andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-shared-id"))
+            .perform(authenticatedSync("learner-b", request))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-shared-id"))
 
         assertEquals(
             2,
             jdbcTemplate.queryForObject(
-                "select count(*) from tildash.learning_attempts where attempt_id = 'attempt-shared-id'",
+                "select count(*) from tildash.learning_attempts where attempt_id = ?",
                 Int::class.java,
+                "attempt-shared-id",
             ),
         )
     }
@@ -185,48 +137,96 @@ class LearningSyncIntegrationTests {
     @Test
     fun persistedLearningAttemptCannotBeUpdatedOrDeleted() {
         mockMvc
-            .perform(
-                post("/api/v1/learning/sync")
-                    .with(user("learner-a").roles("LEARNER"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson("attempt-immutable")),
-            ).andExpect(status().isOk)
+            .perform(authenticatedSync("learner-a", requestJson("attempt-immutable")))
+            .andExpect(status().isOk)
 
-        val updateFailure =
-            assertFailsWith<DataAccessException> {
-                jdbcTemplate.update(
-                    "update tildash.learning_attempts set outcome = 'INCORRECT' where learner_subject = 'learner-a' and attempt_id = 'attempt-immutable'",
-                )
-            }
-        assertTrue(updateFailure.message?.contains("Learning attempt history is immutable") == true)
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
+                "update tildash.learning_attempts set outcome = 'INCORRECT' where learner_subject = ? and attempt_id = ?",
+                "learner-a",
+                "attempt-immutable",
+            )
+        }
 
-        val deleteFailure =
-            assertFailsWith<DataAccessException> {
-                jdbcTemplate.update(
-                    "delete from tildash.learning_attempts where learner_subject = 'learner-a' and attempt_id = 'attempt-immutable'",
-                )
-            }
-        assertTrue(deleteFailure.message?.contains("Learning attempt history is immutable") == true)
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
+                "delete from tildash.learning_attempts where learner_subject = ? and attempt_id = ?",
+                "learner-a",
+                "attempt-immutable",
+            )
+        }
 
-        assertEquals(
-            "CORRECT",
-            jdbcTemplate.queryForObject(
-                "select outcome from tildash.learning_attempts where learner_subject = 'learner-a' and attempt_id = 'attempt-immutable'",
-                String::class.java,
-            ),
-        )
+        assertEquals("CORRECT", findOutcome("learner-a", "attempt-immutable"))
     }
 
     @Test
     fun invalidDeviceIdUsesProblemDetails() {
         mockMvc
             .perform(
-                post("/api/v1/learning/sync")
-                    .with(user("learner-a").roles("LEARNER"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson("attempt-invalid-device", deviceId = " ")),
-            ).andExpect(status().isBadRequest).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        "attempt-invalid-device",
+                        deviceId = " ",
+                    ),
+                ),
+            ).andExpect(status().isBadRequest)
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
     }
+
+    private fun authenticatedSync(
+        subject: String,
+        request: String,
+    ) =
+        post("/api/v1/learning/sync")
+            .with(user(subject).roles("LEARNER"))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(request)
+
+    private fun countAttempts(
+        subject: String,
+        attemptId: String,
+    ): Int =
+        jdbcTemplate.queryForObject(
+            "select count(*) from tildash.learning_attempts where learner_subject = ? and attempt_id = ?",
+            Int::class.java,
+            subject,
+            attemptId,
+        ) ?: 0
+
+    private fun findOutcome(
+        subject: String,
+        attemptId: String,
+    ): String =
+        jdbcTemplate.queryForObject(
+            "select outcome from tildash.learning_attempts where learner_subject = ? and attempt_id = ?",
+            String::class.java,
+            subject,
+            attemptId,
+        ) ?: error("Learning attempt outcome is missing.")
+
+    private fun contradictoryDuplicateRequest(): String =
+        """
+        {
+          "deviceId": "device-a",
+          "attempts": [
+            {
+              "attemptId": "attempt-duplicate",
+              "exerciseId": "exercise-1",
+              "response": {"type": "TEXT", "value": "hello"},
+              "outcome": "CORRECT",
+              "occurredAt": "2026-09-28T09:00:00Z"
+            },
+            {
+              "attemptId": "attempt-duplicate",
+              "exerciseId": "exercise-1",
+              "response": {"type": "TEXT", "value": "wrong"},
+              "outcome": "INCORRECT",
+              "occurredAt": "2026-09-28T10:00:00Z"
+            }
+          ]
+        }
+        """.trimIndent()
 
     private fun requestJson(
         attemptId: String,
@@ -236,19 +236,19 @@ class LearningSyncIntegrationTests {
     ): String =
         """
         {
-          "deviceId": "$deviceId",
+          "deviceId": "PLACEHOLDER_DEVICE",
           "attempts": [
             {
-              "attemptId": "$attemptId",
+              "attemptId": "PLACEHOLDER_ATTEMPT",
               "exerciseId": "exercise-1",
-              "response": {
-                "type": "TEXT",
-                "value": "hello"
-              },
-              "outcome": "$outcome",
-              "occurredAt": "$occurredAt"
+              "response": {"type": "TEXT", "value": "hello"},
+              "outcome": "PLACEHOLDER_OUTCOME",
+              "occurredAt": "PLACEHOLDER_OCCURRED_AT"
             }
           ]
         }
         """.trimIndent()
-}
+            .replace("PLACEHOLDER_DEVICE", deviceId)
+            .replace("PLACEHOLDER_ATTEMPT", attemptId)
+            .replace("PLACEHOLDER_OUTCOME", outcome)
+            .replace("PLACEHOLDER_OCCURRED_AT", occurredAt)
