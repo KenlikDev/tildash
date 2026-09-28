@@ -28,6 +28,14 @@ Evaluation returns CORRECT when any expected answer matches, otherwise INCORRECT
 
 The same exercise and response always produce the same result.
 
+## Lesson sessions
+
+`LessonSession` is the deterministic orchestration boundary between a `LearningPlan` and the learner-facing layer. It exposes `ACTIVE` or `COMPLETED` state, selects the first plan exercise without a correct attempt, and delegates submission to `LearningEngine`. It can be recreated from an existing `LearningProgress` without changing attempt history.
+
+A failed attempt keeps the current exercise pending; a correct attempt advances to the next pending exercise. Once all required exercises have a correct attempt, the session is explicitly completed and rejects further submissions.
+
+The dedicated contract is documented in `docs/LEARNING_SESSION.md` and ADR-0010.
+
 ## Attempts
 
 A LearningAttempt contains attemptId, exerciseId, response, outcome, and occurredAt.
