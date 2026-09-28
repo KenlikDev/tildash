@@ -117,15 +117,12 @@ class LearningSyncCoordinator(
         val pendingIds = batch.attempts.map { it.attemptId }.toSet()
         val result = transport.synchronize(batch)
 
-        val acknowledgedIds
-        val conflictIds
-
-        when (result) {
-            is LearningSyncTransportResult.Succeeded -> {
-                acknowledgedIds = result.acknowledgedAttemptIds.distinct().sorted()
-                conflictIds = result.conflictAttemptIds.distinct().sorted()
+        val (acknowledgedIds, conflictIds) =
+            when (result) {
+                is LearningSyncTransportResult.Succeeded ->
+                    result.acknowledgedAttemptIds.distinct().sorted() to
+                        result.conflictAttemptIds.distinct().sorted()
             }
-        }
 
         require(acknowledgedIds.all { it in pendingIds }) {
             "Transport acknowledged an attempt that was not part of the submitted batch."
