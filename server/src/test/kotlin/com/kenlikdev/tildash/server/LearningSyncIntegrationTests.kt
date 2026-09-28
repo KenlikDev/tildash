@@ -1,6 +1,7 @@
 package com.kenlikdev.tildash.server
 
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -189,6 +190,42 @@ class LearningSyncIntegrationTests {
             jdbcTemplate.queryForObject(
                 "select count(*) from tildash.learning_attempts where attempt_id = 'attempt-shared-id'",
                 Int::class.java,
+            ),
+        )
+    }
+
+    @Test
+    fun persistedLearningAttemptCannotBeUpdatedOrDeleted() {
+        mockMvc
+            .perform(
+                post("/api/v1/learning/sync")
+                    .with(user("learner-a").roles("LEARNER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson("attempt-immutable")),
+            )
+            .andExpect(status().isOk)
+
+        val updateFailure =
+            org.junit.jupiter.api.assertThrows<org.springframework.dao.DataAccessException> {
+                jdbcTemplate.update(
+                    "update tildash.learning_attempts set outcome = 'INCORRECT' where learner_subject = 'learner-a' and attempt_id = 'attempt-immutable'",
+                )
+            }
+        assertTrue(updateFailure.message?.contains("Learning attempt history is immutable") == true)
+
+        val deleteFailure =
+            org.junit.jupiter.api.assertThrows<org.springframework.dao.DataAccessException> {
+                jdbcTemplate.update(
+                    "delete from tildash.learning_attempts where learner_subject = 'learner-a' and attempt_id = 'attempt-immutable'",
+                )
+            }
+        assertTrue(deleteFailure.message?.contains("Learning attempt history is immutable") == true)
+
+        assertEquals(
+            "CORRECT",
+            jdbcTemplate.queryForObject(
+                "select outcome from tildash.learning_attempts where learner_subject = 'learner-a' and attempt_id = 'attempt-immutable'",
+                String::class.java,
             ),
         )
     }
