@@ -28,6 +28,10 @@ Evaluation returns CORRECT when any expected answer matches, otherwise INCORRECT
 
 The same exercise and response always produce the same result.
 
+## Published learner catalog
+
+`LearningCatalogProjector` is the deterministic read-side boundary for learner-visible published courses and lessons. It selects the latest published snapshot per content ID, requires valid COURSE -> LESSON hierarchy, orders output deterministically, and exposes immutable learner read models without persistence or HTTP types. The detailed contract is documented in `docs/LEARNING_CATALOG.md` and ADR-0011.
+
 ## Lesson sessions
 
 `LessonSession` is the deterministic orchestration boundary between a `LearningPlan` and the learner-facing layer. It exposes `ACTIVE` or `COMPLETED` state, selects the first plan exercise without a correct attempt, and delegates submission to `LearningEngine`. It can be recreated from an existing `LearningProgress` without changing attempt history.
