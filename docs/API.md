@@ -239,3 +239,41 @@ Requires TEACHER, REVIEWER, or ADMINISTRATOR.
 - Workflow history is append-only.
 
 Malformed content requests use RFC 9457 Problem Details. Validation and workflow conflicts use stable problem types rather than framework exception names.
+
+
+## Learning synchronization
+
+POST /api/v1/learning/sync
+
+Synchronizes immutable learner attempts for the authenticated learner.
+
+Request:
+
+```json
+{
+  "deviceId": "device-a",
+  "attempts": [
+    {
+      "attemptId": "attempt-1",
+      "exerciseId": "exercise-1",
+      "response": {
+        "type": "TEXT",
+        "value": "hello"
+      },
+      "outcome": "CORRECT",
+      "occurredAt": "2026-09-28T09:00:00Z"
+    }
+  ]
+}
+```
+
+The endpoint requires authentication. The authenticated identity subject, not device ID, scopes the server-side attempt record.
+
+Successful responses contain two explicit ID sets:
+
+- `acknowledgedAttemptIds` — newly stored or already-identical attempts;
+- `conflictAttemptIds` — attempt IDs whose immutable payload differs from the stored record, or which are contradictory duplicates inside the same request batch.
+
+A conflicting attempt is never overwritten. Unknown or unsupported payloads are rejected as client errors using RFC 9457 Problem Details.
+
+The server persists attempts under `(learner_subject, attempt_id)`, so the same client-generated attempt ID may legitimately exist for different authenticated learners.
