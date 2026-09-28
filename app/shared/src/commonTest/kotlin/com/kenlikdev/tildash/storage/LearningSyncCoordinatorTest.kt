@@ -139,6 +139,21 @@ class LearningSyncCoordinatorTest {
         }
 
     @Test
+    fun retryPolicySaturatesInsteadOfOverflowing() {
+        val policy =
+            LearningSyncRetryPolicy(
+                maxAttempts = 3,
+                initialDelayMillis = Long.MAX_VALUE / 2 + 1,
+                multiplier = 2,
+                maxDelayMillis = Long.MAX_VALUE,
+            )
+
+        assertEquals(Long.MAX_VALUE / 2 + 1, policy.delayBeforeRetry(1))
+        assertEquals(Long.MAX_VALUE, policy.delayBeforeRetry(2))
+        assertEquals(Long.MAX_VALUE, policy.delayBeforeRetry(3))
+    }
+
+    @Test
     fun maxAttemptsPropagatesTheLastTransientFailure() =
         runTest {
             val store = FakeStore(first)
