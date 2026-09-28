@@ -81,18 +81,18 @@ class LearningProgressSyncTest {
     @Test
     fun identicalAttemptDeliveredByDifferentDevicesConvergesToOneEvent() {
         val local =
-            LearningProgressSync.merge(
-                LearningProgress.empty(),
-                LearningProgressSyncBatch("device-a", listOf(attempt("attempt-1", firstTimestamp))),
-            )
-            .progress
+            LearningProgressSync
+                .merge(
+                    LearningProgress.empty(),
+                    LearningProgressSyncBatch("device-a", listOf(attempt("attempt-1", firstTimestamp))),
+                ).progress
 
         val remote =
-            LearningProgressSync.merge(
-                LearningProgress.empty(),
-                LearningProgressSyncBatch("device-b", listOf(attempt("attempt-1", firstTimestamp))),
-            )
-            .progress
+            LearningProgressSync
+                .merge(
+                    LearningProgress.empty(),
+                    LearningProgressSyncBatch("device-b", listOf(attempt("attempt-1", firstTimestamp))),
+                ).progress
 
         val merged =
             LearningProgressSync.merge(
@@ -110,11 +110,11 @@ class LearningProgressSyncTest {
         val localAttempt = attempt("attempt-1", firstTimestamp, AnswerOutcome.CORRECT)
         val incomingAttempt = attempt("attempt-1", secondTimestamp, AnswerOutcome.INCORRECT)
         val local =
-            LearningProgressSync.merge(
-                LearningProgress.empty(),
-                LearningProgressSyncBatch("device-a", listOf(localAttempt)),
-            )
-            .progress
+            LearningProgressSync
+                .merge(
+                    LearningProgress.empty(),
+                    LearningProgressSyncBatch("device-a", listOf(localAttempt)),
+                ).progress
 
         val result =
             LearningProgressSync.merge(
@@ -202,10 +202,11 @@ class LearningProgressSyncTest {
     fun mergeResultAcknowledgesOnlyAcceptedOrAlreadyKnownAttempts() {
         val localAttempt = attempt("attempt-1", firstTimestamp)
         val local =
-            LearningProgressSync.merge(
-                LearningProgress.empty(),
-                LearningProgressSyncBatch("device-a", listOf(localAttempt)),
-            ).progress
+            LearningProgressSync
+                .merge(
+                    LearningProgress.empty(),
+                    LearningProgressSyncBatch("device-a", listOf(localAttempt)),
+                ).progress
 
         val result =
             LearningProgressSync.merge(
