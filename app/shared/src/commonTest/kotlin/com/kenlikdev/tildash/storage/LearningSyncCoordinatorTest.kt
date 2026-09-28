@@ -5,6 +5,8 @@ import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -19,229 +21,232 @@ class LearningSyncCoordinatorTest {
     @Test
     fun emptyOutboxDoesNotCallTransport() =
         runTest {
-        val store = FakeStore()
-        var calls = 0
-        val transport =
-            object : LearningSyncTransport {
-                override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
-                    calls += 1
-                    error("transport must not be called")
+            val store = FakeStore()
+            var calls = 0
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(
+                        batch: LearningProgressSyncBatch,
+                    ): LearningSyncTransportResult {
+                        calls += 1
+                        error("transport must not be called")
+                    }
                 }
-            }
 
-        val report =
-            LearningSyncCoordinator(
-                store = store,
-                transport = transport,
-                delayBeforeRetry = {},
-            ).synchronize("device-a")
+            val report =
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                ).synchronize("device-a")
 
-        assertEquals(0, calls)
-        assertEquals(emptyList(), report.submittedAttemptIds)
-        assertEquals(0, report.retryCount)
-    }
+            assertEquals(0, calls)
+            assertEquals(emptyList(), report.submittedAttemptIds)
+            assertEquals(0, report.retryCount)
+        }
 
     @Test
     fun pendingAttemptsAreSubmittedInDeterministicOrder() =
         runTest {
-        val store = FakeStore(first, second)
-        var received: List<String> = emptyList()
-        val transport =
-            object : LearningSyncTransport {
-                override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
-                    received = batch.attempts.map { it.attemptId }
-                    return LearningSyncTransportResult.Succeeded(
-                        acknowledgedAttemptIds = received,
-                    )
+            val store = FakeStore(first, second)
+            var received: List<String> = emptyList()
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(
+                        batch: LearningProgressSyncBatch,
+                    ): LearningSyncTransportResult {
+                        received = batch.attempts.map { it.attemptId }
+                        return LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = received,
+                        )
+                    }
                 }
-            }
 
-        val report =
-            LearningSyncCoordinator(
-                store = store,
-                transport = transport,
-                delayBeforeRetry = {},
-            ).synchronize("device-a")
+            val report =
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                ).synchronize("device-a")
 
-        assertEquals(listOf("attempt-a", "attempt-b"), received)
-        assertEquals(listOf("attempt-a", "attempt-b"), report.acknowledgedAttemptIds)
-        assertEquals(emptyList(), store.pendingIds())
-    }
+            assertEquals(listOf("attempt-a", "attempt-b"), received)
+            assertEquals(listOf("attempt-a", "attempt-b"), report.acknowledgedAttemptIds)
+            assertEquals(emptyList(), store.pendingIds())
+        }
 
     @Test
     fun partialAcknowledgementLeavesConflictsInOutbox() =
         runTest {
-        val store = FakeStore(first, second)
-        val transport =
-            object : LearningSyncTransport {
-                override suspend fun synchronize(batch: LearningProgressSyncBatch) =
-                    LearningSyncTransportResult.Succeeded(
-                    acknowledgedAttemptIds = listOf("attempt-a"),
-                    conflictAttemptIds = listOf("attempt-b"),
-                )
-            }
+            val store = FakeStore(first, second)
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch) =
+                        LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = listOf("attempt-a"),
+                            conflictAttemptIds = listOf("attempt-b"),
+                        )
+                }
 
-        val report =
-            LearningSyncCoordinator(
-                store = store,
-                transport = transport,
-                delayBeforeRetry = {},
-            ).synchronize("device-a")
+            val report =
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                ).synchronize("device-a")
 
-        assertEquals(listOf("attempt-a", "attempt-b"), report.submittedAttemptIds)
-        assertEquals(listOf("attempt-a"), report.acknowledgedAttemptIds)
-        assertEquals(listOf("attempt-b"), report.conflictAttemptIds)
-        assertTrue(report.hasConflicts)
-        assertEquals(listOf("attempt-b"), store.pendingIds())
-    }
+            assertEquals(listOf("attempt-a", "attempt-b"), report.submittedAttemptIds)
+            assertEquals(listOf("attempt-a"), report.acknowledgedAttemptIds)
+            assertEquals(listOf("attempt-b"), report.conflictAttemptIds)
+            assertTrue(report.hasConflicts)
+            assertEquals(listOf("attempt-b"), store.pendingIds())
+        }
 
     @Test
     fun transientFailuresAreRetriedWithDeterministicDelays() =
         runTest {
-        val store = FakeStore(first)
-        val delays = mutableListOf<Long>()
-        var calls = 0
-        val transport =
-            object : LearningSyncTransport {
-                override suspend fun synchronize(
-                    batch: LearningProgressSyncBatch,
-                ): LearningSyncTransportResult {
-                    calls += 1
-                    if (calls < 3) {
-                        throw TransientLearningSyncFailure("temporary outage")
+            val store = FakeStore(first)
+            val delays = mutableListOf<Long>()
+            var calls = 0
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(
+                        batch: LearningProgressSyncBatch,
+                    ): LearningSyncTransportResult {
+                        calls += 1
+                        if (calls < 3) {
+                            throw TransientLearningSyncFailure("temporary outage")
+                        }
+                        return LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = listOf("attempt-b"),
+                        )
                     }
-                    return LearningSyncTransportResult.Succeeded(
-                        acknowledgedAttemptIds = listOf("attempt-b"),
-                    )
                 }
-            }
 
-        val policy =
-            LearningSyncRetryPolicy(
-                maxAttempts = 4,
-                initialDelayMillis = 100,
-                multiplier = 2,
-                maxDelayMillis = 500,
-            )
+            val policy =
+                LearningSyncRetryPolicy(
+                    maxAttempts = 4,
+                    initialDelayMillis = 100,
+                    multiplier = 2,
+                    maxDelayMillis = 500,
+                )
 
-        val report =
-            LearningSyncCoordinator(
-                store = store,
-                transport = transport,
-                retryPolicy = policy,
-                delayBeforeRetry = { delays += it },
-            ).synchronize("device-a")
+            val report =
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    retryPolicy = policy,
+                    delayBeforeRetry = { delays += it },
+                ).synchronize("device-a")
 
-        assertEquals(3, calls)
-        assertEquals(listOf(100L, 200L), delays)
-        assertEquals(2, report.retryCount)
-        assertEquals(emptyList(), store.pendingIds())
-    }
+            assertEquals(3, calls)
+            assertEquals(listOf(100L, 200L), delays)
+            assertEquals(2, report.retryCount)
+            assertEquals(emptyList(), store.pendingIds())
+        }
 
     @Test
     fun maxAttemptsPropagatesTheLastTransientFailure() =
         runTest {
-        val store = FakeStore(first)
-        var calls = 0
-        val transport =
-            object : LearningSyncTransport {
-                override suspend fun synchronize(
-                    batch: LearningProgressSyncBatch,
-                ): LearningSyncTransportResult {
-                    calls += 1
-                    throw TransientLearningSyncFailure("temporary outage")
+            val store = FakeStore(first)
+            var calls = 0
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(
+                        batch: LearningProgressSyncBatch,
+                    ): LearningSyncTransportResult {
+                        calls += 1
+                        throw TransientLearningSyncFailure("temporary outage")
+                    }
                 }
-            }
 
-        val failure =
-            assertFailsWith<TransientLearningSyncFailure> {
-                LearningSyncCoordinator(
-                    store = store,
-                    transport = transport,
-                    retryPolicy = LearningSyncRetryPolicy(maxAttempts = 2),
-                    delayBeforeRetry = {},
-                ).synchronize("device-a")
-            }
+            val failure =
+                assertFailsWith<TransientLearningSyncFailure> {
+                    LearningSyncCoordinator(
+                        store = store,
+                        transport = transport,
+                        retryPolicy = LearningSyncRetryPolicy(maxAttempts = 2),
+                        delayBeforeRetry = {},
+                    ).synchronize("device-a")
+                }
 
-        assertEquals("temporary outage", failure.message)
-        assertEquals(2, calls)
-        assertEquals(listOf("attempt-b"), store.pendingIds())
-    }
+            assertEquals("temporary outage", failure.message)
+            assertEquals(2, calls)
+            assertEquals(listOf("attempt-b"), store.pendingIds())
+        }
 
     @Test
     fun nonTransientFailuresAreNotRetried() =
         runTest {
-        val store = FakeStore(first)
-        var calls = 0
-        val transport =
-            object : LearningSyncTransport {
-                override suspend fun synchronize(
-                    batch: LearningProgressSyncBatch,
-                ): LearningSyncTransportResult {
-                    calls += 1
-                    throw IllegalStateException("permanent")
+            val store = FakeStore(first)
+            var calls = 0
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(
+                        batch: LearningProgressSyncBatch,
+                    ): LearningSyncTransportResult {
+                        calls += 1
+                        throw IllegalStateException("permanent")
+                    }
                 }
+
+            assertFailsWith<IllegalStateException> {
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                ).synchronize("device-a")
             }
 
-        assertFailsWith<IllegalStateException> {
-            LearningSyncCoordinator(
-                store = store,
-                transport = transport,
-                delayBeforeRetry = {},
-            ).synchronize("device-a")
+            assertEquals(1, calls)
+            assertEquals(listOf("attempt-b"), store.pendingIds())
         }
-
-        assertEquals(1, calls)
-        assertEquals(listOf("attempt-b"), store.pendingIds())
-    }
 
     @Test
     fun transportCannotAcknowledgeUnknownAttempt() =
         runTest {
-        val store = FakeStore(first)
-        val transport =
-            object : LearningSyncTransport {
-                override suspend fun synchronize(batch: LearningProgressSyncBatch) =
-                    LearningSyncTransportResult.Succeeded(
-                    acknowledgedAttemptIds = listOf("unknown"),
-                )
+            val store = FakeStore(first)
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch) =
+                        LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = listOf("unknown"),
+                        )
+                }
+
+            assertFailsWith<IllegalArgumentException> {
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                ).synchronize("device-a")
             }
 
-        assertFailsWith<IllegalArgumentException> {
-            LearningSyncCoordinator(
-                store = store,
-                transport = transport,
-                delayBeforeRetry = {},
-            ).synchronize("device-a")
+            assertEquals(listOf("attempt-b"), store.pendingIds())
         }
-
-        assertEquals(listOf("attempt-b"), store.pendingIds())
-    }
 
     @Test
     fun transportCannotAcknowledgeAndConflictSameAttempt() =
         runTest {
-        val store = FakeStore(first)
-        val transport =
-            object : LearningSyncTransport {
-                override suspend fun synchronize(
-                    batch: LearningProgressSyncBatch,
-                ) = LearningSyncTransportResult.Succeeded(
-                    acknowledgedAttemptIds = listOf("attempt-b"),
-                    conflictAttemptIds = listOf("attempt-b"),
-                )
+            val store = FakeStore(first)
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch) =
+                        LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = listOf("attempt-b"),
+                            conflictAttemptIds = listOf("attempt-b"),
+                        )
+                }
+
+            assertFailsWith<IllegalArgumentException> {
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                ).synchronize("device-a")
             }
 
-        assertFailsWith<IllegalArgumentException> {
-            LearningSyncCoordinator(
-                store = store,
-                transport = transport,
-                delayBeforeRetry = {},
-            ).synchronize("device-a")
+            assertEquals(listOf("attempt-b"), store.pendingIds())
         }
-
-        assertEquals(listOf("attempt-b"), store.pendingIds())
-    }
 
     @Test
     fun retryPolicyUsesExponentialBackoffAndCapsDelay() {
@@ -281,8 +286,8 @@ class LearningSyncCoordinatorTest {
         onFailure: (Throwable) -> Unit,
     ) {
         block.startCoroutine(
-            object : kotlin.coroutines.Continuation<Unit> {
-                override val context = kotlin.coroutines.EmptyCoroutineContext
+            object : Continuation<Unit> {
+                override val context = EmptyCoroutineContext
 
                 override fun resumeWith(result: Result<Unit>) {
                     result.exceptionOrNull()?.let(onFailure)
@@ -297,7 +302,8 @@ class LearningSyncCoordinatorTest {
         private val progress = attempts.toMutableList()
         private val pending = attempts.mapTo(linkedSetOf()) { it.attemptId }
 
-        override fun loadProgress(): LearningProgress = LearningProgress.fromPersistedAttempts(progress)
+        override fun loadProgress(): LearningProgress =
+            LearningProgress.fromPersistedAttempts(progress)
 
         override fun saveAttempt(attempt: LearningAttempt) {
             if (attempt.attemptId !in progress.map { it.attemptId }) {
