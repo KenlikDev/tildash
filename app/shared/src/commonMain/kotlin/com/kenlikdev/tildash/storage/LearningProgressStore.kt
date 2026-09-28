@@ -61,12 +61,12 @@ class SqlDelightLearningProgressStore(
 
             val row = toRow(attempt)
             queries.insertAttempt(
-                attempt_id = row.attempt_id,
-                exercise_id = row.exercise_id,
-                response_type = row.response_type,
-                response_value = row.response_value,
+                attempt_id = row.attemptId,
+                exercise_id = row.exerciseId,
+                response_type = row.responseType,
+                response_value = row.responseValue,
                 outcome = row.outcome,
-                occurred_at_epoch_millis = row.occurred_at_epoch_millis,
+                occurred_at_epoch_millis = row.occurredAtEpochMillis,
             )
             queries.queueAttempt(attempt.attemptId)
         }
