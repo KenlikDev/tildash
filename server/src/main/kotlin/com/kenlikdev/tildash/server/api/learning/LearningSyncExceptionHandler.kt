@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+import java.net.URI
 
 @RestControllerAdvice(assignableTypes = [LearningSyncController::class])
 class LearningSyncExceptionHandler {
@@ -16,12 +17,11 @@ class LearningSyncExceptionHandler {
             ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST,
                 exception.message ?: "The learning synchronization request is invalid.",
-            )
-                .apply {
-                    type = java.net.URI.create("urn:tildash:problem:learning-sync-invalid-request")
-                    title = "Invalid learning synchronization request"
-                    instance = ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri()
-                }
+            ).apply {
+                type = URI.create("urn:tildash:problem:learning-sync-invalid-request")
+                title = "Invalid learning synchronization request"
+                instance = ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri()
+            }
 
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
