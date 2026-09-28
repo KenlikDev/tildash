@@ -30,12 +30,12 @@ class SqlDelightLearningProgressStore(
         LearningProgress.fromPersistedAttempts(
             queries.selectAllAttempts().executeAsList().map { row ->
                 toLearningAttempt(
-                    attemptId = row.attemptId,
-                    exerciseId = row.exerciseId,
-                    responseType = row.responseType,
-                    responseValue = row.responseValue,
+                    attemptId = row.attempt_id,
+                    exerciseId = row.exercise_id,
+                    responseType = row.response_type,
+                    responseValue = row.response_value,
                     outcome = row.outcome,
-                    occurredAtEpochMillis = row.occurredAtEpochMillis,
+                    occurredAtEpochMillis = row.occurred_at_epoch_millis,
                 )
             },
         )
@@ -46,12 +46,12 @@ class SqlDelightLearningProgressStore(
             if (existing != null) {
                 val stored =
                     toLearningAttempt(
-                        attemptId = existing.attemptId,
-                        exerciseId = existing.exerciseId,
-                        responseType = existing.responseType,
-                        responseValue = existing.responseValue,
+                        attemptId = existing.attempt_id,
+                        exerciseId = existing.exercise_id,
+                        responseType = existing.response_type,
+                        responseValue = existing.response_value,
                         outcome = existing.outcome,
-                        occurredAtEpochMillis = existing.occurredAtEpochMillis,
+                        occurredAtEpochMillis = existing.occurred_at_epoch_millis,
                     )
                 if (stored != attempt) {
                     throw AttemptIdConflict(attempt.attemptId)
@@ -61,12 +61,12 @@ class SqlDelightLearningProgressStore(
 
             val row = toRow(attempt)
             queries.insertAttempt(
-                attempt_id = row.attemptId,
-                exercise_id = row.exerciseId,
-                response_type = row.responseType,
-                response_value = row.responseValue,
+                attempt_id = row.attempt_id,
+                exercise_id = row.exercise_id,
+                response_type = row.response_type,
+                response_value = row.response_value,
                 outcome = row.outcome,
-                occurred_at_epoch_millis = row.occurredAtEpochMillis,
+                occurred_at_epoch_millis = row.occurred_at_epoch_millis,
             )
             queries.queueAttempt(attempt.attemptId)
         }
@@ -75,12 +75,12 @@ class SqlDelightLearningProgressStore(
     override fun loadPendingSyncAttempts(): List<LearningAttempt> =
         queries.selectPendingAttempts().executeAsList().map { row ->
             toLearningAttempt(
-                attemptId = row.attemptId,
-                exerciseId = row.exerciseId,
-                responseType = row.responseType,
-                responseValue = row.responseValue,
+                attemptId = row.attempt_id,
+                exerciseId = row.exercise_id,
+                responseType = row.response_type,
+                responseValue = row.response_value,
                 outcome = row.outcome,
-                occurredAtEpochMillis = row.occurredAtEpochMillis,
+                occurredAtEpochMillis = row.occurred_at_epoch_millis,
             )
         }
 
