@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
 import java.sql.ResultSet
-import java.sql.ResultSet
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import kotlin.time.Instant
