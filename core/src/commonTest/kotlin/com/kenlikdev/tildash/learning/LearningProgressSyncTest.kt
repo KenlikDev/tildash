@@ -136,11 +136,12 @@ class LearningProgressSyncTest {
         val conflicting = attempt("attempt-1", secondTimestamp)
         val newAttempt = attempt("attempt-2", secondTimestamp)
         val local =
-            LearningProgressSync.merge(
-                LearningProgress.empty(),
-                LearningProgressSyncBatch("device-a", listOf(localAttempt)),
-            )
-            .progress
+            LearningProgressSync
+                .merge(
+                    LearningProgress.empty(),
+                    LearningProgressSyncBatch("device-a", listOf(localAttempt)),
+                )
+                .progress
 
         val result =
             LearningProgressSync.merge(
