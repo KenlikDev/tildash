@@ -82,7 +82,7 @@ Repository / External Gateway
 
 Controllers are transport adapters. They validate and translate external input but must not become containers for business rules.
 
-The current backend remains foundation-stage infrastructure. Public domain endpoints and application services are future work; security, persistence, and content contracts are established as infrastructure/domain boundaries.
+The current backend combines foundation infrastructure with the implemented content-studio workflow and authenticated learner synchronization. Security, persistence, content, and learning-sync contracts are kept behind explicit application boundaries.
 
 ## Public API boundary
 
@@ -108,7 +108,7 @@ Persistence is an infrastructure concern behind repository interfaces or equival
 
 The backend persistence foundation uses PostgreSQL, Spring Data JDBC, and Flyway. Schema changes are explicit, versioned migrations under `server/src/main/resources/db/migration/`.
 
-No domain repository interface or aggregate table is introduced yet because no owning persistence contract has been defined. The persistence infrastructure remains behind application/domain boundaries.
+Implemented server-side persistence currently includes the content workflow model and immutable learner attempts. Learner attempts are scoped by authenticated identity subject and attempt ID; the persistence contract never accepts a client-controlled device ID as an authorization key.
 
 Local PostgreSQL setup and the test database strategy are documented in `docs/DATABASE.md`. The durable decision is recorded in ADR-0004.
 
@@ -186,3 +186,27 @@ Authentication and authorization errors use the same RFC 9457 Problem Details co
 Security architecture, threat model, client authentication contract, and deployment requirements are defined in `docs/SECURITY.md` and ADR-0007.
 
 Resource-server authentication is configurable and provider-neutral. Production deployments must supply a trusted issuer and HTTPS/TLS. Identity persistence remains behind the persistence boundary and is not part of the HTTP security adapter.
+
+## Learning synchronization boundary
+
+The learner synchronization path is:
+
+```text
+Authenticated HTTP request
+          |
+          v
+LearningSyncController
+          |
+          v
+LearningSyncService
+          |
+          v
+LearningSyncRepository
+          |
+          v
+PostgreSQL immutable attempt history
+```
+
+The controller obtains the authenticated subject from the existing security boundary. The application service owns batch semantics and conflict classification. The repository owns persistence and the `(learner_subject, attempt_id)` uniqueness boundary.
+
+The server does not depend on the KMP client's storage implementation. The shared client synchronization coordinator remains transport-provider-neutral and can be composed with this endpoint without changing the core reconciliation rules.
