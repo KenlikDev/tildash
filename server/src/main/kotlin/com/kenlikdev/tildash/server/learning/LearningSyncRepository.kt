@@ -52,7 +52,8 @@ class LearningSyncRepository(
             return LearningAttemptRecord.fromAttempt(attempt)
         }
 
-        return jdbc.query(
+        return jdbc
+            .query(
             """
             select attempt_id, exercise_id, response_type, response_value,
                    outcome, occurred_at
@@ -76,9 +77,9 @@ class LearningSyncRepository(
                         ?.let { Instant.fromEpochSeconds(it.epochSecond, it.nano.toLong()) }
                         ?: error("Persisted learning attempt is missing occurred_at."),
             )
-        }.firstOrNull() ?: error("Learning attempt disappeared after conflict detection.")
+        }
+            .firstOrNull() ?: error("Learning attempt disappeared after conflict detection.")
     }
-
 }
 
 data class LearningAttemptRecord(
