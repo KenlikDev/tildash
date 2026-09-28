@@ -8,6 +8,7 @@ import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.coroutines.startCoroutine
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
@@ -16,7 +17,7 @@ class LearningSyncCoordinatorTest {
     private val second = attempt("attempt-a", "2026-09-28T08:00:00Z")
 
     @Test
-    fun emptyOutboxDoesNotCallTransport() {
+    fun emptyOutboxDoesNotCallTransport() = runTest {
         val store = FakeStore()
         var calls = 0
         val transport =
@@ -61,6 +62,7 @@ class LearningSyncCoordinatorTest {
             LearningSyncCoordinator(
                 store = store,
                 transport = transport,
+                delayBeforeRetry = {},
             ).synchronize("device-a")
 
         assertEquals(listOf("attempt-a", "attempt-b"), received)
@@ -85,6 +87,7 @@ class LearningSyncCoordinatorTest {
             LearningSyncCoordinator(
                 store = store,
                 transport = transport,
+                delayBeforeRetry = {},
             ).synchronize("device-a")
 
         assertEquals(listOf("attempt-a", "attempt-b"), report.submittedAttemptIds)
