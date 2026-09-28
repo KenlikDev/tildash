@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
-import org.springframework.http.MediaType
 import org.springframework.dao.DataAccessException
+import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
@@ -14,6 +14,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -35,9 +38,7 @@ class LearningSyncIntegrationTests {
                 post("/api/v1/learning/sync")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-unauthenticated")),
-            ).andExpect(status().isUnauthorized)
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("urn:tildash:problem:unauthorized"))
+            ).andExpect(status().isUnauthorized).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON)).andExpect(jsonPath("$.type").value("urn:tildash:problem:unauthorized"))
     }
 
     @Test
@@ -48,9 +49,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-a").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-new")),
-            ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-new"))
-            .andExpect(jsonPath("$.conflictAttemptIds").isEmpty)
+            ).andExpect(status().isOk).andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-new")).andExpect(jsonPath("$.conflictAttemptIds").isEmpty)
 
         assertEquals(
             1,
@@ -72,10 +71,7 @@ class LearningSyncIntegrationTests {
                         .with(user("learner-a").roles("LEARNER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request),
-                )
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-idempotent"))
-                .andExpect(jsonPath("$.conflictAttemptIds").isEmpty)
+                ).andExpect(status().isOk).andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-idempotent")).andExpect(jsonPath("$.conflictAttemptIds").isEmpty)
         }
 
         assertEquals(
@@ -103,9 +99,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-a").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-conflict", "INCORRECT", "2026-09-28T10:00:00Z")),
-            ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
-            .andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-conflict"))
+            ).andExpect(status().isOk).andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty).andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-conflict"))
 
         assertEquals(
             "CORRECT",
@@ -146,9 +140,7 @@ class LearningSyncIntegrationTests {
                         }
                         """.trimIndent(),
                     ),
-            ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
-            .andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-duplicate"))
+            ).andExpect(status().isOk).andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty).andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-duplicate"))
 
         assertEquals(
             0,
@@ -177,8 +169,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-b").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(request),
-            ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-shared-id"))
+            ).andExpect(status().isOk).andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-shared-id"))
 
         assertEquals(
             2,
@@ -208,7 +199,7 @@ class LearningSyncIntegrationTests {
         assertTrue(updateFailure.message?.contains("Learning attempt history is immutable") == true)
 
         val deleteFailure =
-            org.junit.jupiter.api.assertThrows<org.springframework.dao.DataAccessException> {
+            assertFailsWith<DataAccessException> {
                 jdbcTemplate.update(
                     "delete from tildash.learning_attempts where learner_subject = 'learner-a' and attempt_id = 'attempt-immutable'",
                 )
@@ -232,8 +223,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-a").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-invalid-device", deviceId = " ")),
-            ).andExpect(status().isBadRequest)
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            ).andExpect(status().isBadRequest).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
     }
 
     private fun requestJson(
