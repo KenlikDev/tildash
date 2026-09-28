@@ -99,9 +99,13 @@ The model is designed for later persistence and offline synchronization:
 
 Persistence and synchronization remain separate follow-up tasks.
 
+## Synchronization
+
+Deterministic reconciliation for offline learner attempts is implemented by `LearningProgressSync`. It merges immutable `LearningAttempt` values idempotently, preserves canonical ordering, acknowledges accepted/replayed IDs, and surfaces conflicting reuse of an attempt ID without overwriting either event. The contract is documented in `docs/LEARNING_SYNC.md` and ADR-0012.
+
 ## Non-goals
 
-This slice does not implement HTTP/API endpoints, PostgreSQL persistence, offline sync, audio transport/decoding, learner UI, or AI tutor behavior.
+This slice does not implement HTTP/API endpoints, PostgreSQL persistence, offline transport/retry orchestration, audio transport/decoding, learner UI, or AI tutor behavior.
 
 The parent issue #15 remains open until those end-to-end requirements are implemented.
 
