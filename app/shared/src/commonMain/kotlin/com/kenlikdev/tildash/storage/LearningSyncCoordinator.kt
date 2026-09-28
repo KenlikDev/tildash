@@ -30,7 +30,12 @@ data class LearningSyncRetryPolicy(
 
         var delay = initialDelayMillis
         repeat(retryNumber - 1) {
-            delay = (delay * multiplier).coerceAtMost(maxDelayMillis)
+            delay =
+                if (delay > maxDelayMillis / multiplier) {
+                    maxDelayMillis
+                } else {
+                    (delay * multiplier).coerceAtMost(maxDelayMillis)
+                }
         }
         return delay
     }
