@@ -86,14 +86,13 @@ class LessonSessionTest {
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
             )
+        val resumedSession = LessonSession.start(plan, firstSubmission.session.progress)
         val repeatedSubmission =
-            LessonSession
-                .start(plan, firstSubmission.session.progress)
-                .submit(
-                    attemptId = "attempt-1",
-                    response = LearnerResponse.Text("hello"),
-                    occurredAt = occurredAt,
-                )
+            resumedSession.submit(
+                attemptId = "attempt-1",
+                response = LearnerResponse.Text("hello"),
+                occurredAt = occurredAt,
+            )
 
         assertEquals(firstSubmission.session.progress, repeatedSubmission.session.progress)
         assertEquals(second.id, repeatedSubmission.session.nextExercise?.id)
