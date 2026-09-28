@@ -90,8 +90,7 @@ class SqlDelightLearningProgressStore(
         }
     }
 
-    override fun pendingSyncCount(): Long =
-        queries.pendingAttemptCount().executeAsOne()
+    override fun pendingSyncCount(): Long = queries.pendingAttemptCount().executeAsOne()
 
     private data class AttemptRow(
         val attemptId: String,
@@ -125,7 +124,8 @@ class SqlDelightLearningProgressStore(
         responseValue: String,
         outcome: String,
         occurredAtEpochMillis: Long,
-    ): LearningAttempt = LearningAttempt(
+    ): LearningAttempt =
+        LearningAttempt(
             attemptId = attemptId,
             exerciseId = exerciseId,
             response =
