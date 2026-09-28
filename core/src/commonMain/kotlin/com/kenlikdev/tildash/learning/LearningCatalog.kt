@@ -244,8 +244,7 @@ object LearningCatalogProjector {
         )
     }
 
-    private fun textPayload(version: PublishedContentVersion): String =
-        textPayload(version.sourceRevision.payload)
+    private fun textPayload(version: PublishedContentVersion): String = textPayload(version.sourceRevision.payload)
 
     private fun textPayload(payload: ContentPayload): String =
         (payload as? ContentPayload.Text)?.value
