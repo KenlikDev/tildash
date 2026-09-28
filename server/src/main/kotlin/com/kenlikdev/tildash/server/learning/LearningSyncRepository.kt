@@ -54,31 +54,31 @@ class LearningSyncRepository(
 
         return jdbc
             .query(
-            """
-            select attempt_id, exercise_id, response_type, response_value,
-                   outcome, occurred_at
-            from tildash.learning_attempts
-            where learner_subject = :learnerSubject
-              and attempt_id = :attemptId
-            """.trimIndent(),
-            MapSqlParameterSource()
-                .addValue("learnerSubject", learnerSubject)
-                .addValue("attemptId", attempt.attemptId),
-        ) { rs, _ ->
-            LearningAttemptRecord(
-                attemptId = rs.getString("attempt_id"),
-                exerciseId = rs.getString("exercise_id"),
-                responseType = rs.getString("response_type"),
-                responseValue = rs.getString("response_value"),
-                outcome = AnswerOutcome.valueOf(rs.getString("outcome")),
-                occurredAt =
-                    rs
-                        .getObject("occurred_at", OffsetDateTime::class.java)
-                        ?.toInstant()
-                        ?.let { Instant.fromEpochSeconds(it.epochSecond, it.nano.toLong()) }
-                        ?: error("Persisted learning attempt is missing occurred_at."),
-            )
-        }
+                """
+                select attempt_id, exercise_id, response_type, response_value,
+                       outcome, occurred_at
+                from tildash.learning_attempts
+                where learner_subject = :learnerSubject
+                  and attempt_id = :attemptId
+                """.trimIndent(),
+                MapSqlParameterSource()
+                    .addValue("learnerSubject", learnerSubject)
+                    .addValue("attemptId", attempt.attemptId),
+            ) { rs, _ ->
+                LearningAttemptRecord(
+                    attemptId = rs.getString("attempt_id"),
+                    exerciseId = rs.getString("exercise_id"),
+                    responseType = rs.getString("response_type"),
+                    responseValue = rs.getString("response_value"),
+                    outcome = AnswerOutcome.valueOf(rs.getString("outcome")),
+                    occurredAt =
+                        rs
+                            .getObject("occurred_at", OffsetDateTime::class.java)
+                            ?.toInstant()
+                            ?.let { Instant.fromEpochSeconds(it.epochSecond, it.nano.toLong()) }
+                            ?: error("Persisted learning attempt is missing occurred_at."),
+                )
+            }
             .firstOrNull() ?: error("Learning attempt disappeared after conflict detection.")
     }
 }
