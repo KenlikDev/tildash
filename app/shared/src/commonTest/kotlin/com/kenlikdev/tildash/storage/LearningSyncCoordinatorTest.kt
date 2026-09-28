@@ -210,6 +210,7 @@ class LearningSyncCoordinatorTest {
             LearningSyncCoordinator(
                 store = store,
                 transport = transport,
+                delayBeforeRetry = {},
             ).synchronize("device-a")
         }
 
@@ -276,7 +277,7 @@ class LearningSyncCoordinatorTest {
         block: suspend () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        kotlin.coroutines.startCoroutine(
+        block.startCoroutine(
             block,
             object : kotlin.coroutines.Continuation<Unit> {
                 override val context = kotlin.coroutines.EmptyCoroutineContext
