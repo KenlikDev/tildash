@@ -17,7 +17,8 @@ class LearningSyncExceptionHandler {
             ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST,
                 exception.message ?: "The learning synchronization request is invalid.",
-            ).apply {
+            )
+                .apply {
                 type = URI.create("urn:tildash:problem:learning-sync-invalid-request")
                 title = "Invalid learning synchronization request"
                 instance = ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri()
