@@ -19,7 +19,7 @@ class LearningSyncController(
     private val currentIdentityProvider: CurrentIdentityProvider,
 ) {
     @PostMapping("/sync")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('LEARNER')")
     @Operation(
         summary = "Synchronize immutable learner attempts",
         description = "Idempotently accepts learner attempts and explicitly reports conflicting attempt IDs.",
