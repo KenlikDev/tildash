@@ -33,6 +33,7 @@ class LearningSyncCoordinatorTest {
             LearningSyncCoordinator(
                 store = store,
                 transport = transport,
+                delayBeforeRetry = {},
             ).synchronize("device-a")
 
         assertEquals(0, calls)
