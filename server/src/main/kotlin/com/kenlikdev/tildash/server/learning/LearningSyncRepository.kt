@@ -79,16 +79,6 @@ class LearningSyncRepository(
         }.firstOrNull() ?: error("Learning attempt disappeared after conflict detection.")
     }
 
-    fun countAttempts(learnerSubject: String): Long =
-        jdbc.queryForObject(
-            """
-            select count(*)
-            from tildash.learning_attempts
-            where learner_subject = :learnerSubject
-            """.trimIndent(),
-            MapSqlParameterSource("learnerSubject", learnerSubject),
-            Long::class.java,
-        ) ?: 0L
 }
 
 data class LearningAttemptRecord(
