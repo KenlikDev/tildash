@@ -40,6 +40,19 @@ class LearningSyncIntegrationTests {
     }
 
     @Test
+    fun nonLearnerCannotUseLearningSync() {
+        mockMvc
+            .perform(
+                post("/api/v1/learning/sync")
+                    .with(user("teacher-a").roles("TEACHER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson("attempt-teacher")),
+            ).andExpect(status().isForbidden)
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("urn:tildash:problem:forbidden"))
+    }
+
+    @Test
     fun newAttemptIsAcknowledgedAndPersisted() {
         mockMvc
             .perform(authenticatedSync("learner-a", requestJson("attempt-new")))
