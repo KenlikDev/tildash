@@ -35,6 +35,30 @@ class LearningProgressSyncTest {
     }
 
     @Test
+    fun mergeIsIndependentOfIncomingBatchOrder() {
+        val first = attempt("attempt-a", firstTimestamp)
+        val second = attempt("attempt-b", secondTimestamp, AnswerOutcome.INCORRECT)
+
+        val ascending =
+            LearningProgressSync.merge(
+                LearningProgress.empty(),
+                LearningProgressSyncBatch("device-a", listOf(first, second)),
+            )
+        val descending =
+            LearningProgressSync.merge(
+                LearningProgress.empty(),
+                LearningProgressSyncBatch("device-a", listOf(second, first)),
+            )
+
+        assertEquals(ascending.progress, descending.progress)
+        assertEquals(
+            ascending.acknowledgedAttemptIds,
+            descending.acknowledgedAttemptIds,
+        )
+        assertEquals(ascending.conflicts, descending.conflicts)
+    }
+
+    @Test
     fun repeatedIdenticalDeliveryIsIdempotent() {
         val firstBatch =
             LearningProgressSyncBatch(
