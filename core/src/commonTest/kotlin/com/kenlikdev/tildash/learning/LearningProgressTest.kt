@@ -43,17 +43,17 @@ class LearningProgressTest {
     }
 
     @Test
-    fun duplicateNormalizedExpectedAnswersDoNotChangeEvaluation() {
+    fun answerNormalizationIsCaseAndWhitespaceInsensitive() {
         val exercise =
             manualExercise(
                 id = "exercise-1",
-                expectedAnswers = listOf("Hello", " hello "),
+                expectedAnswers = listOf("Hello", "World"),
             )
 
         val evaluation =
             AnswerEvaluator.evaluate(
                 exercise,
-                LearnerResponse.Text("HELLO"),
+                LearnerResponse.Text("  hELLo "),
             )
 
         assertEquals(AnswerOutcome.CORRECT, evaluation.outcome)
