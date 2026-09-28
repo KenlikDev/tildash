@@ -191,9 +191,9 @@ class LearningSyncIntegrationTests {
         subject: String,
         request: String,
     ) = post("/api/v1/learning/sync")
-            .with(user(subject).roles("LEARNER"))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(request)
+        .with(user(subject).roles("LEARNER"))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(request)
 
     private fun countAttempts(
         subject: String,
