@@ -5,10 +5,10 @@ import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
+import kotlin.coroutines.startCoroutine
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.coroutines.startCoroutine
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
@@ -48,9 +48,7 @@ class LearningSyncCoordinatorTest {
         var received: List<String> = emptyList()
         val transport =
             object : LearningSyncTransport {
-                override suspend fun synchronize(
-                    batch: LearningProgressSyncBatch,
-                ): LearningSyncTransportResult {
+                override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
                     received = batch.attempts.map { it.attemptId }
                     return LearningSyncTransportResult.Succeeded(
                         acknowledgedAttemptIds = received,
@@ -203,9 +201,8 @@ class LearningSyncCoordinatorTest {
         val store = FakeStore(first)
         val transport =
             object : LearningSyncTransport {
-                override suspend fun synchronize(
-                    batch: LearningProgressSyncBatch,
-                ) = LearningSyncTransportResult.Succeeded(
+                override suspend fun synchronize(batch: LearningProgressSyncBatch) =
+                    LearningSyncTransportResult.Succeeded(
                     acknowledgedAttemptIds = listOf("unknown"),
                 )
             }
@@ -284,7 +281,6 @@ class LearningSyncCoordinatorTest {
         onFailure: (Throwable) -> Unit,
     ) {
         block.startCoroutine(
-            block,
             object : kotlin.coroutines.Continuation<Unit> {
                 override val context = kotlin.coroutines.EmptyCoroutineContext
 
