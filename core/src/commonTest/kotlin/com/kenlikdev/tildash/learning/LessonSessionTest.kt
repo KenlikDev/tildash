@@ -86,7 +86,9 @@ class LessonSessionTest {
                 occurredAt = occurredAt,
             )
         val repeatedSubmission =
-            LessonSession.start(plan, firstSubmission.session.progress).submit(
+            LessonSession
+                .start(plan, firstSubmission.session.progress)
+                .submit(
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
