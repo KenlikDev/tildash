@@ -21,23 +21,31 @@ class LearningSyncService(
         learnerSubject: String,
         request: LearningSyncRequest,
     ): LearningSyncResponse {
+        val parsedAttempts = request.attempts.map(LearningAttemptRequest::toDomain)
         val acknowledged = mutableListOf<String>()
         val conflicts = mutableListOf<String>()
 
-        request.attempts.forEach { attemptRequest ->
-            val attempt = attemptRequest.toDomain()
-            val stored = repository.insertOrFindExisting(learnerSubject, attempt)
+        parsedAttempts
+            .groupBy { it.attemptId }
+            .toSortedMap()
+            .forEach { (attemptId, attempts) ->
+                val canonicalAttempt = attempts.first()
+                if (attempts.distinct().size > 1) {
+                    conflicts += attemptId
+                    return@forEach
+                }
 
-            if (stored.matches(attempt)) {
-                acknowledged += attempt.attemptId
-            } else {
-                conflicts += attempt.attemptId
+                val stored = repository.insertOrFindExisting(learnerSubject, canonicalAttempt)
+                if (stored.matches(canonicalAttempt)) {
+                    acknowledged += attemptId
+                } else {
+                    conflicts += attemptId
+                }
             }
-        }
 
         return LearningSyncResponse(
-            acknowledgedAttemptIds = acknowledged.distinct().sorted(),
-            conflictAttemptIds = conflicts.distinct().sorted(),
+            acknowledgedAttemptIds = acknowledged.sorted(),
+            conflictAttemptIds = conflicts.sorted(),
         )
     }
 }
