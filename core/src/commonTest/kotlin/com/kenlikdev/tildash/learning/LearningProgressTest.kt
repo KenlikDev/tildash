@@ -249,6 +249,49 @@ class LearningProgressTest {
     }
 
     @Test
+    fun persistedAttemptsAreRehydratedInCanonicalOrder() {
+        val laterAttempt =
+            LearningAttempt(
+                attemptId = "b",
+                exerciseId = firstExercise.id,
+                response = LearnerResponse.Text("wrong"),
+                outcome = AnswerOutcome.INCORRECT,
+                occurredAt = later,
+            )
+        val earlierAttempt =
+            LearningAttempt(
+                attemptId = "a",
+                exerciseId = firstExercise.id,
+                response = LearnerResponse.Text("hello"),
+                outcome = AnswerOutcome.CORRECT,
+                occurredAt = occurredAt,
+            )
+
+        val progress =
+            LearningProgress.fromPersistedAttempts(
+                listOf(laterAttempt, earlierAttempt),
+            )
+
+        assertEquals(listOf("a", "b"), progress.attempts.map { it.attemptId })
+    }
+
+    @Test
+    fun duplicatePersistedAttemptIdsAreRejected() {
+        val attempt =
+            LearningAttempt(
+                attemptId = "attempt-1",
+                exerciseId = firstExercise.id,
+                response = LearnerResponse.Text("hello"),
+                outcome = AnswerOutcome.CORRECT,
+                occurredAt = occurredAt,
+            )
+
+        assertFailsWith<IllegalArgumentException> {
+            LearningProgress.fromPersistedAttempts(listOf(attempt, attempt))
+        }
+    }
+
+    @Test
     fun emptyPlanIsRejected() {
         assertFailsWith<IllegalArgumentException> {
             LearningPlan(lessonId, emptyList())
