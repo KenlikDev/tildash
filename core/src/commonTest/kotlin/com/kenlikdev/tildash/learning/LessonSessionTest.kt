@@ -89,10 +89,10 @@ class LessonSessionTest {
             LessonSession
                 .start(plan, firstSubmission.session.progress)
                 .submit(
-                attemptId = "attempt-1",
-                response = LearnerResponse.Text("hello"),
-                occurredAt = occurredAt,
-            )
+                    attemptId = "attempt-1",
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                )
 
         assertEquals(firstSubmission.session.progress, repeatedSubmission.session.progress)
         assertEquals(second.id, repeatedSubmission.session.nextExercise?.id)
@@ -158,11 +158,23 @@ class LessonSessionTest {
         var session = LessonSession.start(plan)
 
         session =
-            session.submit("attempt-1", LearnerResponse.Text("hello"), occurredAt).session
+            session.submit(
+                "attempt-1",
+                LearnerResponse.Text("hello"),
+                occurredAt,
+            ).session
         session =
-            session.submit("attempt-2", LearnerResponse.Text("world"), later).session
+            session.submit(
+                "attempt-2",
+                LearnerResponse.Text("world"),
+                later,
+            ).session
         session =
-            session.submit("attempt-3", LearnerResponse.Text("goodbye"), later).session
+            session.submit(
+                "attempt-3",
+                LearnerResponse.Text("goodbye"),
+                later,
+            ).session
 
         assertFailsWith<LessonSessionCompletedException> {
             session.submit("attempt-4", LearnerResponse.Text("hello"), later)
