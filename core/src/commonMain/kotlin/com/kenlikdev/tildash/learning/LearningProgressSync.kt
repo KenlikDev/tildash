@@ -42,13 +42,16 @@ object LearningProgressSync {
         val incomingById =
             incoming.attempts
                 .groupBy { it.attemptId }
-                .toSortedMap()
+                .entries
+                .sortedBy { it.key }
 
         val conflicts = mutableListOf<LearningProgressSyncConflict>()
         val accepted = mutableListOf<LearningAttempt>()
         val acknowledgedIds = mutableListOf<String>()
 
-        incomingById.forEach { (attemptId, candidates) ->
+        incomingById.forEach { (entry) ->
+            val attemptId = entry.key
+            val candidates = entry.value
             val first = candidates.first()
             val duplicateBatchEntry = candidates.drop(1).firstOrNull { it != first }
 
