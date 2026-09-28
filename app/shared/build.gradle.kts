@@ -71,6 +71,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.sqldelight.runtime)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
             api(project(":core"))
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
@@ -83,23 +86,29 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.ktor.client.mock)
         }
         jvmMain.dependencies {
             implementation(libs.sqldelight.jvm.driver)
+            implementation(libs.ktor.client.cio)
         }
         androidMain.dependencies {
             implementation(libs.sqldelight.android.driver)
+            implementation(libs.ktor.client.okhttp)
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.compose.ui.tooling)
         }
         nativeMain.dependencies {
             implementation(libs.sqldelight.native.driver)
+            implementation(libs.ktor.client.darwin)
         }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)
+            implementation(libs.ktor.client.js)
         }
         jvmTest.dependencies {
             implementation(libs.sqldelight.jvm.driver)
+            implementation(libs.ktor.client.mock)
         }
     }
 }
