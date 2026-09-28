@@ -121,11 +121,11 @@ private object ManualInputExerciseEvaluator : ExerciseEvaluator {
 
 class UnsupportedLearningExerciseException(
     exerciseId: String,
-) : IllegalArgumentException("No evaluator is registered for exercise '${exerciseId}'.")
+) : IllegalArgumentException("No evaluator is registered for exercise $exerciseId.")
 
 class AttemptIdConflict(
     attemptId: String,
-) : IllegalArgumentException("Attempt '${attemptId}' already exists with different data.")
+) : IllegalArgumentException("Attempt $attemptId already exists with different data.")
 
 data class LearningAttempt(
     val attemptId: String,
@@ -149,8 +149,8 @@ data class ReviewState(
     val dueAt: Instant,
 ) {
     init {
-        require(stage in 0..ReviewScheduler.maxStage) {
-            "Review stage must be between 0 and ${ReviewScheduler.maxStage}."
+        require(stage in 0..ReviewScheduler.MAX_STAGE) {
+            "Review stage must be between 0 and ${ReviewScheduler.MAX_STAGE}."
         }
     }
 
@@ -160,9 +160,10 @@ data class ReviewState(
 }
 
 object ReviewScheduler {
-    const val maxStage: Int = 5
+    const val MAX_STAGE: Int = 5
 
-    private val intervalDays = intArrayOf(0, 1, 3, 7, 14, 30)
+    private const val MILLIS_PER_DAY = 86_400_000L
+    private val INTERVAL_DAYS = intArrayOf(0, 1, 3, 7, 14, 30)
 
     fun schedule(
         current: ReviewState,
@@ -170,17 +171,18 @@ object ReviewScheduler {
         occurredAt: Instant,
     ): ReviewState =
         when (outcome) {
-            AnswerOutcome.INCORRECT ->
+            AnswerOutcome.INCORRECT -> {
                 ReviewState(
                     stage = 0,
                     dueAt = occurredAt,
                 )
+            }
 
             AnswerOutcome.CORRECT -> {
-                val nextStage = (current.stage + 1).coerceAtMost(maxStage)
+                val nextStage = (current.stage + 1).coerceAtMost(MAX_STAGE)
                 ReviewState(
                     stage = nextStage,
-                    dueAt = addDays(occurredAt, intervalDays[nextStage]),
+                    dueAt = addDays(occurredAt, INTERVAL_DAYS[nextStage]),
                 )
             }
         }
@@ -192,8 +194,6 @@ object ReviewScheduler {
         Instant.fromEpochMilliseconds(
             instant.toEpochMilliseconds() + days * MILLIS_PER_DAY,
         )
-
-    private const val MILLIS_PER_DAY = 86_400_000L
 }
 
 data class LearningProgress private constructor(
@@ -206,9 +206,8 @@ data class LearningProgress private constructor(
 
         fun empty(): LearningProgress = LearningProgress(emptyList())
 
-        internal fun fromCanonicalAttempts(
-            attempts: List<LearningAttempt>,
-        ): LearningProgress = LearningProgress(attempts)
+        internal fun fromCanonicalAttempts(attempts: List<LearningAttempt>): LearningProgress =
+            LearningProgress(attempts)
     }
 
     fun reviewState(exerciseId: String): ReviewState {
@@ -218,7 +217,7 @@ data class LearningProgress private constructor(
                 .sortedWith(attemptComparator)
 
         require(exerciseAttempts.isNotEmpty()) {
-            "Exercise '${exerciseId}' has no attempts."
+            "Exercise $exerciseId has no attempts."
         }
 
         var state = ReviewState.initial(exerciseAttempts.first().occurredAt)
