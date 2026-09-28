@@ -6,6 +6,7 @@ import com.kenlikdev.tildash.learning.LearningAttempt
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import java.sql.ResultSet
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import kotlin.time.Instant
@@ -71,15 +72,11 @@ class LearningSyncRepository(
                     responseType = rs.getString("response_type"),
                     responseValue = rs.getString("response_value"),
                     outcome = AnswerOutcome.valueOf(rs.getString("outcome")),
-                    occurredAt =
-                        rs
-                            .getObject("occurred_at", OffsetDateTime::class.java)
-                            ?.toInstant()
-                            ?.let { Instant.fromEpochSeconds(it.epochSecond, it.nano.toLong()) }
-                            ?: error("Persisted learning attempt is missing occurred_at."),
+                    occurredAt = rs.readInstant("occurred_at"),
                 )
             }
-            .firstOrNull() ?: error("Learning attempt disappeared after conflict detection.")
+            .firstOrNull()
+            ?: error("Learning attempt disappeared after conflict detection.")
     }
 }
 
@@ -103,6 +100,7 @@ data class LearningAttemptRecord(
             val response =
                 attempt.response as? LearnerResponse.Text
                     ?: error("Unsupported learner response type.")
+
             return LearningAttemptRecord(
                 attemptId = attempt.attemptId,
                 exerciseId = attempt.exerciseId,
@@ -114,6 +112,11 @@ data class LearningAttemptRecord(
         }
     }
 }
+
+private fun ResultSet.readInstant(column: String): Instant =
+    getObject(column, OffsetDateTime::class.java)
+        ?.let { Instant.fromEpochSeconds(it.toEpochSecond(), it.nano.toLong()) }
+        ?: error("Persisted learning attempt is missing $column.")
 
 private fun Instant.toOffsetDateTime(): OffsetDateTime =
     OffsetDateTime.ofInstant(
