@@ -125,8 +125,7 @@ class SqlDelightLearningProgressStore(
         responseValue: String,
         outcome: String,
         occurredAtEpochMillis: Long,
-    ): LearningAttempt =
-        LearningAttempt(
+    ): LearningAttempt = LearningAttempt(
             attemptId = attemptId,
             exerciseId = exerciseId,
             response =
