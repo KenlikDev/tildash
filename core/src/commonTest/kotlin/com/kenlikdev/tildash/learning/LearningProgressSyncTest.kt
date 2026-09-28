@@ -67,10 +67,11 @@ class LearningProgressSyncTest {
             )
         val first = LearningProgressSync.merge(LearningProgress.empty(), firstBatch)
 
-        val repeated = LearningProgressSync.merge(
-            first.progress,
-            firstBatch.copy(deviceId = "device-b"),
-        )
+        val repeated =
+            LearningProgressSync.merge(
+                first.progress,
+                firstBatch.copy(deviceId = "device-b"),
+            )
 
         assertEquals(first.progress, repeated.progress)
         assertEquals(listOf("attempt-1"), repeated.acknowledgedAttemptIds)
@@ -83,18 +84,21 @@ class LearningProgressSyncTest {
             LearningProgressSync.merge(
                 LearningProgress.empty(),
                 LearningProgressSyncBatch("device-a", listOf(attempt("attempt-1", firstTimestamp))),
-            ).progress
+            )
+            .progress
 
         val remote =
             LearningProgressSync.merge(
                 LearningProgress.empty(),
                 LearningProgressSyncBatch("device-b", listOf(attempt("attempt-1", firstTimestamp))),
-            ).progress
+            )
+            .progress
 
-        val merged = LearningProgressSync.merge(
-            local,
-            LearningProgressSyncBatch("device-b", remote.attempts),
-        )
+        val merged =
+            LearningProgressSync.merge(
+                local,
+                LearningProgressSyncBatch("device-b", remote.attempts),
+            )
 
         assertEquals(1, merged.progress.attempts.size)
         assertEquals(attempt("attempt-1", firstTimestamp), merged.progress.attempts.single())
@@ -109,7 +113,8 @@ class LearningProgressSyncTest {
             LearningProgressSync.merge(
                 LearningProgress.empty(),
                 LearningProgressSyncBatch("device-a", listOf(localAttempt)),
-            ).progress
+            )
+            .progress
 
         val result =
             LearningProgressSync.merge(
@@ -134,7 +139,8 @@ class LearningProgressSyncTest {
             LearningProgressSync.merge(
                 LearningProgress.empty(),
                 LearningProgressSyncBatch("device-a", listOf(localAttempt)),
-            ).progress
+            )
+            .progress
 
         val result =
             LearningProgressSync.merge(
