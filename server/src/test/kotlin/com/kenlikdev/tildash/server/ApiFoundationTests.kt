@@ -37,7 +37,6 @@ class ApiFoundationTests {
             .perform(get("/v3/api-docs").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-
             .andExpect(jsonPath("$.openapi").isNotEmpty)
             .andExpect(jsonPath("$.info.title").value("Tildash API"))
             .andExpect(jsonPath("$.info.version").value("1.0.0"))
