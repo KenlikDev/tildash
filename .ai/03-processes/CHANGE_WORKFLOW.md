@@ -10,6 +10,7 @@
 8. Run broader applicable checks.
 9. Inspect the final diff.
 10. Run an independent review for non-trivial changes.
+For a full repository review, additionally follow `03-processes/FULL_REPOSITORY_REVIEW.md` in full.
 11. Commit one coherent change.
 12. Push only the authorized task branch.
 13. Open a PR from the task branch to `ai/integration`.
