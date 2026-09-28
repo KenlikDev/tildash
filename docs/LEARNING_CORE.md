@@ -105,7 +105,7 @@ Deterministic reconciliation for offline learner attempts is implemented by `Lea
 
 ## Non-goals
 
-This slice does not implement HTTP/API endpoints, PostgreSQL persistence, offline sync, audio transport/decoding, learner UI, or AI tutor behavior.
+This slice does not implement HTTP/API endpoints, PostgreSQL persistence, offline transport/retry orchestration, audio transport/decoding, learner UI, or AI tutor behavior.
 
 The parent issue #15 remains open until those end-to-end requirements are implemented.
 
