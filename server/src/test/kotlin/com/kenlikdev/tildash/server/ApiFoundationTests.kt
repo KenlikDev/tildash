@@ -24,9 +24,7 @@ class ApiFoundationTests {
                 get("/v3/api-docs")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(status().isOk)
-
             .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.type").value("http"))
-
             .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme").value("bearer"))
     }
 
