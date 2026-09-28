@@ -72,7 +72,8 @@ class LearningSyncRepository(
                 responseValue = rs.getString("response_value"),
                 outcome = AnswerOutcome.valueOf(rs.getString("outcome")),
                 occurredAt =
-                    rs.getObject("occurred_at", OffsetDateTime::class.java)
+                    rs
+                        .getObject("occurred_at", OffsetDateTime::class.java)
                         ?.toInstant()
                         ?.let { Instant.fromEpochSeconds(it.epochSecond, it.nano.toLong()) }
                         ?: error("Persisted learning attempt is missing occurred_at."),
