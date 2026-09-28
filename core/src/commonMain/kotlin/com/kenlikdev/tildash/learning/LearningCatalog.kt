@@ -61,20 +61,23 @@ object LearningCatalogProjector {
         )
 
         val courses =
-            publishedCourseIds.map { courseId ->
-                projectCourse(
-                    courseId = courseId,
-                    nodesById = nodesById,
-                    publishedLessonIds = publishedLessonIds,
-                    latestPublishedVersions = latestPublishedVersions,
-                )
-            }.sortedWith(
+            publishedCourseIds
+                .map { courseId ->
+                    projectCourse(
+                        courseId = courseId,
+                        nodesById = nodesById,
+                        publishedLessonIds = publishedLessonIds,
+                        latestPublishedVersions = latestPublishedVersions,
+                    )
+                }
+        val orderedCourses =
+            courses.sortedWith(
                 compareBy<LearnerCourseSummary> {
                     nodesById.getValue(it.id).position
                 }.thenBy { it.id.value },
             )
 
-        return LearnerCourseCatalog(courses)
+        return LearnerCourseCatalog(orderedCourses)
     }
 
     private fun projectCourse(
@@ -86,22 +89,26 @@ object LearningCatalogProjector {
         val courseNode = nodesById.getValue(courseId)
         val courseVersion = latestPublishedVersions.getValue(courseId)
 
-        val lessonIds = publishedLessonIds
-            .filter { lessonId -> nodesById.getValue(lessonId).parentId == courseId }
+        val lessonIds =
+            publishedLessonIds
+                .filter { lessonId -> nodesById.getValue(lessonId).parentId == courseId }
 
+        val lessonSummaries =
+            lessonIds
+                .map { lessonId ->
+                    val lessonNode = nodesById.getValue(lessonId)
+                    val lessonVersion = latestPublishedVersions.getValue(lessonId)
+
+                    LearnerLessonSummary(
+                        id = lessonId,
+                        title = textPayload(lessonVersion),
+                        sourceLocale = lessonNode.sourceLocale,
+                        publishedVersion = lessonVersion.version,
+                        localizations = projectLocalizations(lessonVersion),
+                    )
+                }
         val lessons =
-            lessonIds.map { lessonId ->
-                val lessonNode = nodesById.getValue(lessonId)
-                val lessonVersion = latestPublishedVersions.getValue(lessonId)
-
-                LearnerLessonSummary(
-                    id = lessonId,
-                    title = textPayload(lessonVersion),
-                    sourceLocale = lessonNode.sourceLocale,
-                    publishedVersion = lessonVersion.version,
-                    localizations = projectLocalizations(lessonVersion),
-                )
-            }.sortedWith(
+            lessonSummaries.sortedWith(
                 compareBy<LearnerLessonSummary> {
                     nodesById.getValue(it.id).position
                 }.thenBy { it.id.value },
@@ -133,9 +140,7 @@ object LearningCatalogProjector {
         return nodes.associateBy { it.id }
     }
 
-    private fun latestVersions(
-        publishedVersions: List<PublishedContentVersion>,
-    ): Map<ContentId, PublishedContentVersion> {
+    private fun latestVersions(publishedVersions: List<PublishedContentVersion>): Map<ContentId, PublishedContentVersion> {
         val groups = publishedVersions.groupBy { it.contentId }
         return groups.mapValues { (contentId, versions) ->
             val duplicatedVersions =
@@ -211,9 +216,7 @@ object LearningCatalogProjector {
         }
     }
 
-    private fun projectLocalizations(
-        version: PublishedContentVersion,
-    ): List<LearnerLocalizedText> {
+    private fun projectLocalizations(version: PublishedContentVersion): List<LearnerLocalizedText> {
         val duplicateKeys =
             version.localizations
                 .groupingBy { Triple(it.locale, it.variant, it.revision) }
@@ -244,10 +247,9 @@ object LearningCatalogProjector {
     private fun textPayload(version: PublishedContentVersion): String =
         textPayload(version.sourceRevision.payload)
 
-    private fun textPayload(payload: ContentPayload): String {
-        return (payload as? ContentPayload.Text)?.value
+    private fun textPayload(payload: ContentPayload): String =
+        (payload as? ContentPayload.Text)?.value
             ?: throw LearningCatalogProjectionViolation(
                 "Learner catalog currently supports text source/localized payloads only.",
             )
-    }
 }
