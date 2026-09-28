@@ -145,9 +145,7 @@ class LearningSyncCoordinatorTest {
             var calls = 0
             val transport =
                 object : LearningSyncTransport {
-                    override suspend fun synchronize(
-                        batch: LearningProgressSyncBatch,
-                    ): LearningSyncTransportResult {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
                         calls += 1
                         throw TransientLearningSyncFailure("temporary outage")
                     }
@@ -175,9 +173,7 @@ class LearningSyncCoordinatorTest {
             var calls = 0
             val transport =
                 object : LearningSyncTransport {
-                    override suspend fun synchronize(
-                        batch: LearningProgressSyncBatch,
-                    ): LearningSyncTransportResult {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
                         calls += 1
                         throw IllegalStateException("permanent")
                     }
