@@ -1,6 +1,7 @@
 package com.kenlikdev.tildash.server
 
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -8,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
@@ -206,7 +208,7 @@ class LearningSyncIntegrationTests {
             .andExpect(status().isOk)
 
         val updateFailure =
-            org.junit.jupiter.api.assertThrows<org.springframework.dao.DataAccessException> {
+            assertFailsWith<DataAccessException> {
                 jdbcTemplate.update(
                     "update tildash.learning_attempts set outcome = 'INCORRECT' where learner_subject = 'learner-a' and attempt_id = 'attempt-immutable'",
                 )
