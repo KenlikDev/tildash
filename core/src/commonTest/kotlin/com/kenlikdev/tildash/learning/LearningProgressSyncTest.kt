@@ -140,8 +140,7 @@ class LearningProgressSyncTest {
                 .merge(
                     LearningProgress.empty(),
                     LearningProgressSyncBatch("device-a", listOf(localAttempt)),
-                )
-                .progress
+                ).progress
 
         val result =
             LearningProgressSync.merge(
