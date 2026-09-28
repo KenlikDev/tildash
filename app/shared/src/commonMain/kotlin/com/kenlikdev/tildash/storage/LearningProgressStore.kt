@@ -28,14 +28,31 @@ class SqlDelightLearningProgressStore(
 
     override fun loadProgress(): LearningProgress =
         LearningProgress.fromPersistedAttempts(
-            queries.selectAllAttempts().executeAsList().map(::toLearningAttempt),
+            queries.selectAllAttempts().executeAsList().map { row ->
+                toLearningAttempt(
+                    attemptId = row.attemptId,
+                    exerciseId = row.exerciseId,
+                    responseType = row.responseType,
+                    responseValue = row.responseValue,
+                    outcome = row.outcome,
+                    occurredAtEpochMillis = row.occurredAtEpochMillis,
+                )
+            },
         )
 
     override fun saveAttempt(attempt: LearningAttempt) {
         database.transaction {
             val existing = queries.selectAttempt(attempt.attemptId).executeAsOneOrNull()
             if (existing != null) {
-                val stored = toLearningAttempt(existing)
+                val stored =
+                    toLearningAttempt(
+                        attemptId = existing.attemptId,
+                        exerciseId = existing.exerciseId,
+                        responseType = existing.responseType,
+                        responseValue = existing.responseValue,
+                        outcome = existing.outcome,
+                        occurredAtEpochMillis = existing.occurredAtEpochMillis,
+                    )
                 if (stored != attempt) {
                     throw AttemptIdConflict(attempt.attemptId)
                 }
@@ -56,7 +73,16 @@ class SqlDelightLearningProgressStore(
     }
 
     override fun loadPendingSyncAttempts(): List<LearningAttempt> =
-        queries.selectPendingAttempts().executeAsList().map(::toLearningAttempt)
+        queries.selectPendingAttempts().executeAsList().map { row ->
+            toLearningAttempt(
+                attemptId = row.attemptId,
+                exerciseId = row.exerciseId,
+                responseType = row.responseType,
+                responseValue = row.responseValue,
+                outcome = row.outcome,
+                occurredAtEpochMillis = row.occurredAtEpochMillis,
+            )
+        }
 
     override fun acknowledgeAttempt(attemptId: String) {
         database.transaction {
@@ -92,21 +118,28 @@ class SqlDelightLearningProgressStore(
         )
     }
 
-    private fun toLearningAttempt(row: SelectAttempt): LearningAttempt =
+    private fun toLearningAttempt(
+        attemptId: String,
+        exerciseId: String,
+        responseType: String,
+        responseValue: String,
+        outcome: String,
+        occurredAtEpochMillis: Long,
+    ): LearningAttempt =
         LearningAttempt(
-            attemptId = row.attemptId,
-            exerciseId = row.exerciseId,
+            attemptId = attemptId,
+            exerciseId = exerciseId,
             response =
-                when (row.responseType) {
-                    "TEXT" -> LearnerResponse.Text(row.responseValue)
-                    else -> error("Unsupported persisted learner response type '${row.responseType}'.")
+                when (responseType) {
+                    "TEXT" -> LearnerResponse.Text(responseValue)
+                    else -> error("Unsupported persisted learner response type '$responseType'.")
                 },
             outcome =
-                runCatching { AnswerOutcome.valueOf(row.outcome) }
+                runCatching { AnswerOutcome.valueOf(outcome) }
                     .getOrElse {
-                        error("Unsupported persisted answer outcome '${row.outcome}'.")
+                        error("Unsupported persisted answer outcome '$outcome'.")
                     },
-            occurredAt = Instant.fromEpochMilliseconds(row.occurredAtEpochMillis),
+            occurredAt = Instant.fromEpochMilliseconds(occurredAtEpochMillis),
         )
 
     private data class AttemptRowResponse(
