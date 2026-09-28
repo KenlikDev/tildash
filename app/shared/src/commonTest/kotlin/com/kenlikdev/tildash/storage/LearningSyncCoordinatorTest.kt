@@ -17,14 +17,13 @@ class LearningSyncCoordinatorTest {
     private val second = attempt("attempt-a", "2026-09-28T08:00:00Z")
 
     @Test
-    fun emptyOutboxDoesNotCallTransport() = runTest {
+    fun emptyOutboxDoesNotCallTransport() =
+        runTest {
         val store = FakeStore()
         var calls = 0
         val transport =
             object : LearningSyncTransport {
-                override suspend fun synchronize(
-                    batch: LearningProgressSyncBatch,
-                ): LearningSyncTransportResult {
+                override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
                     calls += 1
                     error("transport must not be called")
                 }
@@ -43,7 +42,8 @@ class LearningSyncCoordinatorTest {
     }
 
     @Test
-    fun pendingAttemptsAreSubmittedInDeterministicOrder() = runTest {
+    fun pendingAttemptsAreSubmittedInDeterministicOrder() =
+        runTest {
         val store = FakeStore(first, second)
         var received: List<String> = emptyList()
         val transport =
@@ -71,13 +71,13 @@ class LearningSyncCoordinatorTest {
     }
 
     @Test
-    fun partialAcknowledgementLeavesConflictsInOutbox() = runTest {
+    fun partialAcknowledgementLeavesConflictsInOutbox() =
+        runTest {
         val store = FakeStore(first, second)
         val transport =
             object : LearningSyncTransport {
-                override suspend fun synchronize(
-                    batch: LearningProgressSyncBatch,
-                ) = LearningSyncTransportResult.Succeeded(
+                override suspend fun synchronize(batch: LearningProgressSyncBatch) =
+                    LearningSyncTransportResult.Succeeded(
                     acknowledgedAttemptIds = listOf("attempt-a"),
                     conflictAttemptIds = listOf("attempt-b"),
                 )
@@ -98,7 +98,8 @@ class LearningSyncCoordinatorTest {
     }
 
     @Test
-    fun transientFailuresAreRetriedWithDeterministicDelays() = runTest {
+    fun transientFailuresAreRetriedWithDeterministicDelays() =
+        runTest {
         val store = FakeStore(first)
         val delays = mutableListOf<Long>()
         var calls = 0
@@ -140,7 +141,8 @@ class LearningSyncCoordinatorTest {
     }
 
     @Test
-    fun maxAttemptsPropagatesTheLastTransientFailure() = runTest {
+    fun maxAttemptsPropagatesTheLastTransientFailure() =
+        runTest {
         val store = FakeStore(first)
         var calls = 0
         val transport =
@@ -169,7 +171,8 @@ class LearningSyncCoordinatorTest {
     }
 
     @Test
-    fun nonTransientFailuresAreNotRetried() = runTest {
+    fun nonTransientFailuresAreNotRetried() =
+        runTest {
         val store = FakeStore(first)
         var calls = 0
         val transport =
@@ -195,7 +198,8 @@ class LearningSyncCoordinatorTest {
     }
 
     @Test
-    fun transportCannotAcknowledgeUnknownAttempt() = runTest {
+    fun transportCannotAcknowledgeUnknownAttempt() =
+        runTest {
         val store = FakeStore(first)
         val transport =
             object : LearningSyncTransport {
@@ -218,7 +222,8 @@ class LearningSyncCoordinatorTest {
     }
 
     @Test
-    fun transportCannotAcknowledgeAndConflictSameAttempt() = runTest {
+    fun transportCannotAcknowledgeAndConflictSameAttempt() =
+        runTest {
         val store = FakeStore(first)
         val transport =
             object : LearningSyncTransport {
