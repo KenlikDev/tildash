@@ -49,7 +49,7 @@ object LearningProgressSync {
         val accepted = mutableListOf<LearningAttempt>()
         val acknowledgedIds = mutableListOf<String>()
 
-        incomingById.forEach { (entry) ->
+        incomingById.forEach { entry ->
             val attemptId = entry.key
             val candidates = entry.value
             val first = candidates.first()
