@@ -93,6 +93,10 @@ The shared sync layer must not depend on:
 - authentication frameworks;
 - AI providers.
 
+## Local persistence
+
+`LearningProgressStore` persists immutable attempts and a durable synchronization outbox. Acknowledgement removes an outbox entry without deleting learning history. The storage contract is documented in `docs/LOCAL_STORAGE.md` and ADR-0013.
+
 ## Future work under #16
 
 Remaining offline-first work includes local persistence, downloaded-content availability, sync transport, retry/backoff, observability, authentication boundaries, and end-to-end offline recovery.
