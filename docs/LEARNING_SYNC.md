@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This slice defines the deterministic reconciliation contract for offline learner attempts. It does not implement HTTP transport, local database storage, authentication, or UI.
+This slice defines the deterministic reconciliation contract for offline learner attempts and a client-side synchronization coordinator. It does not implement a concrete HTTP transport, authentication UI, or downloaded-content storage.
 
 Implementation:
 
@@ -67,6 +67,16 @@ Transport retries are safe as long as the sender resends the same immutable atte
 
 An already accepted attempt is returned as acknowledged and does not create another event.
 
+## Client sync coordinator
+
+`LearningSyncCoordinator` reads the durable `LearningProgressStore` outbox, submits a deterministic `LearningProgressSyncBatch` to an injected `LearningSyncTransport`, and acknowledges only attempt IDs explicitly accepted by the transport.
+
+Transport-reported conflicts remain in the outbox. Unknown acknowledgements and contradictory acknowledgement/conflict responses are rejected instead of silently mutating local state.
+
+Transient transport failures are retried according to `LearningSyncRetryPolicy`. The coordinator requires an explicit suspendable delay implementation; it does not provide a no-op production fallback. Non-transient exceptions are propagated immediately.
+
+The default retry policy is bounded: three total attempts, exponential delays starting at one second, and a thirty-second delay cap. The caller owns the actual scheduler/coroutine implementation used for the delay.
+
 ## Architecture boundary
 
 ```text
@@ -99,6 +109,6 @@ The shared sync layer must not depend on:
 
 ## Future work under #16
 
-Remaining offline-first work includes local persistence, downloaded-content availability, sync transport, retry/backoff, observability, authentication boundaries, and end-to-end offline recovery.
+Remaining offline-first work includes a concrete network transport, retry/error presentation, sync observability, downloaded-content availability, authentication/session integration, secure-at-rest policy, and end-to-end offline recovery.
 
 The durable design decision is recorded in ADR-0012.
