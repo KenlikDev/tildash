@@ -2,8 +2,8 @@ package com.kenlikdev.tildash.storage
 
 import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LearningAttempt
-import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningProgress
+import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
@@ -25,9 +25,7 @@ class LearningSyncCoordinatorTest {
             var calls = 0
             val transport =
                 object : LearningSyncTransport {
-                    override suspend fun synchronize(
-                        batch: LearningProgressSyncBatch,
-                    ): LearningSyncTransportResult {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
                         calls += 1
                         error("transport must not be called")
                     }
@@ -52,9 +50,7 @@ class LearningSyncCoordinatorTest {
             var received: List<String> = emptyList()
             val transport =
                 object : LearningSyncTransport {
-                    override suspend fun synchronize(
-                        batch: LearningProgressSyncBatch,
-                    ): LearningSyncTransportResult {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
                         received = batch.attempts.map { it.attemptId }
                         return LearningSyncTransportResult.Succeeded(
                             acknowledgedAttemptIds = received,
@@ -302,8 +298,7 @@ class LearningSyncCoordinatorTest {
         private val progress = attempts.toMutableList()
         private val pending = attempts.mapTo(linkedSetOf()) { it.attemptId }
 
-        override fun loadProgress(): LearningProgress =
-            LearningProgress.fromPersistedAttempts(progress)
+        override fun loadProgress(): LearningProgress = LearningProgress.fromPersistedAttempts(progress)
 
         override fun saveAttempt(attempt: LearningAttempt) {
             if (attempt.attemptId !in progress.map { it.attemptId }) {
