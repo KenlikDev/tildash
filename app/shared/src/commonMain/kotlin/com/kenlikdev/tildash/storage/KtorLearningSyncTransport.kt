@@ -1,11 +1,12 @@
 package com.kenlikdev.tildash.storage
 
+import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
-import com.kenlikdev.tildash.learning.LearnerResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.bodyAsText
 import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -19,8 +20,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonPrimitive
 import kotlin.coroutines.cancellation.CancellationException
 
 fun interface AccessTokenProvider {
@@ -68,7 +67,6 @@ class KtorLearningSyncTransport(
         val response =
             try {
                 client.post(syncUrl) {
-                    expectSuccess = false
                     header(HttpHeaders.Authorization, "Bearer $accessToken")
                     header(HttpHeaders.Accept, ContentType.Application.Json)
                     contentType(ContentType.Application.Json)
@@ -81,6 +79,8 @@ class KtorLearningSyncTransport(
                     message = "The learning synchronization request timed out.",
                     cause = timeout,
                 )
+            } catch (failure: ResponseException) {
+                throw mapResponseException(failure)
             } catch (failure: Exception) {
                 throw TransientLearningSyncFailure(
                     message = "The learning synchronization request failed before a response was received.",
@@ -101,13 +101,13 @@ class KtorLearningSyncTransport(
         }
 
         val objectPayload =
-            runCatching { json.parseToJsonElement(payload).jsonObject }
-                .getOrElse {
-                    throw LearningSyncProtocolFailure(
-                        response.status.value,
-                        "Learning synchronization returned malformed JSON.",
-                    )
-                }
+            runCatching {
+                json.parseToJsonElement(payload) as? JsonObject
+            }.getOrNull()
+                ?: throw LearningSyncProtocolFailure(
+                    response.status.value,
+                    "Learning synchronization returned malformed JSON.",
+                )
 
         val acknowledged = objectPayload.requiredStringArray("acknowledgedAttemptIds")
         val conflicts = objectPayload.requiredStringArray("conflictAttemptIds")
@@ -115,6 +115,20 @@ class KtorLearningSyncTransport(
         return LearningSyncTransportResult.Succeeded(
             acknowledgedAttemptIds = acknowledged,
             conflictAttemptIds = conflicts,
+        )
+    }
+
+    private suspend fun mapResponseException(
+        failure: ResponseException,
+    ): Exception {
+        val detail =
+            runCatching {
+                extractProblemDetail(failure.response.bodyAsText())
+            }.getOrNull()
+
+        return mapHttpFailure(
+            statusCode = failure.response.status.value,
+            detail = detail,
         )
     }
 
@@ -152,18 +166,16 @@ class KtorLearningSyncTransport(
 
     private fun extractProblemDetail(payload: String): String? =
         runCatching {
-            json.parseToJsonElement(payload)
-                .jsonObject
-                .get("detail")
-                ?.jsonPrimitive
-                ?.contentOrNull
+            val objectPayload = json.parseToJsonElement(payload) as? JsonObject
+            val detail = objectPayload?.get("detail") as? JsonPrimitive
+            detail?.content
         }.getOrNull()
 
     private fun encodeRequest(
         batch: LearningProgressSyncBatch,
     ): JsonObject =
         buildJsonObject {
-            put("deviceId", batch.deviceId)
+            put("deviceId", JsonPrimitive(batch.deviceId))
             put(
                 "attempts",
                 buildJsonArray {
@@ -178,20 +190,20 @@ class KtorLearningSyncTransport(
         attempt: LearningAttempt,
     ): JsonObject =
         buildJsonObject {
-            put("attemptId", attempt.attemptId)
-            put("exerciseId", attempt.exerciseId)
+            put("attemptId", JsonPrimitive(attempt.attemptId))
+            put("exerciseId", JsonPrimitive(attempt.exerciseId))
             put(
                 "response",
                 when (val response = attempt.response) {
                     is LearnerResponse.Text ->
                         buildJsonObject {
-                            put("type", "TEXT")
-                            put("value", response.value)
+                            put("type", JsonPrimitive("TEXT"))
+                            put("value", JsonPrimitive(response.value))
                         }
                 },
             )
-            put("outcome", attempt.outcome.name)
-            put("occurredAt", attempt.occurredAt.toString())
+            put("outcome", JsonPrimitive(attempt.outcome.name))
+            put("occurredAt", JsonPrimitive(attempt.occurredAt.toString()))
         }
 
     private fun JsonObject.requiredStringArray(
@@ -213,11 +225,7 @@ class KtorLearningSyncTransport(
                         "Learning synchronization response contains a non-string value at $fieldName[$index].",
                     )
 
-            primitive.contentOrNull
-                ?: throw LearningSyncProtocolFailure(
-                    200,
-                    "Learning synchronization response contains a non-string value at $fieldName[$index].",
-                )
+            primitive.content
         }
     }
 }
