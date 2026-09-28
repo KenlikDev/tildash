@@ -14,7 +14,8 @@ class LearningSyncExceptionHandler {
     @ExceptionHandler(IllegalArgumentException::class, IllegalStateException::class)
     fun handleInvalidRequest(exception: RuntimeException): ResponseEntity<ProblemDetail> {
         val problem =
-            ProblemDetail.forStatusAndDetail(
+            ProblemDetail
+                .forStatusAndDetail(
                 HttpStatus.BAD_REQUEST,
                 exception.message ?: "The learning synchronization request is invalid.",
             ).apply {
