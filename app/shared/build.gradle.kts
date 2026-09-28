@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -59,12 +60,17 @@ kotlin {
         }
     }
 
-    sourceSets {
-        androidMain.dependencies {
-            implementation(libs.compose.ui.tooling.preview)
-            implementation(libs.compose.ui.tooling)
+    sqldelight {
+        databases {
+            create("TildashDatabase") {
+                packageName.set("com.kenlikdev.tildash.storage")
+            }
         }
+    }
+
+    sourceSets {
         commonMain.dependencies {
+            implementation(libs.sqldelight.runtime)
             api(project(":core"))
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
@@ -78,8 +84,22 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        jvmMain.dependencies {
+            implementation(libs.sqldelight.jvm.driver)
+        }
+        androidMain.dependencies {
+            implementation(libs.sqldelight.android.driver)
+            implementation(libs.compose.ui.tooling.preview)
+            implementation(libs.compose.ui.tooling)
+        }
+        nativeMain.dependencies {
+            implementation(libs.sqldelight.native.driver)
+        }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)
+        }
+        jvmTest.dependencies {
+            implementation(libs.sqldelight.jvm.driver)
         }
     }
 }
