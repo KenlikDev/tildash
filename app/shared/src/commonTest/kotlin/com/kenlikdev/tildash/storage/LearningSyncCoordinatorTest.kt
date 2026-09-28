@@ -2,8 +2,8 @@ package com.kenlikdev.tildash.storage
 
 import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LearningAttempt
-import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.LearnerResponse
+import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
@@ -105,9 +105,7 @@ class LearningSyncCoordinatorTest {
             var calls = 0
             val transport =
                 object : LearningSyncTransport {
-                    override suspend fun synchronize(
-                        batch: LearningProgressSyncBatch,
-                    ): LearningSyncTransportResult {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
                         calls += 1
                         if (calls < 3) {
                             throw TransientLearningSyncFailure("temporary outage")
