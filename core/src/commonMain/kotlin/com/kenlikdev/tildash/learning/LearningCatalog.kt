@@ -74,12 +74,9 @@ object LearningCatalogProjector {
                         publishedVersion = courseVersion.version,
                         lessons =
                             publishedLessonIds
-                                .mapNotNull { lessonId ->
+                                .filter { lessonId -> nodesById.getValue(lessonId).parentId == courseId }
+                                .map { lessonId ->
                                     val lessonNode = nodesById.getValue(lessonId)
-                                    if (lessonNode.parentId != courseId) {
-                                        return@mapNotNull null
-                                    }
-
                                     val lessonVersion = latestPublishedVersions.getValue(lessonId)
 
                                     LearnerLessonSummary(
@@ -88,9 +85,6 @@ object LearningCatalogProjector {
                                         sourceLocale = lessonNode.sourceLocale,
                                         publishedVersion = lessonVersion.version,
                                         localizations = projectLocalizations(lessonVersion),
-                                                    compareBy<LearnerLocalizedText> { it.locale.value }
-                                                        .thenBy { it.value },
-                                                ),
                                     )
                                 }
                                 .sortedWith(
@@ -204,10 +198,12 @@ object LearningCatalogProjector {
         }
     }
 
-    private fun projectLocalizations(version: PublishedContentVersion): List<LearnerLocalizedText> {
+    private fun projectLocalizations(
+        version: PublishedContentVersion,
+    ): List<LearnerLocalizedText> {
         val duplicateKeys =
             version.localizations
-                .groupingBy { it.locale to it.revision }
+                .groupingBy { Triple(it.locale, it.variant, it.revision) }
                 .eachCount()
                 .filterValues { it > 1 }
                 .keys
