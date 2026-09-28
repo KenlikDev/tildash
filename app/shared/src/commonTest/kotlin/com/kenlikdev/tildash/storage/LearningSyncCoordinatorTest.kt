@@ -159,6 +159,7 @@ class LearningSyncCoordinatorTest {
                     store = store,
                     transport = transport,
                     retryPolicy = LearningSyncRetryPolicy(maxAttempts = 2),
+                    delayBeforeRetry = {},
                 ).synchronize("device-a")
             }
 
@@ -185,6 +186,7 @@ class LearningSyncCoordinatorTest {
             LearningSyncCoordinator(
                 store = store,
                 transport = transport,
+                delayBeforeRetry = {},
             ).synchronize("device-a")
         }
 
