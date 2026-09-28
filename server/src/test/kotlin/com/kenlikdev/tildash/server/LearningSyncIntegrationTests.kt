@@ -118,6 +118,50 @@ class LearningSyncIntegrationTests {
     }
 
     @Test
+    fun contradictoryDuplicateAttemptIdsInOneBatchAreReportedAsConflict() {
+        mockMvc
+            .perform(
+                post("/api/v1/learning/sync")
+                    .with(user("learner-a").roles("LEARNER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        """
+                        {
+                          "deviceId": "device-a",
+                          "attempts": [
+                            {
+                              "attemptId": "attempt-duplicate",
+                              "exerciseId": "exercise-1",
+                              "response": {"type": "TEXT", "value": "hello"},
+                              "outcome": "CORRECT",
+                              "occurredAt": "2026-09-28T09:00:00Z"
+                            },
+                            {
+                              "attemptId": "attempt-duplicate",
+                              "exerciseId": "exercise-1",
+                              "response": {"type": "TEXT", "value": "wrong"},
+                              "outcome": "INCORRECT",
+                              "occurredAt": "2026-09-28T10:00:00Z"
+                            }
+                          ]
+                        }
+                        """.trimIndent(),
+                    ),
+            )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
+            .andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-duplicate"))
+
+        assertEquals(
+            0,
+            jdbcTemplate.queryForObject(
+                "select count(*) from tildash.learning_attempts where learner_subject = 'learner-a' and attempt_id = 'attempt-duplicate'",
+                Int::class.java,
+            ),
+        )
+    }
+
+    @Test
     fun sameAttemptIdIsScopedToAuthenticatedLearner() {
         val request = requestJson("attempt-shared-id")
 
