@@ -206,8 +206,7 @@ data class LearningProgress private constructor(
 
         fun empty(): LearningProgress = LearningProgress(emptyList())
 
-        internal fun fromCanonicalAttempts(attempts: List<LearningAttempt>): LearningProgress =
-            LearningProgress(attempts)
+        internal fun fromCanonicalAttempts(attempts: List<LearningAttempt>): LearningProgress = LearningProgress(attempts)
     }
 
     fun reviewState(exerciseId: String): ReviewState {
