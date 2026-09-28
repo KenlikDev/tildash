@@ -1,0 +1,69 @@
+CREATE TABLE learning_attempt (
+    attempt_id TEXT NOT NULL PRIMARY KEY,
+    exercise_id TEXT NOT NULL,
+    response_type TEXT NOT NULL,
+    response_value TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    occurred_at_epoch_millis INTEGER NOT NULL
+);
+
+CREATE INDEX learning_attempt_occurred_at_index
+ON learning_attempt(occurred_at_epoch_millis, attempt_id);
+
+CREATE TABLE learning_sync_outbox (
+    attempt_id TEXT NOT NULL PRIMARY KEY REFERENCES learning_attempt(attempt_id) ON DELETE RESTRICT
+);
+
+selectAttempt:
+SELECT attempt_id,
+       exercise_id,
+       response_type,
+       response_value,
+       outcome,
+       occurred_at_epoch_millis
+FROM learning_attempt
+WHERE attempt_id = ?;
+
+insertAttempt:
+INSERT INTO learning_attempt(
+    attempt_id,
+    exercise_id,
+    response_type,
+    response_value,
+    outcome,
+    occurred_at_epoch_millis
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+queueAttempt:
+INSERT INTO learning_sync_outbox(attempt_id)
+VALUES (?);
+
+selectAllAttempts:
+SELECT attempt_id,
+       exercise_id,
+       response_type,
+       response_value,
+       outcome,
+       occurred_at_epoch_millis
+FROM learning_attempt
+ORDER BY occurred_at_epoch_millis ASC, attempt_id ASC;
+
+selectPendingAttempts:
+SELECT a.attempt_id,
+       a.exercise_id,
+       a.response_type,
+       a.response_value,
+       a.outcome,
+       a.occurred_at_epoch_millis
+FROM learning_attempt a
+INNER JOIN learning_sync_outbox o ON o.attempt_id = a.attempt_id
+ORDER BY a.occurred_at_epoch_millis ASC, a.attempt_id ASC;
+
+deleteOutboxAttempt:
+DELETE FROM learning_sync_outbox
+WHERE attempt_id = ?;
+
+pendingAttemptCount:
+SELECT COUNT(*)
+FROM learning_sync_outbox;
