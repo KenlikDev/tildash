@@ -74,8 +74,7 @@ class LearningSyncRepository(
                     outcome = AnswerOutcome.valueOf(rs.getString("outcome")),
                     occurredAt = rs.readInstant("occurred_at"),
                 )
-            }
-            .firstOrNull()
+            }.firstOrNull()
             ?: error("Learning attempt disappeared after conflict detection.")
     }
 }
