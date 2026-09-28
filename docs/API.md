@@ -267,7 +267,7 @@ Request:
 }
 ```
 
-The endpoint requires authentication. The authenticated identity subject, not device ID, scopes the server-side attempt record.
+The endpoint requires the LEARNER application role. An authenticated user without LEARNER is forbidden from using the learner synchronization endpoint. The authenticated identity subject, not device ID, scopes the server-side attempt record.
 
 Successful responses contain two explicit ID sets:
 
