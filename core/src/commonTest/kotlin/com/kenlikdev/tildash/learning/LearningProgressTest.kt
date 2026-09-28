@@ -258,7 +258,7 @@ class LearningProgressTest {
     private fun manualExercise(
         id: String,
         expectedAnswers: List<String>,
-    ) =
+    ): ManualInputExercise =
         ManualInputExercise(
             id = id,
             contentId = lessonId,
