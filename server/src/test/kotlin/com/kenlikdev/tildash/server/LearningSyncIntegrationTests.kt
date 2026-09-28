@@ -190,8 +190,7 @@ class LearningSyncIntegrationTests {
     private fun authenticatedSync(
         subject: String,
         request: String,
-    ) =
-        post("/api/v1/learning/sync")
+    ) = post("/api/v1/learning/sync")
             .with(user(subject).roles("LEARNER"))
             .contentType(MediaType.APPLICATION_JSON)
             .content(request)
@@ -265,5 +264,4 @@ class LearningSyncIntegrationTests {
             .replace("PLACEHOLDER_ATTEMPT", attemptId)
             .replace("PLACEHOLDER_OUTCOME", outcome)
             .replace("PLACEHOLDER_OCCURRED_AT", occurredAt)
-
 }
