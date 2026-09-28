@@ -30,13 +30,14 @@ class LessonSessionTest {
         var progress = LearningProgress.empty()
 
         progress =
-            LearningEngine.submit(
+            LearningEngine
+                .submit(
                 progress = progress,
                 exercise = first,
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
-            )
+                )
                 .progress
 
         val session = LessonSession.start(plan, progress)
@@ -49,7 +50,8 @@ class LessonSessionTest {
         val session = LessonSession.start(plan)
 
         val submission =
-            session.submit(
+            session
+                .submit(
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
@@ -65,7 +67,8 @@ class LessonSessionTest {
         val session = LessonSession.start(plan)
 
         val submission =
-            session.submit(
+            session
+                .submit(
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("wrong"),
                 occurredAt = occurredAt,
@@ -81,7 +84,8 @@ class LessonSessionTest {
         val session = LessonSession.start(plan)
 
         val firstSubmission =
-            session.submit(
+            session
+                .submit(
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
@@ -103,22 +107,24 @@ class LessonSessionTest {
         var progress = LearningProgress.empty()
 
         progress =
-            LearningEngine.submit(
+            LearningEngine
+                .submit(
                 progress = progress,
                 exercise = first,
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
-            )
+                )
                 .progress
         progress =
-            LearningEngine.submit(
+            LearningEngine
+                .submit(
                 progress = progress,
                 exercise = second,
                 attemptId = "attempt-2",
                 response = LearnerResponse.Text("world"),
                 occurredAt = later,
-            )
+                )
                 .progress
 
         val resumed = LessonSession.start(plan, progress)
@@ -133,25 +139,28 @@ class LessonSessionTest {
         var session = LessonSession.start(plan)
 
         session =
-            session.submit(
+            session
+                .submit(
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
-            )
+                )
                 .session
         session =
-            session.submit(
+            session
+                .submit(
                 attemptId = "attempt-2",
                 response = LearnerResponse.Text("world"),
                 occurredAt = later,
-            )
+                )
                 .session
         session =
-            session.submit(
+            session
+                .submit(
                 attemptId = "attempt-3",
                 response = LearnerResponse.Text("goodbye"),
                 occurredAt = later,
-            )
+                )
                 .session
 
         assertEquals(LessonSessionState.COMPLETED, session.state)
@@ -163,25 +172,28 @@ class LessonSessionTest {
         var session = LessonSession.start(plan)
 
         session =
-            session.submit(
+            session
+                .submit(
                 "attempt-1",
                 LearnerResponse.Text("hello"),
                 occurredAt,
-            )
+                )
                 .session
         session =
-            session.submit(
+            session
+                .submit(
                 "attempt-2",
                 LearnerResponse.Text("world"),
                 later,
-            )
+                )
                 .session
         session =
-            session.submit(
+            session
+                .submit(
                 "attempt-3",
                 LearnerResponse.Text("goodbye"),
                 later,
-            )
+                )
                 .session
 
         assertFailsWith<LessonSessionCompletedException> {
