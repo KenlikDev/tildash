@@ -69,7 +69,7 @@ class LearningSyncCoordinator(
     private val store: LearningProgressStore,
     private val transport: LearningSyncTransport,
     private val retryPolicy: LearningSyncRetryPolicy = LearningSyncRetryPolicy(),
-    private val delayBeforeRetry: suspend (Long) -> Unit = {},
+    private val delayBeforeRetry: suspend (Long) -> Unit,
 ) {
     suspend fun synchronize(deviceId: String): LearningSyncReport {
         require(deviceId.isNotBlank()) {
