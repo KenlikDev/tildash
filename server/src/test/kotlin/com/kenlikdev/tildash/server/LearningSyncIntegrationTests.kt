@@ -1,8 +1,5 @@
 package com.kenlikdev.tildash.server
 
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -17,6 +14,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.OffsetDateTime
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,8 +36,7 @@ class LearningSyncIntegrationTests {
                 post("/api/v1/learning/sync")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-unauthenticated")),
-            )
-            .andExpect(status().isUnauthorized)
+            ).andExpect(status().isUnauthorized)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("urn:tildash:problem:unauthorized"))
     }
@@ -49,8 +49,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-a").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-new")),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-new"))
             .andExpect(jsonPath("$.conflictAttemptIds").isEmpty)
 
@@ -97,8 +96,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-a").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-conflict", "CORRECT", "2026-09-28T09:00:00Z")),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
 
         mockMvc
             .perform(
@@ -106,8 +104,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-a").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-conflict", "INCORRECT", "2026-09-28T10:00:00Z")),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
             .andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-conflict"))
 
@@ -150,8 +147,7 @@ class LearningSyncIntegrationTests {
                         }
                         """.trimIndent(),
                     ),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
             .andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-duplicate"))
 
@@ -174,8 +170,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-a").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(request),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
 
         mockMvc
             .perform(
@@ -183,8 +178,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-b").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(request),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-shared-id"))
 
         assertEquals(
@@ -204,8 +198,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-a").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-immutable")),
-            )
-            .andExpect(status().isOk)
+            ).andExpect(status().isOk)
 
         val updateFailure =
             assertFailsWith<DataAccessException> {
@@ -240,8 +233,7 @@ class LearningSyncIntegrationTests {
                     .with(user("learner-a").roles("LEARNER"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson("attempt-invalid-device", deviceId = " ")),
-            )
-            .andExpect(status().isBadRequest)
+            ).andExpect(status().isBadRequest)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
     }
 
