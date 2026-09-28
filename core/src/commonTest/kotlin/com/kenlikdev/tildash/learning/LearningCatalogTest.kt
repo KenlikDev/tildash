@@ -43,10 +43,12 @@ class LearningCatalogTest {
             )
 
         val catalog = LearningCatalogProjector.project(nodes, versions)
+        val course = catalog.courses.single()
+        val lessonIds = course.lessons.map { it.id }
 
         assertEquals(1, catalog.courses.size)
-        assertEquals(courseA, catalog.courses.single().id)
-        assertEquals(listOf(lessonA1), catalog.courses.single().lessons.map { it.id })
+        assertEquals(courseA, course.id)
+        assertEquals(listOf(lessonA1), lessonIds)
     }
 
     @Test
@@ -59,9 +61,10 @@ class LearningCatalogTest {
             )
 
         val catalog = LearningCatalogProjector.project(listOf(node), versions)
+        val course = catalog.courses.single()
 
-        assertEquals("Current title", catalog.courses.single().title)
-        assertEquals(2, catalog.courses.single().publishedVersion)
+        assertEquals("Current title", course.title)
+        assertEquals(2, course.publishedVersion)
     }
 
     @Test
@@ -98,10 +101,13 @@ class LearningCatalogTest {
             )
 
         val catalog = LearningCatalogProjector.project(nodes, versions)
+        val courseIds = catalog.courses.map { it.id }
+        val firstLessonIds = catalog.courses.first().lessons.map { it.id }
+        val lastLessonIds = catalog.courses.last().lessons.map { it.id }
 
-        assertEquals(listOf(courseA, courseB), catalog.courses.map { it.id })
-        assertEquals(listOf(lessonA1, lessonA2), catalog.courses.first().lessons.map { it.id })
-        assertEquals(listOf(lessonB1), catalog.courses.last().lessons.map { it.id })
+        assertEquals(listOf(courseA, courseB), courseIds)
+        assertEquals(listOf(lessonA1, lessonA2), firstLessonIds)
+        assertEquals(listOf(lessonB1), lastLessonIds)
     }
 
     @Test
@@ -140,11 +146,12 @@ class LearningCatalogTest {
                         lesson,
                     ),
             )
-        val localizations = catalog.courses.single().lessons.single().localizations
+        val localizations =
+            catalog.courses.single().lessons.single().localizations.map { it.value }
 
         assertEquals(
             listOf("A ders A1", "Урок A1"),
-            localizations.map { it.value },
+            localizations,
         )
     }
 
