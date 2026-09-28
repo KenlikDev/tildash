@@ -1,8 +1,8 @@
 package com.kenlikdev.tildash.storage
 
 import com.kenlikdev.tildash.learning.AnswerOutcome
-import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearnerResponse
+import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
 import kotlin.coroutines.Continuation
