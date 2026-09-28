@@ -43,6 +43,7 @@ object LearningCatalogProjector {
     ): LearnerCourseCatalog {
         val nodesById = indexNodes(nodes)
         val latestPublishedVersions = latestVersions(publishedVersions)
+        validatePublishedNodeReferences(nodesById, latestPublishedVersions.keys)
 
         val publishedCourseIds =
             latestPublishedVersions.keys
@@ -86,15 +87,7 @@ object LearningCatalogProjector {
                                         title = textPayload(lessonVersion),
                                         sourceLocale = lessonNode.sourceLocale,
                                         publishedVersion = lessonVersion.version,
-                                        localizations =
-                                            lessonVersion.localizations
-                                                .map { localization ->
-                                                    LearnerLocalizedText(
-                                                        locale = localization.locale,
-                                                        value = textPayload(localization.payload),
-                                                    )
-                                                }
-                                                .sortedWith(
+                                        localizations = projectLocalizations(lessonVersion),
                                                     compareBy<LearnerLocalizedText> { it.locale.value }
                                                         .thenBy { it.value },
                                                 ),
@@ -138,10 +131,37 @@ object LearningCatalogProjector {
     ): Map<ContentId, PublishedContentVersion> =
         publishedVersions
             .groupBy { it.contentId }
-            .mapValues { (_, versions) ->
+            .mapValues { (contentId, versions) ->
+                val duplicatedVersions =
+                    versions
+                        .groupingBy { it.version }
+                        .eachCount()
+                        .filterValues { it > 1 }
+                        .keys
+
+                if (duplicatedVersions.isNotEmpty()) {
+                    val versionsText = duplicatedVersions.sorted().joinToString()
+                    throw LearningCatalogProjectionViolation(
+                        "Published content '" + contentId.value + "' has duplicate version numbers: " + versionsText + ".",
+                    )
+                }
+
                 versions.maxByOrNull { it.version }
                     ?: error("Published version group cannot be empty.")
             }
+
+    private fun validatePublishedNodeReferences(
+        nodesById: Map<ContentId, ContentNode>,
+        publishedContentIds: Set<ContentId>,
+    ) {
+        publishedContentIds
+            .filterNot { it in nodesById }
+            .forEach { contentId ->
+                throw LearningCatalogProjectionViolation(
+                    "Published content '" + contentId.value + "' has no content node.",
+                )
+            }
+    }
 
     private fun validatePublishedHierarchy(
         nodesById: Map<ContentId, ContentNode>,
@@ -182,6 +202,33 @@ object LearningCatalogProjector {
                 )
             }
         }
+    }
+
+    private fun projectLocalizations(version: PublishedContentVersion): List<LearnerLocalizedText> {
+        val duplicateKeys =
+            version.localizations
+                .groupingBy { it.locale to it.revision }
+                .eachCount()
+                .filterValues { it > 1 }
+                .keys
+
+        if (duplicateKeys.isNotEmpty()) {
+            throw LearningCatalogProjectionViolation(
+                "Published content '" + version.contentId.value + "' has duplicate localization revisions.",
+            )
+        }
+
+        return version.localizations
+            .map { localization ->
+                LearnerLocalizedText(
+                    locale = localization.locale,
+                    value = textPayload(localization.payload),
+                )
+            }
+            .sortedWith(
+                compareBy<LearnerLocalizedText> { it.locale.value }
+                    .thenBy { it.value },
+            )
     }
 
     private fun textPayload(version: PublishedContentVersion): String =
