@@ -119,9 +119,10 @@ class LearningSyncCoordinator(
 
         val (acknowledgedIds, conflictIds) =
             when (result) {
-                is LearningSyncTransportResult.Succeeded ->
+                is LearningSyncTransportResult.Succeeded -> {
                     result.acknowledgedAttemptIds.distinct().sorted() to
                         result.conflictAttemptIds.distinct().sorted()
+                }
             }
 
         require(acknowledgedIds.all { it in pendingIds }) {
