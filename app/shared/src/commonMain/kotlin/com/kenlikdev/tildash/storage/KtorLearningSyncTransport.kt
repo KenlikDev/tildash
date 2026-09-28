@@ -6,7 +6,6 @@ import com.kenlikdev.tildash.learning.LearnerResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.bodyAsText
 import io.ktor.client.plugins.HttpRequestTimeoutException
-import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -69,6 +68,7 @@ class KtorLearningSyncTransport(
         val response =
             try {
                 client.post(syncUrl) {
+                    expectSuccess = false
                     header(HttpHeaders.Authorization, "Bearer $accessToken")
                     header(HttpHeaders.Accept, ContentType.Application.Json)
                     contentType(ContentType.Application.Json)
@@ -81,8 +81,6 @@ class KtorLearningSyncTransport(
                     message = "The learning synchronization request timed out.",
                     cause = timeout,
                 )
-            } catch (failure: ResponseException) {
-                throw mapResponseException(failure)
             } catch (failure: Exception) {
                 throw TransientLearningSyncFailure(
                     message = "The learning synchronization request failed before a response was received.",
@@ -119,14 +117,6 @@ class KtorLearningSyncTransport(
             conflictAttemptIds = conflicts,
         )
     }
-
-    private fun mapResponseException(
-        failure: ResponseException,
-    ): Exception =
-        mapHttpFailure(
-            statusCode = failure.response.status.value,
-            detail = null,
-        )
 
     private fun mapHttpFailure(
         statusCode: Int,
