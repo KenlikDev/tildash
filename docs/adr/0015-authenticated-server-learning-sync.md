@@ -16,6 +16,7 @@ Implement an authenticated synchronization endpoint at POST /api/v1/learning/syn
 The server:
 
 - authenticates the request through the existing Spring Security boundary;
+- requires the LEARNER application role for the synchronization endpoint;
 - scopes persistence to the authenticated identity subject;
 - treats deviceId as sender metadata only;
 - accepts the current shared LearnerResponse.Text representation and CORRECT / INCORRECT outcomes;
