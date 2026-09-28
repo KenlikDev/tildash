@@ -102,8 +102,10 @@ class LearningCatalogTest {
 
         val catalog = LearningCatalogProjector.project(nodes, versions)
         val courseIds = catalog.courses.map { it.id }
-        val firstLessonIds = catalog.courses.first().lessons.map { it.id }
-        val lastLessonIds = catalog.courses.last().lessons.map { it.id }
+        val firstCourseLessons = catalog.courses.first().lessons
+        val firstLessonIds = firstCourseLessons.map { it.id }
+        val lastCourseLessons = catalog.courses.last().lessons
+        val lastLessonIds = lastCourseLessons.map { it.id }
 
         assertEquals(listOf(courseA, courseB), courseIds)
         assertEquals(listOf(lessonA1, lessonA2), firstLessonIds)
@@ -112,26 +114,27 @@ class LearningCatalogTest {
 
     @Test
     fun publishedLocalizationIsProjectedAsImmutableReadModel() {
-        val lesson = version(
-            lessonA1,
-            1,
-            "Lesson A1",
-            localizations =
-                listOf(
-                    PublishedLocalization(
-                        locale = LanguageTag("ru"),
-                        variant = ContentVariantType.LITERARY,
-                        revision = 1,
-                        payload = ContentPayload.Text("Урок A1"),
+        val lesson =
+            version(
+                lessonA1,
+                1,
+                "Lesson A1",
+                localizations =
+                    listOf(
+                        PublishedLocalization(
+                            locale = LanguageTag("ru"),
+                            variant = ContentVariantType.LITERARY,
+                            revision = 1,
+                            payload = ContentPayload.Text("Урок A1"),
+                        ),
+                        PublishedLocalization(
+                            locale = LanguageTag("crh"),
+                            variant = ContentVariantType.LITERARY,
+                            revision = 1,
+                            payload = ContentPayload.Text("A ders A1"),
+                        ),
                     ),
-                    PublishedLocalization(
-                        locale = LanguageTag("crh"),
-                        variant = ContentVariantType.LITERARY,
-                        revision = 1,
-                        payload = ContentPayload.Text("A ders A1"),
-                    ),
-                ),
-        )
+            )
 
         val catalog =
             LearningCatalogProjector.project(
@@ -146,12 +149,14 @@ class LearningCatalogTest {
                         lesson,
                     ),
             )
-        val localizations =
-            catalog.courses.single().lessons.single().localizations.map { it.value }
+        val course = catalog.courses.single()
+        val lessonReadModel = course.lessons.single()
+        val localizations = lessonReadModel.localizations
+        val localizedValues = localizations.map { it.value }
 
         assertEquals(
             listOf("A ders A1", "Урок A1"),
-            localizations,
+            localizedValues,
         )
     }
 
