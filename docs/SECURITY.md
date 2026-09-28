@@ -39,6 +39,8 @@ Persistence / external systems
 
 The client is untrusted. Claims supplied by a client are trusted only after token validation and issuer verification by the resource server.
 
+Learner synchronization uses the authenticated subject as the server-side data boundary. The `deviceId` submitted by a client is metadata only and is never used to authorize or scope another learner's data.
+
 Identity persistence is intentionally deferred to the persistence work in issue #11. The current identity contract therefore uses the authenticated token subject and mapped roles without introducing a database model.
 
 ## Threat model

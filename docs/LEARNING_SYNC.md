@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This slice defines the deterministic reconciliation contract for offline learner attempts and a client-side synchronization coordinator. It does not implement a concrete HTTP transport, authentication UI, or downloaded-content storage.
+This document defines deterministic reconciliation for offline learner attempts, the client synchronization coordinator, and the implemented authenticated server synchronization transport. It does not implement downloaded-content storage or user-facing sync UI.
 
 Implementation:
 
@@ -91,24 +91,30 @@ LearningProgressSync.merge
           v
 LearningProgress
           |
-          v
-local persistence / future sync transport
+          +--> local persistence / LearningSyncCoordinator
+          |
+          +--> POST /api/v1/learning/sync
+                    |
+                    v
+             server PostgreSQL persistence
 ```
 
-The shared sync layer must not depend on:
-
-- HTTP clients or controllers;
-- SQL databases;
-- platform storage APIs;
-- authentication frameworks;
-- AI providers.
+The shared core reconciliation layer must not depend on HTTP clients/controllers, SQL databases, platform storage APIs, authentication frameworks, or AI providers. The concrete server transport lives outside core and binds authenticated identity to the PostgreSQL persistence boundary.
 
 ## Local persistence
 
 `LearningProgressStore` persists immutable attempts and a durable synchronization outbox. Acknowledgement removes an outbox entry without deleting learning history. The storage contract is documented in `docs/LOCAL_STORAGE.md` and ADR-0013.
 
+## Current server transport
+
+The authenticated server endpoint is `POST /api/v1/learning/sync`.
+
+The server accepts immutable attempts, scopes persistence by the authenticated learner subject, acknowledges new or identical attempts, and reports payload conflicts without overwriting stored history. The device ID remains metadata and does not affect idempotency.
+
+The endpoint uses the API-wide RFC 9457 Problem Details contract for invalid requests and authentication failures.
+
 ## Future work under #16
 
-Remaining offline-first work includes a concrete network transport, retry/error presentation, sync observability, downloaded-content availability, authentication/session integration, secure-at-rest policy, and end-to-end offline recovery.
+Remaining offline-first work includes wiring the client coordinator to a concrete HTTP client, retry/error presentation, sync observability, downloaded-content availability, secure-at-rest policy, and end-to-end offline recovery.
 
 The durable design decision is recorded in ADR-0012.

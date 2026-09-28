@@ -58,7 +58,7 @@ Platform composition is responsible for constructing a persistent SQLDelight dri
 
 The storage implementation itself does not know whether the driver is backed by Android application storage, an iOS native SQLite file, or a JVM SQLite file.
 
-Downloaded lesson content, HTTP synchronization, authentication, retry/backoff orchestration, observability, and secure-at-rest policy remain separate follow-up work under issue #16.
+Downloaded lesson content, authentication/session UI, sync observability, and secure-at-rest policy remain separate follow-up work under issue #16. A concrete authenticated server synchronization endpoint is now implemented; client transport wiring remains separate.
 
 ## Safety rules
 

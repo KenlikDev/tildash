@@ -4,7 +4,7 @@
 
 This document describes the database and migration infrastructure implemented for the backend.
 
-The current implementation establishes the persistence substrate only. Domain-specific aggregates, database tables, and repository interfaces will be introduced by the application features that own those contracts.
+The current implementation provides the PostgreSQL/Flyway persistence substrate plus content workflow and server-side learner-attempt persistence. Domain-specific repositories are introduced only where their application contracts are defined.
 
 ## Database engine
 
@@ -30,7 +30,7 @@ No domain repository interface is introduced by this foundation because no persi
 
 Schema changes are managed by Flyway. Production migrations live under `server/src/main/resources/db/migration/` and use the `V<VERSION>__<DESCRIPTION>.sql` convention.
 
-The first migration is `V1__create_application_schema.sql`. It creates the application-owned `tildash` PostgreSQL schema. Domain tables are deferred until their owning feature contracts exist.
+The first migration is `V1__create_application_schema.sql`, which creates the application-owned `tildash` schema. Content tables are introduced by V2/V3, and learner-attempt persistence is introduced by V4.
 
 Flyway validation is enabled and Flyway clean is disabled.
 
@@ -126,4 +126,4 @@ Actuator exposure remains limited to health. Database and Flyway metadata are no
 
 ## Deferred scope
 
-This foundation intentionally does not implement user persistence, domain aggregate tables, domain repository implementations, seed/reference-data lifecycle, optimistic locking, outbox tables, or backup/restore operations.
+This backend persistence layer intentionally does not implement identity/account persistence, a server-side sync outbox, seed/reference-data lifecycle, optimistic locking for learner attempts, or backup/restore operations.
