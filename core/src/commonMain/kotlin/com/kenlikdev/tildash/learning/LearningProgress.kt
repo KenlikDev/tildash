@@ -206,6 +206,13 @@ data class LearningProgress private constructor(
 
         fun empty(): LearningProgress = LearningProgress(emptyList())
 
+        fun fromPersistedAttempts(attempts: List<LearningAttempt>): LearningProgress {
+            require(attempts.map { it.attemptId }.distinct().size == attempts.size) {
+                "Persisted learning attempts must have unique attempt IDs."
+            }
+            return LearningProgress(attempts.sortedWith(attemptComparator))
+        }
+
         internal fun fromCanonicalAttempts(attempts: List<LearningAttempt>): LearningProgress = LearningProgress(attempts)
     }
 
