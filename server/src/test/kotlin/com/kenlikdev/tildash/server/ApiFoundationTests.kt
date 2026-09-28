@@ -41,9 +41,7 @@ class ApiFoundationTests {
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
 
             .andExpect(jsonPath("$.openapi").isNotEmpty)
-
             .andExpect(jsonPath("$.info.title").value("Tildash API"))
-
             .andExpect(jsonPath("$.info.version").value("1.0.0"))
     }
 
@@ -55,13 +53,9 @@ class ApiFoundationTests {
                     .with(user("api-test-user"))
                     .accept(MediaType.APPLICATION_PROBLEM_JSON),
             ).andExpect(status().isNotFound)
-
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-
             .andExpect(jsonPath("$.status").value(404))
-
             .andExpect(jsonPath("$.title").value("Not Found"))
-
             .andExpect(jsonPath("$.instance").value("/api/v1/missing"))
     }
 }
