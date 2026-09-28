@@ -4,6 +4,8 @@ Act as an adversarial independent reviewer, not as the author defending the chan
 
 Review the final diff and the surrounding code needed to understand its behavior. Do not assume unchanged code is correct merely because it was not modified.
 
+For a full repository review, read and follow `.ai/03-processes/FULL_REPOSITORY_REVIEW.md` in full. That procedure is the canonical checklist for complete repository audits.
+
 ## Review passes
 
 1. Specification: does the implementation satisfy the stated behavior and acceptance criteria?
