@@ -6,7 +6,7 @@ The `.ai/` directory is the canonical source of truth for AI engineering rules. 
 
 Project-owner communication is Russian. Source code, comments, KDoc, technical documentation, ADRs, commit messages, branch names, issue titles, and developer-facing logs are professional English.
 
-Start every substantive task by reading `.ai/AI_BOOTSTRAP.md`. For code review, also read `.ai/AI_REVIEW_PROMPT.md`.
+Start every substantive task by reading `.ai/AI_BOOTSTRAP.md`. For code review, also read `.ai/AI_REVIEW_PROMPT.md`. For a full repository review, additionally read and follow `.ai/03-processes/FULL_REPOSITORY_REVIEW.md` in full.
 
 The AI must work from observed repository state, not assumptions. Unknown information remains unknown until evidence is obtained.
 
