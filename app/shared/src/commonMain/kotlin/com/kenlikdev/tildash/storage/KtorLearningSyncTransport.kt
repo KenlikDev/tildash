@@ -4,7 +4,7 @@ import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
 import io.ktor.client.HttpClient
-import io.ktor.client.call.bodyAsText
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.header
