@@ -18,7 +18,6 @@ import com.kenlikdev.tildash.content.model.SourceReference
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 class LearningCatalogTest {
@@ -57,13 +56,26 @@ class LearningCatalogTest {
             listOf(
                 version(courseA, 1, "Old title"),
                 version(courseA, 2, "Current title"),
-                version(courseA, 1, "Duplicate older title"),
             )
 
         val catalog = LearningCatalogProjector.project(listOf(node), versions)
 
         assertEquals("Current title", catalog.courses.single().title)
         assertEquals(2, catalog.courses.single().publishedVersion)
+    }
+
+    @Test
+    fun duplicatePublishedVersionFailsExplicitly() {
+        assertFailsWith<LearningCatalogProjectionViolation> {
+            LearningCatalogProjector.project(
+                nodes = listOf(node(courseA, ContentKind.COURSE, null, 0)),
+                publishedVersions =
+                    listOf(
+                        version(courseA, 2, "Current title"),
+                        version(courseA, 2, "Duplicate title"),
+                    ),
+            )
+        }
     }
 
     @Test
@@ -94,35 +106,60 @@ class LearningCatalogTest {
 
     @Test
     fun publishedLocalizationIsProjectedAsImmutableReadModel() {
-        val course = version(
-            courseA,
+        val lesson = version(
+            lessonA1,
             1,
-            "Course A",
+            "Lesson A1",
             localizations =
                 listOf(
                     PublishedLocalization(
                         locale = LanguageTag("ru"),
                         variant = ContentVariantType.LITERARY,
                         revision = 1,
-                        payload = ContentPayload.Text("Курс A"),
+                        payload = ContentPayload.Text("Урок A1"),
                     ),
                     PublishedLocalization(
                         locale = LanguageTag("crh"),
                         variant = ContentVariantType.LITERARY,
                         revision = 1,
-                        payload = ContentPayload.Text("A kursu"),
+                        payload = ContentPayload.Text("A ders A1"),
                     ),
                 ),
         )
 
         val catalog =
             LearningCatalogProjector.project(
-                listOf(node(courseA, ContentKind.COURSE, null, 0)),
-                listOf(course),
+                nodes =
+                    listOf(
+                        node(courseA, ContentKind.COURSE, null, 0),
+                        node(lessonA1, ContentKind.LESSON, courseA, 0),
+                    ),
+                publishedVersions =
+                    listOf(
+                        version(courseA, 1, "Course A"),
+                        lesson,
+                    ),
             )
+        val localizations = catalog.courses.single().lessons.single().localizations
 
-        assertEquals(listOf("A kursu", "Курс A"), catalog.courses.single().lessons.singleOrNull()?.localizations?.map { it.value }.orEmpty())
-            .also { assertTrue(it.isEmpty()) }
+        assertEquals(
+            listOf("A ders A1", "Урок A1"),
+            localizations.map { it.value },
+        )
+    }
+
+    @Test
+    fun missingPublishedNodeFailsExplicitly() {
+        assertFailsWith<LearningCatalogProjectionViolation> {
+            LearningCatalogProjector.project(
+                nodes = listOf(node(courseA, ContentKind.COURSE, null, 0)),
+                publishedVersions =
+                    listOf(
+                        version(courseA, 1, "Course A"),
+                        version(lessonA1, 1, "Orphan lesson"),
+                    ),
+            )
+        }
     }
 
     @Test
