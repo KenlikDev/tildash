@@ -138,24 +138,20 @@ class KtorLearningSyncTransport(
         statusCode: Int,
         details: LearningSyncFailureDetails?,
     ): Exception {
-        val message =
-            details?.detail?.takeIf(String::isNotBlank)
+        val message = details?.detail?.takeIf(String::isNotBlank)
 
         return when (statusCode) {
             401 -> {
                 AuthenticationRequiredLearningSyncFailure(
-                    message =
-                        message
-                            ?: "The learning synchronization access token was rejected.",
+                    message = message ?: "The learning synchronization access token was rejected.",
                     details = details,
                 )
             }
 
             403 -> {
                 AuthorizationDeniedLearningSyncFailure(
-                    message =
-                        message
-                            ?: "The authenticated identity is not authorized to synchronize learning progress.",
+                    message = message
+                        ?: "The authenticated identity is not authorized to synchronize learning progress.",
                     details = details,
                 )
             }
@@ -164,9 +160,8 @@ class KtorLearningSyncTransport(
             429,
             in 500..599 -> {
                 TransientLearningSyncFailure(
-                    message =
-                        message
-                            ?: "The learning synchronization service is temporarily unavailable.",
+                    message = message
+                        ?: "The learning synchronization service is temporarily unavailable.",
                     details = details,
                 )
             }
@@ -174,18 +169,15 @@ class KtorLearningSyncTransport(
             else -> {
                 LearningSyncProtocolFailure(
                     statusCode = statusCode,
-                    message =
-                        message
-                            ?: "The learning synchronization request was rejected with HTTP $statusCode.",
+                    message = message
+                        ?: "The learning synchronization request was rejected with HTTP $statusCode.",
                     details = details,
                 )
             }
         }
     }
 
-    private fun parseProblemDetails(
-        payload: String,
-    ): LearningSyncFailureDetails? =
+    private fun parseProblemDetails(payload: String): LearningSyncFailureDetails? =
         runCatching {
             val objectPayload = json.parseToJsonElement(payload) as? JsonObject
             objectPayload?.let {
@@ -267,5 +259,6 @@ class KtorLearningSyncTransport(
                     200,
                     "Learning synchronization response is missing a string array: $fieldName.",
                 )
+            }
         }
 }
