@@ -56,9 +56,7 @@ class KtorLearningSyncTransport(
         }
     }
 
-    override suspend fun synchronize(
-        batch: LearningProgressSyncBatch,
-    ): LearningSyncTransportResult {
+    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
         val accessToken =
             accessTokenProvider.accessToken()?.trim()
                 ?: throw AuthenticationRequiredLearningSyncFailure()
@@ -94,9 +92,7 @@ class KtorLearningSyncTransport(
         return decodeResponse(response)
     }
 
-    private suspend fun decodeResponse(
-        response: HttpResponse,
-    ): LearningSyncTransportResult {
+    private suspend fun decodeResponse(response: HttpResponse): LearningSyncTransportResult {
         val payload = response.bodyAsText()
         val details = parseProblemDetails(payload)
 
@@ -125,9 +121,7 @@ class KtorLearningSyncTransport(
         )
     }
 
-    private suspend fun mapResponseException(
-        failure: ResponseException,
-    ): Exception {
+    private suspend fun mapResponseException(failure: ResponseException): Exception {
         val payload =
             runCatching {
                 failure.response.bodyAsText()
@@ -144,21 +138,24 @@ class KtorLearningSyncTransport(
         statusCode: Int,
         details: LearningSyncFailureDetails?,
     ): Exception {
-        val message = details?.detail?.takeIf(String::isNotBlank)
+        val message =
+            details?.detail?.takeIf(String::isNotBlank)
 
         return when (statusCode) {
             401 -> {
                 AuthenticationRequiredLearningSyncFailure(
-                    message = message
-                        ?: "The learning synchronization access token was rejected.",
+                    message =
+                        message
+                            ?: "The learning synchronization access token was rejected.",
                     details = details,
                 )
             }
 
             403 -> {
                 AuthorizationDeniedLearningSyncFailure(
-                    message = message
-                        ?: "The authenticated identity is not authorized to synchronize learning progress.",
+                    message =
+                        message
+                            ?: "The authenticated identity is not authorized to synchronize learning progress.",
                     details = details,
                 )
             }
@@ -167,8 +164,9 @@ class KtorLearningSyncTransport(
             429,
             in 500..599 -> {
                 TransientLearningSyncFailure(
-                    message = message
-                        ?: "The learning synchronization service is temporarily unavailable.",
+                    message =
+                        message
+                            ?: "The learning synchronization service is temporarily unavailable.",
                     details = details,
                 )
             }
@@ -176,8 +174,9 @@ class KtorLearningSyncTransport(
             else -> {
                 LearningSyncProtocolFailure(
                     statusCode = statusCode,
-                    message = message
-                        ?: "The learning synchronization request was rejected with HTTP $statusCode.",
+                    message =
+                        message
+                            ?: "The learning synchronization request was rejected with HTTP $statusCode.",
                     details = details,
                 )
             }
@@ -209,9 +208,7 @@ class KtorLearningSyncTransport(
             ?.content
             ?.toIntOrNull()
 
-    private fun encodeRequest(
-        batch: LearningProgressSyncBatch,
-    ): JsonObject =
+    private fun encodeRequest(batch: LearningProgressSyncBatch): JsonObject =
         buildJsonObject {
             put("deviceId", JsonPrimitive(batch.deviceId))
             put(
@@ -224,9 +221,7 @@ class KtorLearningSyncTransport(
             )
         }
 
-    private fun encodeAttempt(
-        attempt: LearningAttempt,
-    ): JsonObject =
+    private fun encodeAttempt(attempt: LearningAttempt): JsonObject =
         buildJsonObject {
             put("attemptId", JsonPrimitive(attempt.attemptId))
             put("exerciseId", JsonPrimitive(attempt.exerciseId))
@@ -245,11 +240,9 @@ class KtorLearningSyncTransport(
             put("occurredAt", JsonPrimitive(attempt.occurredAt.toString()))
         }
 
-    private fun JsonObject.requiredStringArray(
-        fieldName: String,
-    ): List<String> =
+    private fun JsonObject.requiredStringArray(fieldName: String): List<String> =
         when (val value = get(fieldName)) {
-            is JsonArray ->
+            is JsonArray -> {
                 value.mapIndexed { index, element ->
                     val primitive =
                         element as? JsonPrimitive
@@ -267,8 +260,9 @@ class KtorLearningSyncTransport(
 
                     primitive.content
                 }
+            }
 
-            else ->
+            else -> {
                 throw LearningSyncProtocolFailure(
                     200,
                     "Learning synchronization response is missing a string array: $fieldName.",
