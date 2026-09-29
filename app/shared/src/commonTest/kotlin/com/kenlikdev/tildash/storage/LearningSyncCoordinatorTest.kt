@@ -322,9 +322,19 @@ class LearningSyncCoordinatorTest {
                 observer = LearningSyncObserver { states += it },
             ).synchronize("device-a")
 
-            assertEquals(3, states.size)
+            assertEquals(2, states.size)
             assertEquals(LearningSyncState.Running(2), states[0])
-            assertTrue(states[1] is LearningSyncState.Conflicted)
+            assertEquals(
+                LearningSyncState.Conflicted(
+                    LearningSyncReport(
+                        submittedAttemptIds = listOf("attempt-a", "attempt-b"),
+                        acknowledgedAttemptIds = listOf("attempt-a"),
+                        conflictAttemptIds = listOf("attempt-b"),
+                        retryCount = 0,
+                    ),
+                ),
+                states[1],
+            )
             assertEquals(listOf("attempt-b"), store.pendingIds())
         }
 
