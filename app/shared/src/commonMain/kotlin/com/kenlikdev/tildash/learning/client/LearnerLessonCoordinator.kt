@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.learning.client
 
+import kotlin.time.Instant
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.learning.AnswerEvaluation
 import com.kenlikdev.tildash.learning.LearnerResponse
@@ -9,7 +10,6 @@ import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.storage.DownloadedLesson
 import com.kenlikdev.tildash.storage.DownloadedLessonStore
 import com.kenlikdev.tildash.storage.LearningProgressStore
-import kotlin.time.Instant
 
 data class LearnerLessonState(
     val lesson: DownloadedLesson,
