@@ -66,7 +66,7 @@ class OfflineLearningRecoveryTest {
                 val progress = context.progress.loadProgress()
                 val resumed = LessonSession.start(downloaded.plan, progress)
 
-                assertTrue(resumed.state.name == "COMPLETED")
+                assertEquals(LessonSessionState.COMPLETED, resumed.state)
                 assertEquals(listOf(attempt), progress.attempts)
 
                 var calls = 0
