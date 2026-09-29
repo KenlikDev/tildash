@@ -52,12 +52,6 @@ interface LearningSyncTransport {
     suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult
 }
 
-class TransientLearningSyncFailure(
-    message: String,
-    cause: Throwable? = null,
-    val problemDetails: LearningSyncProblemDetails? = null,
-) : Exception(message, cause)
-
 data class LearningSyncReport(
     val submittedAttemptIds: List<String>,
     val acknowledgedAttemptIds: List<String>,
