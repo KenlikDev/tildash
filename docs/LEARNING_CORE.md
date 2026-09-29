@@ -38,6 +38,8 @@ The same exercise and response always produce the same result.
 
 A failed attempt keeps the current exercise pending; a correct attempt advances to the next pending exercise. Once all required exercises have a correct attempt, the session is explicitly completed and rejects further submissions.
 
+The client application composition in `app/shared` uses `LearnerLessonCoordinator` to open downloaded lessons from durable storage, restore persisted progress, submit through `LessonSession`, and persist immutable attempts. It does not introduce a second learning-rule implementation. The boundary is documented in `docs/LEARNING_CLIENT.md` and ADR-0017.
+
 The dedicated contract is documented in `docs/LEARNING_SESSION.md` and ADR-0010.
 
 ## Attempts
