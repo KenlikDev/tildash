@@ -26,14 +26,6 @@ fun interface AccessTokenProvider {
     suspend fun accessToken(): String?
 }
 
-data class LearningSyncFailureDetails(
-    val type: String?,
-    val title: String?,
-    val status: Int?,
-    val detail: String?,
-    val instance: String?,
-)
-
 class AuthenticationRequiredLearningSyncFailure(
     message: String = "An authenticated access token is required for learning synchronization.",
     val details: LearningSyncFailureDetails? = null,
