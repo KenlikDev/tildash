@@ -336,8 +336,7 @@ class LearningSyncCoordinatorTest {
             val failure = IllegalStateException("permanent")
             val transport =
                 object : LearningSyncTransport {
-                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult =
-                        throw failure
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult = throw failure
                 }
 
             assertFailsWith<IllegalStateException> {
