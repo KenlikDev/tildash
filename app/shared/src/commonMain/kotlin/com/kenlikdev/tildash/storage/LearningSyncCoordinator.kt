@@ -55,6 +55,7 @@ interface LearningSyncTransport {
 class TransientLearningSyncFailure(
     message: String,
     cause: Throwable? = null,
+    val problemDetails: LearningSyncProblemDetails? = null,
 ) : Exception(message, cause)
 
 data class LearningSyncReport(
