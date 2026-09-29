@@ -188,8 +188,7 @@ class KtorLearningSyncTransport(
             }
         }.getOrNull()
 
-    private fun JsonObject.stringOrNull(fieldName: String): String? =
-        (get(fieldName) as? JsonPrimitive)?.takeIf { it.isString }?.content
+    private fun JsonObject.stringOrNull(fieldName: String): String? = (get(fieldName) as? JsonPrimitive)?.takeIf { it.isString }?.content
 
     private fun JsonObject.intOrNull(fieldName: String): Int? =
         (get(fieldName) as? JsonPrimitive)
