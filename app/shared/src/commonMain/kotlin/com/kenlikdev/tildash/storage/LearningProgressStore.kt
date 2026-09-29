@@ -44,9 +44,10 @@ class SqlDelightLearningProgressStore(
         database.transaction {
             val existing = queries.selectAttempt(attempt.attemptId).executeAsOneOrNull()
             if (existing != null) {
-                val stored =
+                        val stored =
                     toLearningAttempt(
                         attemptId = existing.attempt_id,
+                        lessonId = existing.lesson_id?.let(::ContentId),
                         exerciseId = existing.exercise_id,
                         responseType = existing.response_type,
                         responseValue = existing.response_value,
@@ -62,6 +63,7 @@ class SqlDelightLearningProgressStore(
             val row = toRow(attempt)
             queries.insertAttempt(
                 attempt_id = row.attemptId,
+                lesson_id = row.lessonId?.value,
                 exercise_id = row.exerciseId,
                 response_type = row.responseType,
                 response_value = row.responseValue,
@@ -76,6 +78,7 @@ class SqlDelightLearningProgressStore(
         queries.selectPendingAttempts().executeAsList().map { row ->
             toLearningAttempt(
                 attemptId = row.attempt_id,
+                lessonId = row.lesson_id?.let(::ContentId),
                 exerciseId = row.exercise_id,
                 responseType = row.response_type,
                 responseValue = row.response_value,
@@ -94,6 +97,7 @@ class SqlDelightLearningProgressStore(
 
     private data class AttemptRow(
         val attemptId: String,
+        val lessonId: ContentId?,
         val exerciseId: String,
         val responseType: String,
         val responseValue: String,
@@ -109,6 +113,7 @@ class SqlDelightLearningProgressStore(
 
         return AttemptRow(
             attemptId = attempt.attemptId,
+            lessonId = attempt.lessonId,
             exerciseId = attempt.exerciseId,
             responseType = response.type,
             responseValue = response.value,
