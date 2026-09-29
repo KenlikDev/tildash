@@ -162,10 +162,10 @@ class KtorLearningSyncTransportTest {
                     }
 
                 assertEquals("Token expired", failure.message)
-                assertEquals("urn:tildash:problem:unauthorized", failure.problemDetails?.type)
-                assertEquals("Unauthorized", failure.problemDetails?.title)
-                assertEquals(401, failure.problemDetails?.status)
-                assertEquals("/api/v1/learning/sync", failure.problemDetails?.instance)
+                assertEquals("urn:tildash:problem:unauthorized", failure.details?.type)
+                assertEquals("Unauthorized", failure.details?.title)
+                assertEquals(401, failure.details?.status)
+                assertEquals("/api/v1/learning/sync", failure.details?.instance)
             } finally {
                 client.close()
             }
@@ -338,7 +338,7 @@ class KtorLearningSyncTransportTest {
                         }
 
                     assertEquals(detail, failure.message)
-                    assertEquals(status.value, failure.problemDetails?.status)
+                    assertEquals(status.value, failure.details?.status)
                 } finally {
                     client.close()
                 }
