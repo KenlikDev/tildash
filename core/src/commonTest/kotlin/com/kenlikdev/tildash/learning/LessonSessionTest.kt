@@ -57,7 +57,8 @@ class LessonSessionTest {
             )
 
         val progress =
-            LearningEngine.submit(
+            LearningEngine
+                .submit(
                 progress = LearningProgress.empty(),
                 lessonId = otherLessonId,
                 exercise = otherLessonExercise,
