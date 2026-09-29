@@ -1,6 +1,7 @@
 package com.kenlikdev.tildash.server.api.learning
 
 import jakarta.validation.Valid
+import java.util.UUID
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Size
@@ -19,6 +20,7 @@ data class LearningAttemptRequest(
     @field:NotBlank
     @field:Size(max = 200)
     val attemptId: String,
+    val lessonId: UUID,
     @field:NotBlank
     @field:Size(max = 200)
     val exerciseId: String,
