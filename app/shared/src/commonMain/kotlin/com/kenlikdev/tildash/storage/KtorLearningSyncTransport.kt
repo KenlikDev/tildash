@@ -140,24 +140,22 @@ class KtorLearningSyncTransport(
     ): Exception {
         val message = details?.detail?.takeIf(String::isNotBlank)
 
-        return when (statusCode) {
-            401 -> {
+        return when {
+            statusCode == 401 -> {
                 AuthenticationRequiredLearningSyncFailure(
                     message = message ?: "The learning synchronization access token was rejected.",
                     details = details,
                 )
             }
 
-            403 -> {
+            statusCode == 403 -> {
                 AuthorizationDeniedLearningSyncFailure(
                     message = message ?: "The authenticated identity is not authorized to synchronize learning progress.",
                     details = details,
                 )
             }
 
-            408,
-            429,
-            in 500..599 -> {
+            statusCode == 408 || statusCode == 429 || statusCode in 500..599 -> {
                 TransientLearningSyncFailure(
                     message = message ?: "The learning synchronization service is temporarily unavailable.",
                     details = details,
