@@ -422,5 +422,4 @@ class KtorLearningSyncTransportTest {
         )
         failure?.let { throw it }
     }
-
 }
