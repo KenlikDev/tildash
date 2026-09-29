@@ -226,8 +226,7 @@ data class LearningProgress private constructor(
                 .filter {
                     it.exerciseId == exerciseId &&
                         (lessonId == null || it.lessonId == lessonId)
-                }
-                .sortedWith(attemptComparator)
+                }.sortedWith(attemptComparator)
 
         require(exerciseAttempts.isNotEmpty()) {
             "Exercise $exerciseId has no attempts."
