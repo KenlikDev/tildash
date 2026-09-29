@@ -5,7 +5,7 @@ import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.storage.DownloadedLesson
 import com.kenlikdev.tildash.storage.DownloadedLessonStore
 import com.kenlikdev.tildash.storage.LearningProgressStore
-import com.kenlikdev.tildash.storage.LearnerLessonCoordinator
+import com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
