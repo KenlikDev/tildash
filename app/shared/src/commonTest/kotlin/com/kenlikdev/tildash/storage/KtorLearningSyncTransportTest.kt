@@ -309,11 +309,14 @@ class KtorLearningSyncTransportTest {
                 )
 
             statuses.forEach { (status, detail) ->
+                val problemDetails =
+                    """{"type":"urn:tildash:problem:sync","title":"Temporary failure","status":${status.value},"detail":"${detail}","instance":"/api/v1/learning/sync"}"""
+
                 val client =
                     HttpClient(
                         MockEngine {
                             respond(
-                                content = """{"type":"urn:tildash:problem:sync","title":"Temporary failure","status":__DOLLAR__{status.value},"detail":"__DOLLAR__{detail}","instance":"/api/v1/learning/sync"}""",
+                                content = problemDetails,
                                 status = status,
                                 headers =
                                     io.ktor.http.headersOf(
