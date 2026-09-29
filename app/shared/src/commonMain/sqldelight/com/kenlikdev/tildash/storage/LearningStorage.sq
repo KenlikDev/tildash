@@ -67,3 +67,159 @@ WHERE attempt_id = ?;
 pendingAttemptCount:
 SELECT COUNT(*)
 FROM learning_sync_outbox;
+
+CREATE TABLE downloaded_course (
+    course_id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    source_locale TEXT NOT NULL,
+    published_version INTEGER NOT NULL,
+    downloaded_at_epoch_millis INTEGER NOT NULL
+);
+
+CREATE TABLE downloaded_lesson (
+    lesson_id TEXT NOT NULL PRIMARY KEY,
+    course_id TEXT NOT NULL REFERENCES downloaded_course(course_id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    source_locale TEXT NOT NULL,
+    published_version INTEGER NOT NULL,
+    position INTEGER NOT NULL
+);
+
+CREATE TABLE downloaded_exercise (
+    lesson_id TEXT NOT NULL REFERENCES downloaded_lesson(lesson_id) ON DELETE CASCADE,
+    exercise_id TEXT NOT NULL,
+    content_id TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    exercise_type TEXT NOT NULL,
+    prompt TEXT NOT NULL,
+    PRIMARY KEY (lesson_id, exercise_id)
+);
+
+CREATE TABLE downloaded_manual_answer (
+    lesson_id TEXT NOT NULL,
+    exercise_id TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    answer TEXT NOT NULL,
+    PRIMARY KEY (lesson_id, exercise_id, position),
+    FOREIGN KEY (lesson_id, exercise_id)
+        REFERENCES downloaded_exercise(lesson_id, exercise_id)
+        ON DELETE CASCADE
+);
+
+selectDownloadedCourse:
+SELECT course_id,
+       title,
+       source_locale,
+       published_version,
+       downloaded_at_epoch_millis
+FROM downloaded_course
+WHERE course_id = ?;
+
+selectDownloadedLessons:
+SELECT lesson_id,
+       course_id,
+       title,
+       source_locale,
+       published_version,
+       position
+FROM downloaded_lesson
+ORDER BY course_id ASC, position ASC, lesson_id ASC;
+
+selectDownloadedLessonsForCourse:
+SELECT lesson_id,
+       course_id,
+       title,
+       source_locale,
+       published_version,
+       position
+FROM downloaded_lesson
+WHERE course_id = ?
+ORDER BY position ASC, lesson_id ASC;
+
+selectDownloadedLesson:
+SELECT lesson_id,
+       course_id,
+       title,
+       source_locale,
+       published_version,
+       position
+FROM downloaded_lesson
+WHERE lesson_id = ?;
+
+selectDownloadedExercises:
+SELECT lesson_id,
+       exercise_id,
+       content_id,
+       position,
+       exercise_type,
+       prompt
+FROM downloaded_exercise
+WHERE lesson_id = ?
+ORDER BY position ASC, exercise_id ASC;
+
+selectDownloadedManualAnswers:
+SELECT lesson_id,
+       exercise_id,
+       position,
+       answer
+FROM downloaded_manual_answer
+WHERE lesson_id = ?
+ORDER BY exercise_id ASC, position ASC;
+
+upsertDownloadedCourse:
+INSERT OR REPLACE INTO downloaded_course(
+    course_id,
+    title,
+    source_locale,
+    published_version,
+    downloaded_at_epoch_millis
+)
+VALUES (?, ?, ?, ?, ?);
+
+deleteDownloadedLesson:
+DELETE FROM downloaded_lesson
+WHERE lesson_id = ?;
+
+deleteDownloadedCourseIfOrphaned:
+DELETE FROM downloaded_course
+WHERE course_id = ?
+  AND NOT EXISTS (
+      SELECT 1
+      FROM downloaded_lesson
+      WHERE downloaded_lesson.course_id = downloaded_course.course_id
+  );
+
+insertDownloadedLesson:
+INSERT INTO downloaded_lesson(
+    lesson_id,
+    course_id,
+    title,
+    source_locale,
+    published_version,
+    position
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+insertDownloadedExercise:
+INSERT INTO downloaded_exercise(
+    lesson_id,
+    exercise_id,
+    content_id,
+    position,
+    exercise_type,
+    prompt
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+insertDownloadedManualAnswer:
+INSERT INTO downloaded_manual_answer(
+    lesson_id,
+    exercise_id,
+    position,
+    answer
+)
+VALUES (?, ?, ?, ?);
+
+countDownloadedLessons:
+SELECT COUNT(*)
+FROM downloaded_lesson;

@@ -70,6 +70,7 @@ class LearningSyncCoordinator(
     private val transport: LearningSyncTransport,
     private val retryPolicy: LearningSyncRetryPolicy = LearningSyncRetryPolicy(),
     private val delayBeforeRetry: suspend (Long) -> Unit,
+    private val observer: LearningSyncObserver = LearningSyncObserver { },
 ) {
     suspend fun synchronize(deviceId: String): LearningSyncReport {
         require(deviceId.isNotBlank()) {
@@ -77,13 +78,18 @@ class LearningSyncCoordinator(
         }
 
         val pendingAttempts = store.loadPendingSyncAttempts()
+        observer.onStateChanged(LearningSyncState.Running(pendingAttempts.size.toLong()))
+
         if (pendingAttempts.isEmpty()) {
-            return LearningSyncReport(
-                submittedAttemptIds = emptyList(),
-                acknowledgedAttemptIds = emptyList(),
-                conflictAttemptIds = emptyList(),
-                retryCount = 0,
-            )
+            val report =
+                LearningSyncReport(
+                    submittedAttemptIds = emptyList(),
+                    acknowledgedAttemptIds = emptyList(),
+                    conflictAttemptIds = emptyList(),
+                    retryCount = 0,
+                )
+            observer.onStateChanged(LearningSyncState.Succeeded(report))
+            return report
         }
 
         val batch =
@@ -97,15 +103,53 @@ class LearningSyncCoordinator(
 
         while (true) {
             try {
-                return synchronizeOnce(batch, retryCount)
+                val report = synchronizeOnce(batch, retryCount)
+                observer.onStateChanged(
+                    if (report.hasConflicts) {
+                        LearningSyncState.Conflicted(report)
+                    } else {
+                        LearningSyncState.Succeeded(report)
+                    },
+                )
+                return report
             } catch (failure: TransientLearningSyncFailure) {
                 if (attemptNumber >= retryPolicy.maxAttempts) {
+                    observer.onStateChanged(
+                        LearningSyncState.Failed(
+                            message = failure.message ?: "Learning synchronization failed.",
+                            retryable = true,
+                            details = failure.details,
+                        ),
+                    )
                     throw failure
                 }
 
                 retryCount += 1
-                delayBeforeRetry(retryPolicy.delayBeforeRetry(retryCount))
+                val delay = retryPolicy.delayBeforeRetry(retryCount)
+                observer.onStateChanged(
+                    LearningSyncState.Retrying(
+                        retryCount = retryCount,
+                        delayMillis = delay,
+                        pendingCount = pendingAttempts.size.toLong(),
+                    ),
+                )
+                delayBeforeRetry(delay)
                 attemptNumber += 1
+            } catch (failure: Exception) {
+                observer.onStateChanged(
+                    LearningSyncState.Failed(
+                        message = failure.message ?: "Learning synchronization failed.",
+                        retryable = false,
+                        details =
+                            when (failure) {
+                                is AuthenticationRequiredLearningSyncFailure -> failure.details
+                                is AuthorizationDeniedLearningSyncFailure -> failure.details
+                                is LearningSyncProtocolFailure -> failure.details
+                                else -> null
+                            },
+                    ),
+                )
+                throw failure
             }
         }
     }

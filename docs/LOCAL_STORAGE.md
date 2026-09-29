@@ -22,6 +22,23 @@ The current response contract supports the existing `LearnerResponse.Text` varia
 
 Attempt timestamps are stored as epoch milliseconds and reconstructed as kotlin.time.Instant.
 
+## Downloaded learning content
+
+The local client also persists downloaded lesson packages required for offline delivery.
+
+A downloaded package contains:
+
+- course metadata and published version;
+- lesson metadata and published version;
+- the lesson's executable learning plan;
+- the exercise type, content ID, prompt, and expected answers.
+
+The current persisted exercise contract covers ManualInputExercise. Unknown future exercise types fail closed during rehydration instead of being silently downgraded.
+
+Saving or replacing a lesson package is transactional. Replacing a package removes the previous lesson rows before inserting the new published version, while preserving unrelated lessons in the same course.
+
+Offline content is a cache of an explicitly published version; it is not a mutable source of truth for authoring data.
+
 ## Sync outbox
 
 Every newly persisted attempt is transactionally added to the local sync outbox.
@@ -58,7 +75,7 @@ Platform composition is responsible for constructing a persistent SQLDelight dri
 
 The storage implementation itself does not know whether the driver is backed by Android application storage, an iOS native SQLite file, or a JVM SQLite file.
 
-Downloaded lesson content, authentication/session UI, sync observability, and secure-at-rest policy remain separate follow-up work under issue #16. A concrete authenticated server synchronization endpoint is now implemented; client transport wiring remains separate.
+Authentication/session UI and platform-specific encrypted-at-rest drivers remain composition concerns. The shared storage layer never persists access or refresh tokens.
 
 ## Safety rules
 

@@ -136,6 +136,8 @@ Ktor engine implementations are selected per KMP target in `app/shared/build.gra
 
 The transport does not implement login, refresh-token storage, secure token persistence, or user-facing retry UI. Authentication/session storage remains a platform composition concern.
 
+The coordinator also exposes LearningSyncState and LearningSyncObserver for deterministic sync observability. State transitions include running, retrying, succeeded, conflicted, and failed outcomes. Observers are informational; they do not alter acknowledgement or retry semantics.
+
 
 ## Future work under #16
 
