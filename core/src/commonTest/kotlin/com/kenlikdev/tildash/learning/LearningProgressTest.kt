@@ -190,7 +190,8 @@ class LearningProgressTest {
             )
 
         val firstProgress =
-            LearningEngine.submit(
+            LearningEngine
+                .submit(
                 progress = LearningProgress.empty(),
                 lessonId = firstLesson,
                 exercise = firstExercise,
