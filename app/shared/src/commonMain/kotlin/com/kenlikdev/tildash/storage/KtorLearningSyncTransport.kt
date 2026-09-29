@@ -4,13 +4,13 @@ import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
 import io.ktor.client.HttpClient
-import io.ktor.client.statement.bodyAsText
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -26,17 +26,28 @@ fun interface AccessTokenProvider {
     suspend fun accessToken(): String?
 }
 
+data class LearningSyncProblemDetails(
+    val type: String?,
+    val title: String?,
+    val status: Int?,
+    val detail: String?,
+    val instance: String?,
+)
+
 class AuthenticationRequiredLearningSyncFailure(
     message: String = "An authenticated access token is required for learning synchronization.",
+    val problemDetails: LearningSyncProblemDetails? = null,
 ) : Exception(message)
 
 class AuthorizationDeniedLearningSyncFailure(
     message: String = "The authenticated identity is not authorized to synchronize learning progress.",
+    val problemDetails: LearningSyncProblemDetails? = null,
 ) : Exception(message)
 
 class LearningSyncProtocolFailure(
     val statusCode: Int,
     message: String,
+    val problemDetails: LearningSyncProblemDetails? = null,
 ) : Exception(message)
 
 class KtorLearningSyncTransport(
@@ -91,12 +102,16 @@ class KtorLearningSyncTransport(
         return decodeResponse(response)
     }
 
-    private suspend fun decodeResponse(response: HttpResponse): LearningSyncTransportResult {
+    private suspend fun decodeResponse(
+        response: HttpResponse,
+    ): LearningSyncTransportResult {
         val payload = response.bodyAsText()
+        val problemDetails = parseProblemDetails(payload)
+
         if (response.status.value !in 200..299) {
             throw mapHttpFailure(
                 statusCode = response.status.value,
-                detail = extractProblemDetail(payload),
+                problemDetails = problemDetails,
             )
         }
 
@@ -121,55 +136,86 @@ class KtorLearningSyncTransport(
     private suspend fun mapResponseException(
         failure: ResponseException,
     ): Exception {
-        val detail =
+        val payload =
             runCatching {
-                extractProblemDetail(failure.response.bodyAsText())
+                failure.response.bodyAsText()
             }.getOrNull()
+        val problemDetails = payload?.let(::parseProblemDetails)
 
         return mapHttpFailure(
             statusCode = failure.response.status.value,
-            detail = detail,
+            problemDetails = problemDetails,
         )
     }
 
     private fun mapHttpFailure(
         statusCode: Int,
-        detail: String?,
+        problemDetails: LearningSyncProblemDetails?,
     ): Exception {
-        val message = detail?.takeIf(String::isNotBlank)
+        val message = problemDetails?.detail?.takeIf(String::isNotBlank)
 
         return when (statusCode) {
-            401 ->
+            401 -> {
                 AuthenticationRequiredLearningSyncFailure(
-                    message = message ?: "The learning synchronization access token was rejected.",
+                    message = message
+                        ?: "The learning synchronization access token was rejected.",
+                    problemDetails = problemDetails,
                 )
+            }
 
-            403 ->
+            403 -> {
                 AuthorizationDeniedLearningSyncFailure(
-                    message = message ?: "The authenticated identity is not authorized to synchronize learning progress.",
+                    message = message
+                        ?: "The authenticated identity is not authorized to synchronize learning progress.",
+                    problemDetails = problemDetails,
                 )
+            }
 
             408,
             429,
-            in 500..599 ->
+            in 500..599 -> {
                 TransientLearningSyncFailure(
-                    message = message ?: "The learning synchronization service is temporarily unavailable.",
+                    message = message
+                        ?: "The learning synchronization service is temporarily unavailable.",
+                    cause = null,
                 )
+            }
 
-            else ->
+            else -> {
                 LearningSyncProtocolFailure(
                     statusCode = statusCode,
-                    message = message ?: "The learning synchronization request was rejected with HTTP $statusCode.",
+                    message = message
+                        ?: "The learning synchronization request was rejected with HTTP $statusCode.",
+                    problemDetails = problemDetails,
                 )
+            }
         }
     }
 
-    private fun extractProblemDetail(payload: String): String? =
+    private fun parseProblemDetails(
+        payload: String,
+    ): LearningSyncProblemDetails? =
         runCatching {
             val objectPayload = json.parseToJsonElement(payload) as? JsonObject
-            val detail = objectPayload?.get("detail") as? JsonPrimitive
-            detail?.content
+            objectPayload?.let {
+                LearningSyncProblemDetails(
+                    type = it.stringOrNull("type"),
+                    title = it.stringOrNull("title"),
+                    status = it.intOrNull("status"),
+                    detail = it.stringOrNull("detail"),
+                    instance = it.stringOrNull("instance"),
+                )
+            }
         }.getOrNull()
+
+    private fun JsonObject.stringOrNull(fieldName: String): String? =
+        (get(fieldName) as? JsonPrimitive)?.takeIf { it.isString }?.content
+
+    private fun JsonObject.intOrNull(fieldName: String): Int? =
+        (get(fieldName) as? JsonPrimitive)
+            ?.takeIf { !it.isString }
+            ?.content
+            ?.toIntOrNull()
 
     private fun encodeRequest(
         batch: LearningProgressSyncBatch,
@@ -195,11 +241,12 @@ class KtorLearningSyncTransport(
             put(
                 "response",
                 when (val response = attempt.response) {
-                    is LearnerResponse.Text ->
+                    is LearnerResponse.Text -> {
                         buildJsonObject {
                             put("type", JsonPrimitive("TEXT"))
                             put("value", JsonPrimitive(response.value))
                         }
+                    }
                 },
             )
             put("outcome", JsonPrimitive(attempt.outcome.name))
@@ -208,24 +255,31 @@ class KtorLearningSyncTransport(
 
     private fun JsonObject.requiredStringArray(
         fieldName: String,
-    ): List<String> {
-        val value = get(fieldName)
-        if (value !is JsonArray) {
-            throw LearningSyncProtocolFailure(
-                statusCode = 200,
-                message = "Learning synchronization response is missing a string array: $fieldName.",
-            )
-        }
+    ): List<String> =
+        when (val value = get(fieldName)) {
+            is JsonArray ->
+                value.mapIndexed { index, element ->
+                    val primitive =
+                        element as? JsonPrimitive
+                            ?: throw LearningSyncProtocolFailure(
+                                200,
+                                "Learning synchronization response contains a non-string value at $fieldName[$index].",
+                            )
 
-        return value.mapIndexed { index, element ->
-            val primitive =
-                element as? JsonPrimitive
-                    ?: throw LearningSyncProtocolFailure(
-                        200,
-                        "Learning synchronization response contains a non-string value at $fieldName[$index].",
-                    )
+                    if (!primitive.isString) {
+                        throw LearningSyncProtocolFailure(
+                            200,
+                            "Learning synchronization response contains a non-string value at $fieldName[$index].",
+                        )
+                    }
 
-            primitive.content
+                    primitive.content
+                }
+
+            else ->
+                throw LearningSyncProtocolFailure(
+                    200,
+                    "Learning synchronization response is missing a string array: $fieldName.",
+                )
         }
-    }
 }
