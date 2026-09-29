@@ -245,6 +245,7 @@ class LearningSyncIntegrationTests {
         outcome: String = "CORRECT",
         occurredAt: String = "2026-09-28T09:00:00Z",
         deviceId: String = "device-a",
+        lessonId: String = "550e8400-e29b-41d4-a716-446655440000",
     ): String =
         """
         {
@@ -252,6 +253,7 @@ class LearningSyncIntegrationTests {
           "attempts": [
             {
               "attemptId": "PLACEHOLDER_ATTEMPT",
+              "lessonId": "PLACEHOLDER_LESSON",
               "exerciseId": "exercise-1",
               "response": {"type": "TEXT", "value": "hello"},
               "outcome": "PLACEHOLDER_OUTCOME",
@@ -262,6 +264,7 @@ class LearningSyncIntegrationTests {
         """.trimIndent()
             .replace("PLACEHOLDER_DEVICE", deviceId)
             .replace("PLACEHOLDER_ATTEMPT", attemptId)
+            .replace("PLACEHOLDER_LESSON", lessonId)
             .replace("PLACEHOLDER_OUTCOME", outcome)
             .replace("PLACEHOLDER_OCCURRED_AT", occurredAt)
 }
