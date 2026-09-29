@@ -105,7 +105,7 @@ class LessonSessionTest {
 
         assertEquals(AnswerOutcome.INCORRECT, submission.evaluation.outcome)
         assertEquals(first.id, submission.session.nextExercise?.id)
-        assertEquals(1, submission.session.progress.mistakeCount(first.id))
+        assertEquals(1, submission.session.progress.mistakeCount(first.id, lessonId))
     }
 
     @Test
