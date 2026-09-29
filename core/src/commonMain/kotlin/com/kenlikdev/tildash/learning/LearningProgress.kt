@@ -309,7 +309,6 @@ object LearningEngine {
         exercise: LearningExercise,
         lessonId: ContentId?,
         attemptId: String,
-        attemptId: String,
         response: LearnerResponse,
         occurredAt: Instant,
     ): LearningSubmission {
