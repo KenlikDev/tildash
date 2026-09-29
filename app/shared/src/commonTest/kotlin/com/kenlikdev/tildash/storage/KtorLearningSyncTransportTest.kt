@@ -130,7 +130,7 @@ class KtorLearningSyncTransportTest {
                             ),
                     )
 
-                assertFailsWith<IllegalStateException> {
+                assertFailsWith<LearningSyncValidationFailure> {
                     transport.synchronize(unscopedBatch)
                 }
                 assertEquals(0, requests)
