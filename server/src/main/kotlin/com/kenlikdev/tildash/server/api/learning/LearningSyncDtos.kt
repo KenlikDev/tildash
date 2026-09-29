@@ -2,11 +2,11 @@
 package com.kenlikdev.tildash.server.api.learning
 
 import jakarta.validation.Valid
-import java.util.UUID
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Size
 import java.time.OffsetDateTime
+import java.util.UUID
 
 data class LearningSyncRequest(
     @field:NotBlank
