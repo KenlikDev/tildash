@@ -79,6 +79,43 @@ class LearningSyncIntegrationTests {
     }
 
     @Test
+    fun sameAttemptIdAndExerciseIdAcrossLessonsIsReportedAsConflict() {
+        mockMvc
+            .perform(
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        "attempt-cross-lesson",
+                        lessonId = "550e8400-e29b-41d4-a716-446655440000",
+                    ),
+                ),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        "attempt-cross-lesson",
+                        lessonId = "550e8400-e29b-41d4-a716-446655440001",
+                    ),
+                ),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
+            .andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-cross-lesson"))
+
+        assertEquals(
+            "550e8400-e29b-41d4-a716-446655440000",
+            jdbcTemplate.queryForObject(
+                "select lesson_id::text from tildash.learning_attempts where learner_subject = ? and attempt_id = ?",
+                String::class.java,
+                "learner-a",
+                "attempt-cross-lesson",
+            ),
+        )
+    }
+
+    @Test
     fun conflictingRetryIsReportedAndExistingPayloadIsPreserved() {
         mockMvc
             .perform(
