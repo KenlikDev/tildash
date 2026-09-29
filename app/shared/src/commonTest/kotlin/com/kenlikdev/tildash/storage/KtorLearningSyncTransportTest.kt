@@ -48,13 +48,13 @@ class KtorLearningSyncTransportTest {
                     MockEngine { requestData ->
                         request = requestData
                         respond(
-                                content = """{"acknowledgedAttemptIds":["attempt-1"],"conflictAttemptIds":[]}""",
-                                status = HttpStatusCode.OK,
-                                headers =
-                                    io.ktor.http.headersOf(
-                                        HttpHeaders.ContentType,
-                                        ContentType.Application.Json.toString(),
-                                    ),
+                            content = """{"acknowledgedAttemptIds":["attempt-1"],"conflictAttemptIds":[]}""",
+                            status = HttpStatusCode.OK,
+                            headers =
+                                io.ktor.http.headersOf(
+                                    HttpHeaders.ContentType,
+                                    ContentType.Application.Json.toString(),
+                                ),
                         )
                     },
                 )
