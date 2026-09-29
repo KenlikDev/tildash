@@ -96,7 +96,18 @@ class LearnerLessonCoordinatorTest {
         assertEquals(lessonId, state.lesson.lesson.id)
         assertEquals("exercise-2", state.session.nextExercise?.id)
         assertEquals(LessonSessionState.ACTIVE, state.session.state)
-        assertEquals(1, progressStore.saveCount)
+        assertEquals(0, progressStore.saveCount)
+    }
+
+    @Test
+    fun openReturnsNullWhenLessonIsNotDownloaded() {
+        val coordinator =
+            LearnerLessonCoordinator(
+                downloadedLessonStore = FakeDownloadedLessonStore(lesson),
+                learningProgressStore = FakeLearningProgressStore(),
+            )
+
+        assertNull(coordinator.open(ContentId("550e8400-e29b-41d4-a716-446655440099")))
     }
 
     @Test
