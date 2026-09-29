@@ -49,6 +49,7 @@ data class LessonSession(
             LearningEngine.submit(
                 progress = progress,
                 exercise = exercise,
+                lessonId = plan.lessonId,
                 attemptId = attemptId,
                 response = response,
                 occurredAt = occurredAt,
