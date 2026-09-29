@@ -4,6 +4,7 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.AttemptIdConflict
 import com.kenlikdev.tildash.learning.LearnerResponse
+import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.learning.LearningAttempt
 import java.nio.file.Files
 import kotlin.test.Test
@@ -21,6 +22,7 @@ class SqlDelightLearningProgressStoreTest {
             val attempt =
                 LearningAttempt(
                     attemptId = "attempt-1",
+                    lessonId = ContentId("550e8400-e29b-41d4-a716-446655440000"),
                     exerciseId = "exercise-1",
                     response = LearnerResponse.Text("hello"),
                     outcome = AnswerOutcome.CORRECT,
@@ -44,6 +46,39 @@ class SqlDelightLearningProgressStoreTest {
                 assertEquals(emptyList(), store.loadPendingSyncAttempts())
                 assertEquals(0, store.pendingSyncCount())
                 assertEquals(listOf(attempt), store.loadProgress().attempts)
+            }
+        } finally {
+            Files.deleteIfExists(databaseFile)
+        }
+    }
+
+    @Test
+    fun sameExerciseIdInDifferentLessonsRemainsScoped() {
+        val databaseFile = Files.createTempFile("tildash-learning-", ".db")
+        val firstLesson = ContentId("550e8400-e29b-41d4-a716-446655440000")
+        val secondLesson = ContentId("550e8400-e29b-41d4-a716-446655440001")
+
+        try {
+            val first =
+                attempt(
+                    id = "attempt-first",
+                    lessonId = firstLesson,
+                )
+            val second =
+                attempt(
+                    id = "attempt-second",
+                    lessonId = secondLesson,
+                )
+
+            open(databaseFile.toString()).use { store ->
+                store.saveAttempt(first)
+                store.saveAttempt(second)
+
+                assertEquals(listOf(first, second), store.loadProgress().attempts)
+                assertEquals(
+                    listOf(first, second),
+                    store.loadPendingSyncAttempts(),
+                )
             }
         } finally {
             Files.deleteIfExists(databaseFile)
@@ -125,9 +160,11 @@ class SqlDelightLearningProgressStoreTest {
 
     private fun attempt(
         id: String = "attempt-1",
+        lessonId: ContentId? = ContentId("550e8400-e29b-41d4-a716-446655440000"),
         occurredAt: Instant = Instant.parse("2026-09-28T08:00:00Z"),
     ) = LearningAttempt(
         attemptId = id,
+        lessonId = lessonId,
         exerciseId = "exercise-1",
         response = LearnerResponse.Text("hello"),
         outcome = AnswerOutcome.CORRECT,
