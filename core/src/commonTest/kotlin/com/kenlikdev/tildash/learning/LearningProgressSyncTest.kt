@@ -131,6 +131,42 @@ class LearningProgressSyncTest {
     }
 
     @Test
+    fun sameAttemptIdAcrossLessonsIsAConflict() {
+        val firstLesson = ContentId("550e8400-e29b-41d4-a716-446655440000")
+        val secondLesson = ContentId("550e8400-e29b-41d4-a716-446655440001")
+        val localAttempt =
+            attempt(
+                attemptId = "attempt-1",
+                occurredAt = firstTimestamp,
+                lessonId = firstLesson,
+            )
+        val incomingAttempt =
+            attempt(
+                attemptId = "attempt-1",
+                occurredAt = firstTimestamp,
+                lessonId = secondLesson,
+            )
+
+        val local =
+            LearningProgressSync
+                .merge(
+                    LearningProgress.empty(),
+                    LearningProgressSyncBatch("device-a", listOf(localAttempt)),
+                ).progress
+
+        val result =
+            LearningProgressSync.merge(
+                local,
+                LearningProgressSyncBatch("device-b", listOf(incomingAttempt)),
+            )
+
+        assertTrue(result.hasConflicts)
+        assertEquals(emptyList(), result.acknowledgedAttemptIds)
+        assertEquals(listOf(localAttempt), result.progress.attempts)
+        assertEquals("attempt-1", result.conflicts.single().attemptId)
+    }
+
+    @Test
     fun conflictsDoNotPreventIndependentAttemptsFromMerging() {
         val localAttempt = attempt("attempt-1", firstTimestamp)
         val conflicting = attempt("attempt-1", secondTimestamp)
@@ -231,8 +267,10 @@ class LearningProgressSyncTest {
         attemptId: String,
         occurredAt: Instant,
         outcome: AnswerOutcome = AnswerOutcome.CORRECT,
+        lessonId: ContentId = this.lessonId,
     ) = LearningAttempt(
         attemptId = attemptId,
+        lessonId = lessonId,
         exerciseId = exerciseId,
         response = LearnerResponse.Text(if (outcome == AnswerOutcome.CORRECT) "hello" else "wrong"),
         outcome = outcome,
