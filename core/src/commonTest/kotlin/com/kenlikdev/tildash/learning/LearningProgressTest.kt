@@ -203,7 +203,6 @@ class LearningProgressTest {
                     progress = LearningProgress.empty(),
                     lessonId = firstLesson,
                     exercise = firstExercise,
-                    lessonId = lessonId,
                     attemptId = "attempt-first-lesson",
                     response = LearnerResponse.Text("hello"),
                     occurredAt = occurredAt,
@@ -217,6 +216,8 @@ class LearningProgressTest {
             secondPlan.exercises.first().id,
         )
         assertEquals(0, firstProgress.mistakeCount(firstExercise.id, secondLesson))
+        assertEquals(1, firstProgress.reviewState(firstExercise.id, firstLesson).stage)
+        assertEquals(0, firstProgress.mistakeCount(firstExercise.id, firstLesson))
     }
 
     @Test
