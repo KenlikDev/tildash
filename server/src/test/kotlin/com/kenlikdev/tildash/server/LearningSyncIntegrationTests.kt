@@ -261,6 +261,7 @@ class LearningSyncIntegrationTests {
           "attempts": [
             {
               "attemptId": "attempt-duplicate",
+              "lessonId": "550e8400-e29b-41d4-a716-446655440000",
               "exerciseId": "exercise-1",
               "response": {"type": "TEXT", "value": "hello"},
               "outcome": "CORRECT",
