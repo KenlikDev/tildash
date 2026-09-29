@@ -132,6 +132,7 @@ class LearnerLessonCoordinatorTest {
         assertEquals("exercise-2", state.session.nextExercise?.id)
         assertEquals(1, progressStore.savedAttempts.size)
         assertEquals("attempt-1", progressStore.savedAttempts.single().attemptId)
+        assertEquals(lessonId, progressStore.savedAttempts.single().lessonId)
         assertEquals(1, progressStore.pendingSyncCount())
     }
 
@@ -187,6 +188,7 @@ class LearnerLessonCoordinatorTest {
         assertEquals(LessonSessionState.COMPLETED, state.session.state)
         assertNull(state.session.nextExercise)
         assertEquals(2, progressStore.savedAttempts.size)
+        assertTrue(progressStore.savedAttempts.all { it.lessonId == lessonId })
 
         val resumed = checkNotNull(coordinator.open(lessonId))
 
