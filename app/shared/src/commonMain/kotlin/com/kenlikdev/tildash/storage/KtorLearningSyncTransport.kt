@@ -26,7 +26,7 @@ fun interface AccessTokenProvider {
     suspend fun accessToken(): String?
 }
 
-data class LearningSyncProblemDetails(
+data class LearningSyncFailureDetails(
     val type: String?,
     val title: String?,
     val status: Int?,
@@ -36,18 +36,18 @@ data class LearningSyncProblemDetails(
 
 class AuthenticationRequiredLearningSyncFailure(
     message: String = "An authenticated access token is required for learning synchronization.",
-    val problemDetails: LearningSyncProblemDetails? = null,
+    val details: LearningSyncFailureDetails? = null,
 ) : Exception(message)
 
 class AuthorizationDeniedLearningSyncFailure(
     message: String = "The authenticated identity is not authorized to synchronize learning progress.",
-    val problemDetails: LearningSyncProblemDetails? = null,
+    val details: LearningSyncFailureDetails? = null,
 ) : Exception(message)
 
 class LearningSyncProtocolFailure(
     val statusCode: Int,
     message: String,
-    val problemDetails: LearningSyncProblemDetails? = null,
+    val details: LearningSyncFailureDetails? = null,
 ) : Exception(message)
 
 class KtorLearningSyncTransport(
@@ -106,12 +106,12 @@ class KtorLearningSyncTransport(
         response: HttpResponse,
     ): LearningSyncTransportResult {
         val payload = response.bodyAsText()
-        val problemDetails = parseProblemDetails(payload)
+        val details = parseProblemDetails(payload)
 
         if (response.status.value !in 200..299) {
             throw mapHttpFailure(
                 statusCode = response.status.value,
-                problemDetails = problemDetails,
+                details = details,
             )
         }
 
@@ -140,26 +140,26 @@ class KtorLearningSyncTransport(
             runCatching {
                 failure.response.bodyAsText()
             }.getOrNull()
-        val problemDetails = payload?.let(::parseProblemDetails)
+        val details = payload?.let(::parseProblemDetails)
 
         return mapHttpFailure(
             statusCode = failure.response.status.value,
-            problemDetails = problemDetails,
+            details = details,
         )
     }
 
     private fun mapHttpFailure(
         statusCode: Int,
-        problemDetails: LearningSyncProblemDetails?,
+        details: LearningSyncFailureDetails?,
     ): Exception {
-        val message = problemDetails?.detail?.takeIf(String::isNotBlank)
+        val message = details?.detail?.takeIf(String::isNotBlank)
 
         return when (statusCode) {
             401 -> {
                 AuthenticationRequiredLearningSyncFailure(
                     message = message
                         ?: "The learning synchronization access token was rejected.",
-                    problemDetails = problemDetails,
+                    details = details,
                 )
             }
 
@@ -167,7 +167,7 @@ class KtorLearningSyncTransport(
                 AuthorizationDeniedLearningSyncFailure(
                     message = message
                         ?: "The authenticated identity is not authorized to synchronize learning progress.",
-                    problemDetails = problemDetails,
+                    details = details,
                 )
             }
 
@@ -177,7 +177,7 @@ class KtorLearningSyncTransport(
                 TransientLearningSyncFailure(
                     message = message
                         ?: "The learning synchronization service is temporarily unavailable.",
-                    problemDetails = problemDetails,
+                    details = details,
                 )
             }
 
@@ -186,7 +186,7 @@ class KtorLearningSyncTransport(
                     statusCode = statusCode,
                     message = message
                         ?: "The learning synchronization request was rejected with HTTP $statusCode.",
-                    problemDetails = problemDetails,
+                    details = details,
                 )
             }
         }
@@ -194,11 +194,11 @@ class KtorLearningSyncTransport(
 
     private fun parseProblemDetails(
         payload: String,
-    ): LearningSyncProblemDetails? =
+    ): LearningSyncFailureDetails? =
         runCatching {
             val objectPayload = json.parseToJsonElement(payload) as? JsonObject
             objectPayload?.let {
-                LearningSyncProblemDetails(
+                LearningSyncFailureDetails(
                     type = it.stringOrNull("type"),
                     title = it.stringOrNull("title"),
                     status = it.intOrNull("status"),
