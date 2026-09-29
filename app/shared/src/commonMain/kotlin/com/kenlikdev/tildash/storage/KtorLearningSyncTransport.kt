@@ -210,6 +210,7 @@ class KtorLearningSyncTransport(
     private fun encodeAttempt(attempt: LearningAttempt): JsonObject =
         buildJsonObject {
             put("attemptId", JsonPrimitive(attempt.attemptId))
+            put("lessonId", JsonPrimitive(attempt.lessonId?.value ?: error("Learning attempt is missing lesson scope.")))
             put("exerciseId", JsonPrimitive(attempt.exerciseId))
             put(
                 "response",
