@@ -76,6 +76,7 @@ class LearnerLessonCoordinatorTest {
                 listOf(
                     LearningAttempt(
                         attemptId = "existing",
+                        lessonId = lessonId,
                         exerciseId = "exercise-1",
                         response = LearnerResponse.Text("hello"),
                         outcome = AnswerOutcome.CORRECT,
