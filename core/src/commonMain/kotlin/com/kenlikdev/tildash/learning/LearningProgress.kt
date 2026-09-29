@@ -219,14 +219,12 @@ data class LearningProgress private constructor(
 
     fun reviewState(
         exerciseId: String,
-        lessonId: ContentId? = null,
+        lessonId: ContentId,
     ): ReviewState {
         val exerciseAttempts =
             attempts
-                .filter {
-                    it.exerciseId == exerciseId &&
-                        (lessonId == null || it.lessonId == lessonId)
-                }.sortedWith(attemptComparator)
+                .filter { it.exerciseId == exerciseId && it.lessonId == lessonId }
+                .sortedWith(attemptComparator)
 
         require(exerciseAttempts.isNotEmpty()) {
             "Exercise $exerciseId has no attempts."
@@ -241,11 +239,11 @@ data class LearningProgress private constructor(
 
     fun mistakeCount(
         exerciseId: String,
-        lessonId: ContentId? = null,
+        lessonId: ContentId,
     ): Int =
         attempts.count {
             it.exerciseId == exerciseId &&
-                (lessonId == null || it.lessonId == lessonId) &&
+                it.lessonId == lessonId &&
                 it.outcome == AnswerOutcome.INCORRECT
         }
 
@@ -290,23 +288,7 @@ object LearningEngine {
     fun submit(
         progress: LearningProgress,
         exercise: LearningExercise,
-        attemptId: String,
-        response: LearnerResponse,
-        occurredAt: Instant,
-    ): LearningSubmission =
-        submit(
-            progress = progress,
-            exercise = exercise,
-            lessonId = null,
-            attemptId = attemptId,
-            response = response,
-            occurredAt = occurredAt,
-        )
-
-    fun submit(
-        progress: LearningProgress,
-        exercise: LearningExercise,
-        lessonId: ContentId?,
+        lessonId: ContentId,
         attemptId: String,
         response: LearnerResponse,
         occurredAt: Instant,
