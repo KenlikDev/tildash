@@ -10,6 +10,7 @@ import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.LessonSession
+import com.kenlikdev.tildash.learning.LessonSessionState
 import com.kenlikdev.tildash.learning.ManualInputExercise
 import java.nio.file.Files
 import kotlin.coroutines.Continuation
@@ -40,7 +41,7 @@ class OfflineLearningRecoveryTest {
                     occurredAt = occurredAt,
                 )
 
-            open(databaseFile.toString()).use { context ->
+            open(databaseFile.toString(), createSchema = true).use { context ->
                 context.downloads.save(downloadedLesson())
 
                 val downloaded = requireNotNull(context.downloads.loadLesson(lessonId))
@@ -54,13 +55,13 @@ class OfflineLearningRecoveryTest {
                     )
 
                 assertEquals(AnswerOutcome.CORRECT, submission.evaluation.outcome)
-                assertTrue(submission.session.state.name == "COMPLETED")
+                assertEquals(LessonSessionState.COMPLETED, submission.session.state)
 
                 context.progress.saveAttempt(attempt)
                 assertEquals(1L, context.progress.pendingSyncCount())
             }
 
-            open(databaseFile.toString()).use { context ->
+            open(databaseFile.toString(), createSchema = false).use { context ->
                 val downloaded = requireNotNull(context.downloads.loadLesson(lessonId))
                 val progress = context.progress.loadProgress()
                 val resumed = LessonSession.start(downloaded.plan, progress)
@@ -108,12 +109,13 @@ class OfflineLearningRecoveryTest {
         }
     }
 
-    private fun open(path: String): TestContext {
+    private fun open(
+        path: String,
+        createSchema: Boolean,
+    ): TestContext {
         val driver = JdbcSqliteDriver("jdbc:sqlite:" + path)
-        if (!Files.exists(java.nio.file.Path.of(path))) {
+        if (createSchema) {
             TildashDatabase.Schema.create(driver)
-        } else {
-            runCatching { TildashDatabase.Schema.create(driver) }
         }
         return TestContext(
             driver = driver,
