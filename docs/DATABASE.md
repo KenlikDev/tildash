@@ -30,7 +30,7 @@ No domain repository interface is introduced by this foundation because no persi
 
 Schema changes are managed by Flyway. Production migrations live under `server/src/main/resources/db/migration/` and use the `V<VERSION>__<DESCRIPTION>.sql` convention.
 
-The first migration is `V1__create_application_schema.sql`, which creates the application-owned `tildash` schema. Content tables are introduced by V2/V3, and learner-attempt persistence is introduced by V4.
+The first migration is `V1__create_application_schema.sql`, which creates the application-owned `tildash` schema. Content tables are introduced by V2/V3, learner-attempt persistence is introduced by V4, and V5 adds lesson scope to learner attempts.
 
 Flyway validation is enabled and Flyway clean is disabled.
 
@@ -113,6 +113,12 @@ Spring Data JDBC, JDBC access, Flyway, datasource configuration, and PostgreSQL-
 Application and domain code should depend on explicit repository/application contracts rather than JDBC connections, Spring Data implementations, Flyway APIs, PostgreSQL driver types, or JSONB persistence encodings.
 
 The canonical content model is documented in `docs/CONTENT.md`.
+
+## Learner-attempt identity
+
+The learner-attempt table keeps `(learner_subject, attempt_id)` as the idempotency key and stores `lesson_id` as part of the immutable payload. The lesson scope prevents the same `exercise_id` from sharing progress across lessons.
+
+V5 adds `lesson_id` as a nullable column so existing attempt history can migrate without destructive backfill assumptions. New authenticated API requests require a lesson ID. Legacy rows with a null lesson ID are retained as historical data and are not emitted by the new client sync transport.
 
 ## Migration safety
 
