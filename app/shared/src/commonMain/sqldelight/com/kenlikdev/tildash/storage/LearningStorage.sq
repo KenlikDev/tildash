@@ -88,6 +88,7 @@ CREATE TABLE downloaded_lesson (
 CREATE TABLE downloaded_exercise (
     lesson_id TEXT NOT NULL REFERENCES downloaded_lesson(lesson_id) ON DELETE CASCADE,
     exercise_id TEXT NOT NULL,
+    content_id TEXT NOT NULL,
     position INTEGER NOT NULL,
     exercise_type TEXT NOT NULL,
     prompt TEXT NOT NULL,
@@ -137,6 +138,7 @@ WHERE lesson_id = ?;
 selectDownloadedExercises:
 SELECT lesson_id,
        exercise_id,
+       content_id,
        position,
        exercise_type,
        prompt
@@ -191,11 +193,12 @@ insertDownloadedExercise:
 INSERT INTO downloaded_exercise(
     lesson_id,
     exercise_id,
+    content_id,
     position,
     exercise_type,
     prompt
 )
-VALUES (?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?);
 
 insertDownloadedManualAnswer:
 INSERT INTO downloaded_manual_answer(
