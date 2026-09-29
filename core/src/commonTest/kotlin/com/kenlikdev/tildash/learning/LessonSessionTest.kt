@@ -34,6 +34,7 @@ class LessonSessionTest {
                 .submit(
                     progress = progress,
                     exercise = first,
+                    lessonId = lessonId,
                     attemptId = "attempt-1",
                     response = LearnerResponse.Text("hello"),
                     occurredAt = occurredAt,
@@ -140,6 +141,7 @@ class LessonSessionTest {
                 .submit(
                     progress = progress,
                     exercise = first,
+                    lessonId = lessonId,
                     attemptId = "attempt-1",
                     response = LearnerResponse.Text("hello"),
                     occurredAt = occurredAt,
@@ -151,6 +153,7 @@ class LessonSessionTest {
                 .submit(
                     progress = progress,
                     exercise = second,
+                    lessonId = lessonId,
                     attemptId = "attempt-2",
                     response = LearnerResponse.Text("world"),
                     occurredAt = later,
