@@ -291,7 +291,24 @@ object LearningEngine {
     fun submit(
         progress: LearningProgress,
         exercise: LearningExercise,
-        lessonId: ContentId,
+        attemptId: String,
+        response: LearnerResponse,
+        occurredAt: Instant,
+    ): LearningSubmission =
+        submit(
+            progress = progress,
+            exercise = exercise,
+            lessonId = null,
+            attemptId = attemptId,
+            response = response,
+            occurredAt = occurredAt,
+        )
+
+    fun submit(
+        progress: LearningProgress,
+        exercise: LearningExercise,
+        lessonId: ContentId?,
+        attemptId: String,
         attemptId: String,
         response: LearnerResponse,
         occurredAt: Instant,
