@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.storage
 
+import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningAttempt
@@ -26,6 +27,7 @@ class KtorLearningSyncTransportTest {
     private val attempt =
         LearningAttempt(
             attemptId = "attempt-1",
+            lessonId = ContentId("550e8400-e29b-41d4-a716-446655440000"),
             exerciseId = "exercise-1",
             response = LearnerResponse.Text("hello"),
             outcome = AnswerOutcome.CORRECT,
@@ -96,6 +98,42 @@ class KtorLearningSyncTransportTest {
                 assertTrue(body.text.contains("type\":\"TEXT"))
                 assertTrue(body.text.contains("outcome\":\"CORRECT"))
                 assertTrue(body.text.contains("occurredAt\":\"2026-09-28T08:00:00Z"))
+            } finally {
+                client.close()
+            }
+        }
+
+    @Test
+    fun unscopedAttemptFailsBeforeNetworkRequest() =
+        runTest {
+            var requests = 0
+            val client =
+                HttpClient(
+                    MockEngine {
+                        requests += 1
+                        respond("{}")
+                    },
+                )
+
+            try {
+                val transport =
+                    KtorLearningSyncTransport(
+                        client = client,
+                        baseUrl = "https://example.test",
+                        accessTokenProvider = AccessTokenProvider { "token" },
+                    )
+                val unscopedBatch =
+                    batch.copy(
+                        attempts =
+                            listOf(
+                                attempt.copy(lessonId = null),
+                            ),
+                    )
+
+                assertFailsWith<IllegalStateException> {
+                    transport.synchronize(unscopedBatch)
+                }
+                assertEquals(0, requests)
             } finally {
                 client.close()
             }
