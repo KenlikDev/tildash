@@ -201,21 +201,13 @@ class LearningProgressTest {
 
         val secondPlan = LearningPlan(secondLesson, listOf(secondExercise))
 
-        assertFalse(secondProgressIsComplete(firstProgress, secondPlan))
+        assertFalse(firstProgress.isLessonComplete(secondPlan))
         assertEquals(
             firstExercise.id,
             secondPlan.exercises.first().id,
         )
-        assertEquals(
-            1,
-            firstProgress.mistakeCount(firstExercise.id, firstLesson),
-        )
+        assertEquals(0, firstProgress.mistakeCount(firstExercise.id, secondLesson))
     }
-
-    private fun secondProgressIsComplete(
-        progress: LearningProgress,
-        plan: LearningPlan,
-    ): Boolean = progress.isLessonComplete(plan)
 
     @Test
     fun reusedAttemptIdWithDifferentPayloadIsRejected() {
