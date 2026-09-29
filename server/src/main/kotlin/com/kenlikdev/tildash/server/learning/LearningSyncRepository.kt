@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.server.learning
 
+import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningAttempt
@@ -23,10 +24,15 @@ class LearningSyncRepository(
             attempt.response as? LearnerResponse.Text
                 ?: error("Unsupported learner response type.")
 
+        val lessonId =
+            attempt.lessonId
+                ?: throw IllegalArgumentException("Learning attempt is missing lesson scope.")
+
         val params =
             MapSqlParameterSource()
                 .addValue("learnerSubject", learnerSubject)
                 .addValue("attemptId", attempt.attemptId)
+                .addValue("lessonId", lessonId.value)
                 .addValue("exerciseId", attempt.exerciseId)
                 .addValue("responseType", "TEXT")
                 .addValue("responseValue", response.value)
@@ -37,11 +43,11 @@ class LearningSyncRepository(
             jdbc.update(
                 """
                 insert into tildash.learning_attempts (
-                    learner_subject, attempt_id, exercise_id, response_type,
+                    learner_subject, attempt_id, lesson_id, exercise_id, response_type,
                     response_value, outcome, occurred_at
                 )
                 values (
-                    :learnerSubject, :attemptId, :exerciseId, :responseType,
+                    :learnerSubject, :attemptId, :lessonId, :exerciseId, :responseType,
                     :responseValue, :outcome, :occurredAt
                 )
                 on conflict (learner_subject, attempt_id) do nothing
@@ -56,7 +62,7 @@ class LearningSyncRepository(
         return jdbc
             .query(
                 """
-                select attempt_id, exercise_id, response_type, response_value,
+                select attempt_id, lesson_id, exercise_id, response_type, response_value,
                        outcome, occurred_at
                 from tildash.learning_attempts
                 where learner_subject = :learnerSubject
@@ -68,6 +74,7 @@ class LearningSyncRepository(
             ) { rs, _ ->
                 LearningAttemptRecord(
                     attemptId = rs.getString("attempt_id"),
+                    lessonId = rs.getString("lesson_id")?.let(::ContentId),
                     exerciseId = rs.getString("exercise_id"),
                     responseType = rs.getString("response_type"),
                     responseValue = rs.getString("response_value"),
@@ -81,6 +88,7 @@ class LearningSyncRepository(
 
 data class LearningAttemptRecord(
     val attemptId: String,
+    val lessonId: ContentId?,
     val exerciseId: String,
     val responseType: String,
     val responseValue: String,
@@ -89,6 +97,7 @@ data class LearningAttemptRecord(
 ) {
     fun matches(attempt: LearningAttempt): Boolean =
         responseType == "TEXT" &&
+            attempt.lessonId == lessonId &&
             attempt.exerciseId == exerciseId &&
             (attempt.response as? LearnerResponse.Text)?.value == responseValue &&
             attempt.outcome == outcome &&
@@ -102,6 +111,7 @@ data class LearningAttemptRecord(
 
             return LearningAttemptRecord(
                 attemptId = attempt.attemptId,
+                lessonId = attempt.lessonId,
                 exerciseId = attempt.exerciseId,
                 responseType = "TEXT",
                 responseValue = response.value,
