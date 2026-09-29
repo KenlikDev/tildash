@@ -125,6 +125,17 @@ SELECT lesson_id,
 FROM downloaded_lesson
 ORDER BY course_id ASC, position ASC, lesson_id ASC;
 
+selectDownloadedLessonsForCourse:
+SELECT lesson_id,
+       course_id,
+       title,
+       source_locale,
+       published_version,
+       position
+FROM downloaded_lesson
+WHERE course_id = ?
+ORDER BY position ASC, lesson_id ASC;
+
 selectDownloadedLesson:
 SELECT lesson_id,
        course_id,
