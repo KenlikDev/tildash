@@ -389,15 +389,17 @@ class KtorLearningSyncTransportTest {
                         accessTokenProvider = AccessTokenProvider { "token" },
                     )
 
-                val failure = assertFailsWith<TransientLearningSyncFailure> {
-                    transport.synchronize(batch)
-                }
+                val failure =
+                    assertFailsWith<TransientLearningSyncFailure> {
+                        transport.synchronize(batch)
+                    }
 
                 assertTrue(failure.message?.contains("failed before a response") == true)
             } finally {
                 client.close()
             }
         }
+
     private fun runTest(block: suspend () -> Unit) {
         var failure: Throwable? = null
         block.startCoroutine(
