@@ -254,6 +254,115 @@ class LearningSyncCoordinatorTest {
         }
 
     @Test
+    fun observerReceivesRunningRetryingAndSucceededStates() =
+        runTest {
+            val store = FakeStore(first)
+            val states = mutableListOf<LearningSyncState>()
+            var calls = 0
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
+                        calls += 1
+                        if (calls == 1) {
+                            throw TransientLearningSyncFailure("temporary outage")
+                        }
+                        return LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = listOf("attempt-b"),
+                        )
+                    }
+                }
+
+            LearningSyncCoordinator(
+                store = store,
+                transport = transport,
+                retryPolicy = LearningSyncRetryPolicy(initialDelayMillis = 100),
+                delayBeforeRetry = {},
+                observer = LearningSyncObserver { states += it },
+            ).synchronize("device-a")
+
+            assertEquals(
+                listOf(
+                    LearningSyncState.Running(1),
+                    LearningSyncState.Retrying(
+                        retryCount = 1,
+                        delayMillis = 100,
+                        pendingCount = 1,
+                    ),
+                    LearningSyncState.Succeeded(
+                        LearningSyncReport(
+                            submittedAttemptIds = listOf("attempt-b"),
+                            acknowledgedAttemptIds = listOf("attempt-b"),
+                            conflictAttemptIds = emptyList(),
+                            retryCount = 1,
+                        ),
+                    ),
+                ),
+                states,
+            )
+        }
+
+    @Test
+    fun observerReceivesConflictedStateWithoutAcknowledgingConflicts() =
+        runTest {
+            val store = FakeStore(first, second)
+            val states = mutableListOf<LearningSyncState>()
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch) =
+                        LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = listOf("attempt-a"),
+                            conflictAttemptIds = listOf("attempt-b"),
+                        )
+                }
+
+            LearningSyncCoordinator(
+                store = store,
+                transport = transport,
+                delayBeforeRetry = {},
+                observer = LearningSyncObserver { states += it },
+            ).synchronize("device-a")
+
+            assertEquals(3, states.size)
+            assertEquals(LearningSyncState.Running(2), states[0])
+            assertTrue(states[1] is LearningSyncState.Conflicted)
+            assertEquals(listOf("attempt-b"), store.pendingIds())
+        }
+
+    @Test
+    fun observerReceivesNonRetryableFailureState() =
+        runTest {
+            val store = FakeStore(first)
+            val states = mutableListOf<LearningSyncState>()
+            val failure = IllegalStateException("permanent")
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult =
+                        throw failure
+                }
+
+            assertFailsWith<IllegalStateException> {
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                    observer = LearningSyncObserver { states += it },
+                ).synchronize("device-a")
+            }
+
+            assertEquals(
+                listOf(
+                    LearningSyncState.Running(1),
+                    LearningSyncState.Failed(
+                        message = "permanent",
+                        retryable = false,
+                        details = null,
+                    ),
+                ),
+                states,
+            )
+        }
+
+    @Test
     fun retryPolicyUsesExponentialBackoffAndCapsDelay() {
         val policy =
             LearningSyncRetryPolicy(
