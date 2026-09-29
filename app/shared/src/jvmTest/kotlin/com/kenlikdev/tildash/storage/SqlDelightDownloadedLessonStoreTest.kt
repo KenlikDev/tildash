@@ -42,8 +42,9 @@ class SqlDelightDownloadedLessonStoreTest {
 
                 assertEquals(firstLessonId, loaded?.lesson?.id)
                 assertEquals("Lesson one", loaded?.lesson?.title)
-                assertEquals("Translate hello", loaded?.plan?.exercises?.single()?.prompt)
-                assertEquals(listOf("hello"), (loaded?.plan?.exercises?.single() as ManualInputExercise).expectedAnswers)
+                val exercise = loaded?.plan?.exercises?.single() as ManualInputExercise
+                assertEquals("Translate hello", exercise.prompt)
+                assertEquals(listOf("hello"), exercise.expectedAnswers)
                 assertEquals(1L, store.countLessons())
             }
         } finally {
@@ -179,7 +180,9 @@ class SqlDelightDownloadedLessonStoreTest {
     private class TestStore(
         private val driver: JdbcSqliteDriver,
         private val delegate: SqlDelightDownloadedLessonStore,
-    ) : DownloadedLessonStore by delegate, AutoCloseable {
+    ) :
+        DownloadedLessonStore by delegate,
+        AutoCloseable {
         override fun close() = driver.close()
     }
 }
