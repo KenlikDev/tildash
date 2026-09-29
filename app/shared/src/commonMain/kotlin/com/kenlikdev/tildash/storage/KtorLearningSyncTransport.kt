@@ -150,8 +150,7 @@ class KtorLearningSyncTransport(
 
             403 -> {
                 AuthorizationDeniedLearningSyncFailure(
-                    message = message
-                        ?: "The authenticated identity is not authorized to synchronize learning progress.",
+                    message = message ?: "The authenticated identity is not authorized to synchronize learning progress.",
                     details = details,
                 )
             }
@@ -160,8 +159,7 @@ class KtorLearningSyncTransport(
             429,
             in 500..599 -> {
                 TransientLearningSyncFailure(
-                    message = message
-                        ?: "The learning synchronization service is temporarily unavailable.",
+                    message = message ?: "The learning synchronization service is temporarily unavailable.",
                     details = details,
                 )
             }
@@ -169,8 +167,7 @@ class KtorLearningSyncTransport(
             else -> {
                 LearningSyncProtocolFailure(
                     statusCode = statusCode,
-                    message = message
-                        ?: "The learning synchronization request was rejected with HTTP $statusCode.",
+                    message = message ?: "The learning synchronization request was rejected with HTTP $statusCode.",
                     details = details,
                 )
             }
