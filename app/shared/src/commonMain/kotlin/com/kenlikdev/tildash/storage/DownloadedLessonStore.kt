@@ -132,22 +132,24 @@ class SqlDelightDownloadedLessonStore(
         val exercises =
             queries.selectDownloadedExercises(lessonRow.lesson_id).executeAsList().map { row ->
                 val answers =
-                    queries.selectDownloadedManualAnswers(row.lesson_id)
+                    queries
+                        .selectDownloadedManualAnswers(row.lesson_id)
                         .executeAsList()
                         .filter { it.exercise_id == row.exercise_id }
                         .sortedBy { it.position }
                         .map { it.answer }
 
                 when (row.exercise_type) {
-                    MANUAL_INPUT ->
+                    MANUAL_INPUT -> {
                         ManualInputExercise(
                             id = row.exercise_id,
                             contentId = ContentId(row.content_id),
                             prompt = row.prompt,
                             expectedAnswers = answers,
                         )
+                    }
 
-                    else ->
+                    else -> {
                         error(
                             "Unsupported downloaded exercise type '" +
                                 row.exercise_type +
@@ -155,6 +157,7 @@ class SqlDelightDownloadedLessonStore(
                                 lessonId +
                                 "'.",
                         )
+                    }
                 }
             }
 
@@ -202,12 +205,13 @@ class SqlDelightDownloadedLessonStore(
                 }
             }
 
-            else ->
+            else -> {
                 error(
                     "Unsupported learning exercise type '" +
                         exercise::class.simpleName +
                         "'.",
                 )
+            }
         }
     }
 
