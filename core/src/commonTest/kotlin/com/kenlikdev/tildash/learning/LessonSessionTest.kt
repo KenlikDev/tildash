@@ -59,13 +59,13 @@ class LessonSessionTest {
         val progress =
             LearningEngine
                 .submit(
-                progress = LearningProgress.empty(),
-                lessonId = otherLessonId,
-                exercise = otherLessonExercise,
-                attemptId = "attempt-other-lesson",
-                response = LearnerResponse.Text("hello"),
-                occurredAt = occurredAt,
-            ).progress
+                    progress = LearningProgress.empty(),
+                    lessonId = otherLessonId,
+                    exercise = otherLessonExercise,
+                    attemptId = "attempt-other-lesson",
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                ).progress
 
         val session = LessonSession.start(plan, progress)
 
