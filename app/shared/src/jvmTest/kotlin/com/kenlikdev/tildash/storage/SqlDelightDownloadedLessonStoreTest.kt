@@ -180,8 +180,7 @@ class SqlDelightDownloadedLessonStoreTest {
     private class TestStore(
         private val driver: JdbcSqliteDriver,
         private val delegate: SqlDelightDownloadedLessonStore,
-    ) :
-        DownloadedLessonStore by delegate,
+    ) : DownloadedLessonStore by delegate,
         AutoCloseable {
         override fun close() = driver.close()
     }
