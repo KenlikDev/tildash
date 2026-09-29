@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.server.learning
 
+import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningAttempt
@@ -57,6 +58,7 @@ private fun LearningAttemptRequest.toDomain(): LearningAttempt {
 
     return LearningAttempt(
         attemptId = attemptId,
+        lessonId = ContentId(lessonId.toString()),
         exerciseId = exerciseId,
         response = LearnerResponse.Text(response.value),
         outcome =
