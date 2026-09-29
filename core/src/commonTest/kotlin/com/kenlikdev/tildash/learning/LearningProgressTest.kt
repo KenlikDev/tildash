@@ -65,7 +65,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = LearningProgress.empty(),
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
@@ -85,7 +85,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = LearningProgress.empty(),
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("wrong"),
                 occurredAt = occurredAt,
@@ -105,7 +105,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = LearningProgress.empty(),
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("wrong"),
                 occurredAt = occurredAt,
@@ -114,7 +114,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = first.progress,
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "attempt-2",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = later,
@@ -131,7 +131,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = LearningProgress.empty(),
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
@@ -143,7 +143,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = first.progress,
                 exercise = secondExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "attempt-2",
                 response = LearnerResponse.Text("world"),
                 occurredAt = later,
@@ -159,7 +159,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = LearningProgress.empty(),
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
@@ -168,7 +168,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = first.progress,
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
@@ -226,7 +226,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = LearningProgress.empty(),
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
@@ -236,7 +236,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = first.progress,
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "attempt-1",
                 response = LearnerResponse.Text("wrong"),
                 occurredAt = occurredAt,
@@ -250,7 +250,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = LearningProgress.empty(),
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "b",
                 response = LearnerResponse.Text("wrong"),
                 occurredAt = later,
@@ -259,7 +259,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = laterFirst.progress,
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "a",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
@@ -274,7 +274,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = LearningProgress.empty(),
                 exercise = firstExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "z",
                 response = LearnerResponse.Text("hello"),
                 occurredAt = occurredAt,
@@ -283,7 +283,7 @@ class LearningProgressTest {
             LearningEngine.submit(
                 progress = first.progress,
                 exercise = secondExercise,
-                    lessonId = lessonId,
+                lessonId = lessonId,
                 attemptId = "a",
                 response = LearnerResponse.Text("world"),
                 occurredAt = occurredAt,
