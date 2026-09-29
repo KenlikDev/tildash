@@ -177,7 +177,7 @@ class KtorLearningSyncTransport(
                 TransientLearningSyncFailure(
                     message = message
                         ?: "The learning synchronization service is temporarily unavailable.",
-                    cause = null,
+                    problemDetails = problemDetails,
                 )
             }
 
