@@ -10,6 +10,7 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import kotlin.coroutines.Continuation
@@ -44,10 +45,9 @@ class KtorLearningSyncTransportTest {
 
             val client =
                 HttpClient(
-                    MockEngine {
-                        requestData ->
-                            request = requestData
-                            respond(
+                    MockEngine { requestData ->
+                        request = requestData
+                        respond(
                                 content = """{"acknowledgedAttemptIds":["attempt-1"],"conflictAttemptIds":[]}""",
                                 status = HttpStatusCode.OK,
                                 headers =
@@ -55,7 +55,7 @@ class KtorLearningSyncTransportTest {
                                         HttpHeaders.ContentType,
                                         ContentType.Application.Json.toString(),
                                     ),
-                            )
+                        )
                     },
                 )
 
@@ -76,6 +76,7 @@ class KtorLearningSyncTransportTest {
                     ),
                     result,
                 )
+                assertEquals(HttpMethod.Post, request.method)
                 assertEquals(
                     "https://example.test/api/v1/learning/sync",
                     request.url.toString(),
@@ -155,11 +156,16 @@ class KtorLearningSyncTransportTest {
                         accessTokenProvider = AccessTokenProvider { "token" },
                     )
 
-                val failure = assertFailsWith<AuthenticationRequiredLearningSyncFailure> {
-                    transport.synchronize(batch)
-                }
+                val failure =
+                    assertFailsWith<AuthenticationRequiredLearningSyncFailure> {
+                        transport.synchronize(batch)
+                    }
 
                 assertEquals("Token expired", failure.message)
+                assertEquals("urn:tildash:problem:unauthorized", failure.problemDetails?.type)
+                assertEquals("Unauthorized", failure.problemDetails?.title)
+                assertEquals(401, failure.problemDetails?.status)
+                assertEquals("/api/v1/learning/sync", failure.problemDetails?.instance)
             } finally {
                 client.close()
             }
@@ -186,9 +192,10 @@ class KtorLearningSyncTransportTest {
                         accessTokenProvider = AccessTokenProvider { "token" },
                     )
 
-                val failure = assertFailsWith<AuthorizationDeniedLearningSyncFailure> {
-                    transport.synchronize(batch)
-                }
+                val failure =
+                    assertFailsWith<AuthorizationDeniedLearningSyncFailure> {
+                        transport.synchronize(batch)
+                    }
 
                 assertEquals("Learner role required", failure.message)
             } finally {
@@ -217,9 +224,10 @@ class KtorLearningSyncTransportTest {
                         accessTokenProvider = AccessTokenProvider { "token" },
                     )
 
-                val failure = assertFailsWith<TransientLearningSyncFailure> {
-                    transport.synchronize(batch)
-                }
+                val failure =
+                    assertFailsWith<TransientLearningSyncFailure> {
+                        transport.synchronize(batch)
+                    }
 
                 assertEquals("Service unavailable", failure.message)
             } finally {
@@ -248,11 +256,116 @@ class KtorLearningSyncTransportTest {
                         accessTokenProvider = AccessTokenProvider { "token" },
                     )
 
-                val failure = assertFailsWith<LearningSyncProtocolFailure> {
-                    transport.synchronize(batch)
-                }
+                val failure =
+                    assertFailsWith<LearningSyncProtocolFailure> {
+                        transport.synchronize(batch)
+                    }
 
                 assertEquals(200, failure.statusCode)
+            } finally {
+                client.close()
+            }
+        }
+
+    @Test
+    fun nonStringResponseIdsAreProtocolErrors() =
+        runTest {
+            val client =
+                HttpClient(
+                    MockEngine {
+                        respond(
+                            content = """{"acknowledgedAttemptIds":[123],"conflictAttemptIds":[]}""",
+                            status = HttpStatusCode.OK,
+                        )
+                    },
+                )
+
+            try {
+                val transport =
+                    KtorLearningSyncTransport(
+                        client = client,
+                        baseUrl = "https://example.test",
+                        accessTokenProvider = AccessTokenProvider { "token" },
+                    )
+
+                val failure =
+                    assertFailsWith<LearningSyncProtocolFailure> {
+                        transport.synchronize(batch)
+                    }
+
+                assertEquals(200, failure.statusCode)
+            } finally {
+                client.close()
+            }
+        }
+
+    @Test
+    fun rateLimitAndTimeoutResponsesAreTransient() =
+        runTest {
+            val statuses =
+                listOf(
+                    HttpStatusCode.RequestTimeout to "Request timed out",
+                    HttpStatusCode.TooManyRequests to "Too many requests",
+                )
+
+            statuses.forEach { (status, detail) ->
+                val client =
+                    HttpClient(
+                        MockEngine {
+                            respond(
+                                content = """{"type":"urn:tildash:problem:sync","title":"Temporary failure","status":__DOLLAR__{status.value},"detail":"__DOLLAR__{detail}","instance":"/api/v1/learning/sync"}""",
+                                status = status,
+                                headers =
+                                    io.ktor.http.headersOf(
+                                        HttpHeaders.ContentType,
+                                        ContentType.Application.ProblemJson.toString(),
+                                    ),
+                            )
+                        },
+                    )
+
+                try {
+                    val transport =
+                        KtorLearningSyncTransport(
+                            client = client,
+                            baseUrl = "https://example.test",
+                            accessTokenProvider = AccessTokenProvider { "token" },
+                        )
+
+                    val failure =
+                        assertFailsWith<TransientLearningSyncFailure> {
+                            transport.synchronize(batch)
+                        }
+
+                    assertEquals(detail, failure.message)
+                    assertEquals(status.value, failure.problemDetails?.status)
+                } finally {
+                    client.close()
+                }
+            }
+        }
+
+    @Test
+    fun coroutineCancellationIsNotConvertedToRetryFailure() =
+        runTest {
+            val client =
+                HttpClient(
+                    MockEngine {
+                        throw kotlin.coroutines.cancellation.CancellationException("cancelled")
+                    },
+                )
+
+            try {
+                val transport =
+                    KtorLearningSyncTransport(
+                        client = client,
+                        baseUrl = "https://example.test",
+                        accessTokenProvider = AccessTokenProvider { "token" },
+                    )
+
+                assertFailsWith<kotlin.coroutines.cancellation.CancellationException> {
+                    transport.synchronize(batch)
+                }
             } finally {
                 client.close()
             }
