@@ -26,6 +26,10 @@ fun interface AccessTokenProvider {
     suspend fun accessToken(): String?
 }
 
+class LearningSyncValidationFailure(
+    message: String,
+) : Exception(message)
+
 class AuthenticationRequiredLearningSyncFailure(
     message: String = "An authenticated access token is required for learning synchronization.",
     val details: LearningSyncFailureDetails? = null,
@@ -65,13 +69,15 @@ class KtorLearningSyncTransport(
             throw AuthenticationRequiredLearningSyncFailure()
         }
 
+        val requestBody = encodeRequest(batch)
+
         val response =
             try {
                 client.post(syncUrl) {
                     header(HttpHeaders.Authorization, "Bearer $accessToken")
                     header(HttpHeaders.Accept, ContentType.Application.Json)
                     contentType(ContentType.Application.Json)
-                    setBody(encodeRequest(batch).toString())
+                    setBody(requestBody.toString())
                 }
             } catch (cancellation: CancellationException) {
                 throw cancellation
