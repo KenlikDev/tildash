@@ -83,11 +83,11 @@ class LearningSyncCoordinator(
         if (pendingAttempts.isEmpty()) {
             val report =
                 LearningSyncReport(
-                submittedAttemptIds = emptyList(),
-                acknowledgedAttemptIds = emptyList(),
-                conflictAttemptIds = emptyList(),
-                retryCount = 0,
-            )
+                    submittedAttemptIds = emptyList(),
+                    acknowledgedAttemptIds = emptyList(),
+                    conflictAttemptIds = emptyList(),
+                    retryCount = 0,
+                )
             observer.onStateChanged(LearningSyncState.Succeeded(report))
             return report
         }
