@@ -46,6 +46,33 @@ class LessonSessionTest {
     }
 
     @Test
+    fun sameExerciseIdFromAnotherLessonDoesNotSkipCurrentExercise() {
+        val otherLessonId = ContentId("550e8400-e29b-41d4-a716-446655440001")
+        val otherLessonExercise =
+            ManualInputExercise(
+                id = first.id,
+                contentId = otherLessonId,
+                prompt = first.prompt,
+                expectedAnswers = first.expectedAnswers,
+            )
+
+        val progress =
+            LearningEngine.submit(
+                progress = LearningProgress.empty(),
+                lessonId = otherLessonId,
+                exercise = otherLessonExercise,
+                attemptId = "attempt-other-lesson",
+                response = LearnerResponse.Text("hello"),
+                occurredAt = occurredAt,
+            ).progress
+
+        val session = LessonSession.start(plan, progress)
+
+        assertEquals(first.id, session.nextExercise?.id)
+        assertTrue(session.state == LessonSessionState.ACTIVE)
+    }
+
+    @Test
     fun sessionSubmissionDelegatesToLearningEngine() {
         val session = LessonSession.start(plan)
 
