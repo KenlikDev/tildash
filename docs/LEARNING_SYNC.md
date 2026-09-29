@@ -113,6 +113,30 @@ The server accepts immutable attempts, scopes persistence by the authenticated l
 
 The endpoint uses the API-wide RFC 9457 Problem Details contract for invalid requests and authentication failures.
 
+## Concrete client HTTP transport
+
+The concrete client transport is implemented by `KtorLearningSyncTransport` in `app/shared`.
+
+It implements the provider-neutral `LearningSyncTransport` contract without changing the core reconciliation or coordinator rules.
+
+The transport:
+
+- sends `POST /api/v1/learning/sync`;
+- authenticates with an injected `AccessTokenProvider`;
+- serializes the canonical batch contract without persisting tokens;
+- treats 401 as an authentication-required failure;
+- treats 403 as an authorization failure;
+- treats 408, 429, and 5xx responses as transient;
+- preserves RFC 9457 problem details returned by the server for HTTP failures;
+- rejects malformed successful responses as protocol failures;
+- converts request-level network and timeout failures into `TransientLearningSyncFailure`;
+- rethrows coroutine cancellation without retry classification.
+
+Ktor engine implementations are selected per KMP target in `app/shared/build.gradle.kts`. The transport itself remains in common code.
+
+The transport does not implement login, refresh-token storage, secure token persistence, or user-facing retry UI. Authentication/session storage remains a platform composition concern.
+
+
 ## Future work under #16
 
 Remaining offline-first work includes wiring the client coordinator to a concrete HTTP client, retry/error presentation, sync observability, downloaded-content availability, secure-at-rest policy, and end-to-end offline recovery.
