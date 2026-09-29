@@ -171,6 +171,53 @@ class LearningProgressTest {
     }
 
     @Test
+    fun sameExerciseIdInDifferentLessonsDoesNotTransferCompletion() {
+        val firstLesson = ContentId("550e8400-e29b-41d4-a716-446655440000")
+        val secondLesson = ContentId("550e8400-e29b-41d4-a716-446655440001")
+        val firstExercise =
+            ManualInputExercise(
+                id = "exercise-shared",
+                contentId = firstLesson,
+                prompt = "First lesson",
+                expectedAnswers = listOf("hello"),
+            )
+        val secondExercise =
+            ManualInputExercise(
+                id = "exercise-shared",
+                contentId = secondLesson,
+                prompt = "Second lesson",
+                expectedAnswers = listOf("hello"),
+            )
+
+        val firstProgress =
+            LearningEngine.submit(
+                progress = LearningProgress.empty(),
+                lessonId = firstLesson,
+                exercise = firstExercise,
+                attemptId = "attempt-first-lesson",
+                response = LearnerResponse.Text("hello"),
+                occurredAt = occurredAt,
+            ).progress
+
+        val secondPlan = LearningPlan(secondLesson, listOf(secondExercise))
+
+        assertFalse(secondProgressIsComplete(firstProgress, secondPlan))
+        assertEquals(
+            firstExercise.id,
+            secondPlan.exercises.first().id,
+        )
+        assertEquals(
+            1,
+            firstProgress.mistakeCount(firstExercise.id, firstLesson),
+        )
+    }
+
+    private fun secondProgressIsComplete(
+        progress: LearningProgress,
+        plan: LearningPlan,
+    ): Boolean = progress.isLessonComplete(plan)
+
+    @Test
     fun reusedAttemptIdWithDifferentPayloadIsRejected() {
         val first =
             LearningEngine.submit(
