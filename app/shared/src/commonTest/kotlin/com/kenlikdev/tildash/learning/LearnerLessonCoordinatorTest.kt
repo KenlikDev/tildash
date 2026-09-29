@@ -2,10 +2,10 @@ package com.kenlikdev.tildash.learning
 
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.LanguageTag
+import com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator
 import com.kenlikdev.tildash.storage.DownloadedLesson
 import com.kenlikdev.tildash.storage.DownloadedLessonStore
 import com.kenlikdev.tildash.storage.LearningProgressStore
-import com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -202,8 +202,7 @@ class LearnerLessonCoordinatorTest {
             error("Not used in this test.")
         }
 
-        override fun loadLesson(lessonId: ContentId): DownloadedLesson? =
-            lesson.takeIf { it.lesson.id == lessonId }
+        override fun loadLesson(lessonId: ContentId): DownloadedLesson? = lesson.takeIf { it.lesson.id == lessonId }
 
         override fun listLessons(): List<DownloadedLesson> = listOf(lesson)
 
