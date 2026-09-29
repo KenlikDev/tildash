@@ -32,7 +32,7 @@ class LearningSyncRepository(
             MapSqlParameterSource()
                 .addValue("learnerSubject", learnerSubject)
                 .addValue("attemptId", attempt.attemptId)
-                .addValue("lessonId", lessonId.value)
+                .addValue("lessonId", java.util.UUID.fromString(lessonId.value))
                 .addValue("exerciseId", attempt.exerciseId)
                 .addValue("responseType", "TEXT")
                 .addValue("responseValue", response.value)
