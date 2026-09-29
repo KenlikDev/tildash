@@ -1,6 +1,7 @@
 package com.kenlikdev.tildash.storage
 
 import app.cash.sqldelight.db.SqlDriver
+import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.AttemptIdConflict
 import com.kenlikdev.tildash.learning.LearnerResponse
@@ -31,6 +32,7 @@ class SqlDelightLearningProgressStore(
             queries.selectAllAttempts().executeAsList().map { row ->
                 toLearningAttempt(
                     attemptId = row.attempt_id,
+                    lessonId = row.lesson_id?.let(::ContentId),
                     exerciseId = row.exercise_id,
                     responseType = row.response_type,
                     responseValue = row.response_value,
@@ -44,7 +46,7 @@ class SqlDelightLearningProgressStore(
         database.transaction {
             val existing = queries.selectAttempt(attempt.attemptId).executeAsOneOrNull()
             if (existing != null) {
-                        val stored =
+                val stored =
                     toLearningAttempt(
                         attemptId = existing.attempt_id,
                         lessonId = existing.lesson_id?.let(::ContentId),
@@ -54,6 +56,7 @@ class SqlDelightLearningProgressStore(
                         outcome = existing.outcome,
                         occurredAtEpochMillis = existing.occurred_at_epoch_millis,
                     )
+
                 if (stored != attempt) {
                     throw AttemptIdConflict(attempt.attemptId)
                 }
@@ -124,6 +127,7 @@ class SqlDelightLearningProgressStore(
 
     private fun toLearningAttempt(
         attemptId: String,
+        lessonId: ContentId?,
         exerciseId: String,
         responseType: String,
         responseValue: String,
@@ -132,6 +136,7 @@ class SqlDelightLearningProgressStore(
     ): LearningAttempt =
         LearningAttempt(
             attemptId = attemptId,
+            lessonId = lessonId,
             exerciseId = exerciseId,
             response =
                 when (responseType) {
