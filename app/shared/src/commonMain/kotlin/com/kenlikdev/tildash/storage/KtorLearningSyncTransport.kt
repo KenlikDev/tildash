@@ -61,6 +61,8 @@ class KtorLearningSyncTransport(
     }
 
     override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
+        validateBatch(batch)
+
         val accessToken =
             accessTokenProvider.accessToken()?.trim()
                 ?: throw AuthenticationRequiredLearningSyncFailure()
@@ -199,6 +201,16 @@ class KtorLearningSyncTransport(
             ?.takeIf { !it.isString }
             ?.content
             ?.toIntOrNull()
+
+    private fun validateBatch(batch: LearningProgressSyncBatch) {
+        batch.attempts.forEach { attempt ->
+            if (attempt.lessonId == null) {
+                throw LearningSyncValidationFailure(
+                    "Learning attempt '" + attempt.attemptId + "' is missing lesson scope.",
+                )
+            }
+        }
+    }
 
     private fun encodeRequest(batch: LearningProgressSyncBatch): JsonObject =
         buildJsonObject {
