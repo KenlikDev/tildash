@@ -81,7 +81,8 @@ class LearningSyncCoordinator(
         observer.onStateChanged(LearningSyncState.Running(pendingAttempts.size.toLong()))
 
         if (pendingAttempts.isEmpty()) {
-            val report = LearningSyncReport(
+            val report =
+                LearningSyncReport(
                 submittedAttemptIds = emptyList(),
                 acknowledgedAttemptIds = emptyList(),
                 conflictAttemptIds = emptyList(),
