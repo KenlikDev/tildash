@@ -192,13 +192,13 @@ class LearningProgressTest {
         val firstProgress =
             LearningEngine
                 .submit(
-                progress = LearningProgress.empty(),
-                lessonId = firstLesson,
-                exercise = firstExercise,
-                attemptId = "attempt-first-lesson",
-                response = LearnerResponse.Text("hello"),
-                occurredAt = occurredAt,
-            ).progress
+                    progress = LearningProgress.empty(),
+                    lessonId = firstLesson,
+                    exercise = firstExercise,
+                    attemptId = "attempt-first-lesson",
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                ).progress
 
         val secondPlan = LearningPlan(secondLesson, listOf(secondExercise))
 
