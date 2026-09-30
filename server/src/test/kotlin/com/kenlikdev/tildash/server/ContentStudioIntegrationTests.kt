@@ -11,7 +11,9 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -31,6 +33,119 @@ class ContentStudioIntegrationTests {
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    @Test
+    fun teacherCanCreateUpdateAndDeleteDraftLessonExerciseAndPublishedSnapshotKeepsIt() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+
+        mockMvc
+            .perform(
+                put("/api/v1/content/$lessonId/exercises/exercise-1")
+                    .with(user("teacher").roles("TEACHER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        objectMapper.writeValueAsString(
+                            mapOf(
+                                "prompt" to "Write the greeting.",
+                                "position" to 0,
+                                "expectedAnswers" to listOf("merhaba", "selam"),
+                            ),
+                        ),
+                    ),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.prompt").value("Write the greeting."))
+            .andExpect(jsonPath("$.expectedAnswers[1]").value("selam"))
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/exercises")
+                    .with(user("teacher").roles("TEACHER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        objectMapper.writeValueAsString(
+                            mapOf(
+                                "id" to "exercise-2",
+                                "prompt" to "Write goodbye.",
+                                "position" to 1,
+                                "expectedAnswers" to listOf("hoşça qal"),
+                            ),
+                        ),
+                    ),
+            ).andExpect(status().isCreated)
+
+        mockMvc
+            .perform(
+                get("/api/v1/content/$lessonId/exercises")
+                    .with(user("teacher").roles("TEACHER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[1].id").value("exercise-2"))
+
+        mockMvc
+            .perform(
+                delete("/api/v1/content/$lessonId/exercises/exercise-2")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isOk)
+
+        publishLesson(lessonId)
+
+        mockMvc
+            .perform(
+                get("/api/v1/content/$lessonId/exercises")
+                    .with(user("teacher").roles("TEACHER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].expectedAnswers.length()").value(2))
+
+        assertEquals(
+            1,
+            jdbcTemplate.queryForObject(
+                """
+                select count(*)
+                from tildash.content_published_exercises cpe
+                join tildash.content_published_versions pv on pv.id = cpe.published_version_id
+                where pv.content_node_id = ?::uuid
+                """.trimIndent(),
+                Int::class.java,
+                lessonId,
+            ),
+        )
+    }
+
+    @Test
+    fun teacherCanPublishCourseThroughSameReviewLifecycle() {
+        val courseId = createNode("COURSE", null, "Course")
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/submit")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("SUBMITTED"))
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/review/start")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/review/approve")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("APPROVED"))
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/publish")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("PUBLISHED"))
+    }
 
     @Test
     fun teacherCanCreatePreviewSubmitAndReviewerCanPublishLesson() {
@@ -291,6 +406,26 @@ class ContentStudioIntegrationTests {
         val response = objectMapper.readTree(result.response.contentAsString)
         val id = response.get("id")?.asText()
         assertNotNull(id)
+
+        if (kind == "LESSON") {
+            mockMvc
+                .perform(
+                    post("/api/v1/content/$id/exercises")
+                        .with(user("teacher").roles("TEACHER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            objectMapper.writeValueAsString(
+                                mapOf(
+                                    "id" to "exercise-1",
+                                    "prompt" to "Translate hello.",
+                                    "position" to 0,
+                                    "expectedAnswers" to listOf("merhaba"),
+                                ),
+                            ),
+                        ),
+                ).andExpect(status().isCreated)
+        }
+
         return id
     }
 
