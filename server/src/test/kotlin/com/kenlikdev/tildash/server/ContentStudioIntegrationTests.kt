@@ -172,6 +172,29 @@ class ContentStudioIntegrationTests {
     }
 
     @Test
+    fun publishedLessonIsExposedThroughLearnerPackageAfterAuthoringLifecycle() {
+        val courseId = createNode("COURSE", null, "Course", seedExercise = false)
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+
+        publishCourse(courseId)
+        publishLesson(lessonId)
+
+        mockMvc
+            .perform(
+                get("/api/v1/learning/lessons/$lessonId")
+                    .with(user("learner").roles("LEARNER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.course.id").value(courseId))
+            .andExpect(jsonPath("$.lesson.id").value(lessonId))
+            .andExpect(jsonPath("$.lesson.title").value("Lesson"))
+            .andExpect(jsonPath("$.exercises.length()").value(1))
+            .andExpect(jsonPath("$.exercises[0].id").value("exercise-1"))
+            .andExpect(jsonPath("$.exercises[0].prompt").value("Translate hello."))
+            .andExpect(jsonPath("$.exercises[0].expectedAnswers[0]").value("merhaba"))
+    }
+
+    @Test
     fun teacherCanPublishCourseThroughSameReviewLifecycle() {
         val courseId = createNode("COURSE", null, "Course")
 
@@ -437,6 +460,32 @@ class ContentStudioIntegrationTests {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(revisionRequest("Illegal update"))),
             ).andExpect(status().isConflict)
+    }
+
+    private fun publishCourse(courseId: String) {
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/submit")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/review/start")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/review/approve")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/publish")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
     }
 
     private fun publishLesson(lessonId: String) {
