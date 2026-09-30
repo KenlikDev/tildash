@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
@@ -15,6 +16,7 @@ import java.time.Instant
 import java.util.UUID
 
 @SpringBootTest
+@AutoConfigureMockMvc
 @org.springframework.context.annotation.Import(PostgresTestConfiguration::class)
 class LearningCatalogIntegrationTests {
     @Autowired
