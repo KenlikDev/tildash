@@ -1,7 +1,9 @@
 package com.kenlikdev.tildash.server.api.learning
 
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
+import com.kenlikdev.tildash.learning.ManualInputExercise
 import com.kenlikdev.tildash.server.learning.LearningCatalogService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -43,7 +45,7 @@ class LearningCatalogController(
             .toResponse()
 }
 
-private fun com.kenlikdev.tildash.learning.LearnerCourseCatalog.toResponse(): LearningCatalogResponse =
+private fun LearnerCourseCatalog.toResponse(): LearningCatalogResponse =
     LearningCatalogResponse(
         courses =
             courses.map { course ->
@@ -107,15 +109,21 @@ private fun LearnerLessonPackage.toResponse(): LearningLessonPackageResponse =
                 )
             },
         ),
-        exercises = plan.exercises.map { exercise ->
-            LearningExerciseResponse(
-                id = exercise.id,
-                contentId = exercise.contentId.value,
-                type = when (exercise) {
-                    is com.kenlikdev.tildash.learning.ManualInputExercise -> "MANUAL_INPUT"
-                },
-                prompt = exercise.prompt,
-                expectedAnswers = (exercise as com.kenlikdev.tildash.learning.ManualInputExercise).expectedAnswers,
-            )
-        },
+        exercises =
+            plan.exercises.map { exercise ->
+                when (exercise) {
+                    is ManualInputExercise -> {
+                        LearningExerciseResponse(
+                            id = exercise.id,
+                            contentId = exercise.contentId.value,
+                            type = "MANUAL_INPUT",
+                            prompt = exercise.prompt,
+                            expectedAnswers = exercise.expectedAnswers,
+                        )
+                    }
+                    else -> {
+                        error("Unsupported learner exercise type: " + exercise::class.simpleName)
+                    }
+                }
+            },
     )
