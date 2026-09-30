@@ -17,7 +17,6 @@ data class JwtProperties(
     val rolesClaim: String = "roles",
 )
 
-
 data class DevelopmentSecurityProperties(
     val enabled: Boolean = false,
     val subject: String = "local-developer",
