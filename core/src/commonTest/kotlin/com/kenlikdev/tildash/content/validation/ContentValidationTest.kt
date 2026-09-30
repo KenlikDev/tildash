@@ -377,21 +377,33 @@ class ContentValidationTest {
         assertFalse(result.canPublish)
     }
 
+    @Test
+    fun validCoursePassesWithoutRequiringLessonExercises() {
+        val result = validator.validateCourse(validCourseInput())
+
+        assertEquals(ReviewOutcome.PASS, result.outcome)
+        assertTrue(result.canSubmit)
+        assertTrue(result.canPublish)
+    }
+
+    private fun validCourseInput(
+        nodes: List<ContentNode> = defaultNodes(),
+        sourceRevisions: List<SourceContentRevision> = defaultRevisions(),
+        localizationRevisions: List<LocalizedContentRevision> = emptyList(),
+        exercisesByContentId: Map<ContentId, List<ExerciseDefinition>> = validExercises(),
+    ) = LessonValidationInput(
+        lessonId = courseId,
+        nodes = nodes,
+        sourceRevisions = sourceRevisions,
+        localizationRevisions = localizationRevisions,
+        exercisesByContentId = exercisesByContentId,
+    )
+
     private fun validInput(
         nodes: List<ContentNode> = defaultNodes(),
         sourceRevisions: List<SourceContentRevision> = defaultRevisions(),
         localizationRevisions: List<LocalizedContentRevision> = emptyList(),
-        exercisesByContentId: Map<ContentId, List<ExerciseDefinition>> =
-            mapOf(
-                lessonId to
-                    listOf(
-                        ExerciseDefinition(
-                            id = "exercise-1",
-                            prompt = "Write the greeting.",
-                            expectedAnswers = listOf("merhaba"),
-                        ),
-                    ),
-            ),
+        exercisesByContentId: Map<ContentId, List<ExerciseDefinition>> = validExercises(),
     ) = LessonValidationInput(
         lessonId = lessonId,
         nodes = nodes,
@@ -399,6 +411,18 @@ class ContentValidationTest {
         localizationRevisions = localizationRevisions,
         exercisesByContentId = exercisesByContentId,
     )
+
+    private fun validExercises() =
+        mapOf(
+            lessonId to
+                listOf(
+                    ExerciseDefinition(
+                        id = "exercise-1",
+                        prompt = "Write the greeting.",
+                        expectedAnswers = listOf("merhaba"),
+                    ),
+                ),
+        )
 
     private fun defaultNodes() =
         listOf(
