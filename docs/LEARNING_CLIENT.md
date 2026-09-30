@@ -4,17 +4,22 @@
 
 This document defines the application composition boundary between shared learning rules and client persistence/presentation.
 
-The current implementation is `LearnerLessonCoordinator` in `app/shared`.
+The current implementation uses `LearnerLessonApplication` and `LearnerLessonCoordinator` in `app/shared`.
 
 ## Flow
 
 ```text
-DownloadedLessonStore
+Platform SQLDelight driver
+        |
+        v
+LearnerLessonApplication
+        |
+        +--> DownloadedLessonStore
+        |
+        +--> LearningProgressStore
         |
         v
 LearnerLessonCoordinator
-        |
-        +--> LearningProgressStore
         |
         v
 LessonSession
@@ -26,11 +31,13 @@ LearnerLessonState
 Presentation
 ```
 
-`DownloadedLessonStore` provides the published offline lesson package. `LearningProgressStore` provides durable learner attempts. `LessonSession` remains the single source of truth for exercise sequencing, evaluation delegation, completion, and idempotency.
+`DownloadedLessonStore` provides the published offline lesson package. `LearningProgressStore` provides durable learner attempts. `LearnerLessonCoordinator` remains the single application boundary for lesson opening and submission, while `LessonSession` remains the single source of truth for exercise sequencing, evaluation delegation, completion, and idempotency.
 
 ## Opening a lesson
 
-`open(lessonId)` returns no state when the lesson is not present in downloaded storage.
+`LearnerLessonApplication.listDownloadedLessons()` reads the current local lesson packages. Selecting a lesson calls `LearnerLessonApplication.openLesson(lessonId)`, which delegates to the existing coordinator.
+
+`openLesson` returns no state when the lesson is not present in downloaded storage.
 
 When present, the coordinator loads durable learning progress and creates a `LessonSession` from the package plan and persisted-equivalent progress.
 
@@ -38,44 +45,44 @@ Opening a lesson therefore does not require network access.
 
 ## Submitting an answer
 
-`submitText`:
+`LearnerLessonApplication.submitText` supplies the immutable attempt metadata required by the coordinator:
 
-1. reads the session's current exercise;
-2. delegates the submission to `LessonSession`;
-3. creates the immutable attempt using the returned evaluation;
-4. persists that attempt through `LearningProgressStore`;
-5. returns a new `LearnerLessonState`.
+1. a new random UUID for the attempt ID;
+2. the injected `Clock` for the occurrence timestamp;
+3. the learner response value.
 
-An attempt ID remains the idempotency key defined by the learning core. The coordinator does not replace or weaken that rule.
+The coordinator then delegates evaluation and sequencing to `LessonSession` and persists the resulting immutable attempt through `LearningProgressStore`.
+
+Presentation never generates attempt IDs or timestamps.
 
 Failed answers remain persisted and the session keeps the same current exercise according to the existing core behavior.
 
 Correct answers advance deterministically. Completing all exercises produces the existing `COMPLETED` session state.
 
+## Presentation boundary
+
+`LearnerLessonScreen` consumes an already-open `LearnerLessonState` and exposes answer submission through a callback. It owns only ephemeral answer-input state.
+
+The shared `App` surface now also renders the locally downloaded lesson list when a `LearnerLessonApplication` is supplied. An empty store renders an explicit empty state rather than creating content.
+
+## Platform composition
+
+Android, iOS, and Desktop/JVM entry points construct the platform-specific SQLDelight driver and pass it into `createLearnerLessonApplication`.
+
+Web/Wasm builds intentionally do not construct this persistence composition. They remain explicit follow-up work until a browser-appropriate durable driver is introduced.
+
 ## Boundaries
 
-The coordinator contains no:
+The application composition contains no:
 
-- HTTP client or server dependencies;
-- SQLDelight queries;
 - authentication/session token state;
-- Compose-specific state management;
-- answer-evaluation or review-scheduling logic.
+- HTTP client or server dependencies;
+- raw SQLDelight queries in presentation;
+- answer-evaluation or review-scheduling logic;
+- fake persistence fallback for unsupported targets.
 
-Platform composition is a later concern. The current slice intentionally does not fabricate a storage fallback when a downloaded lesson is missing.
+Platform composition is responsible only for genuine platform storage concerns. Learning rules remain shared and presentation remains state-driven.
 
 ## Testing
 
-Common tests verify:
-
-- restoration from persisted progress;
-- correct submission and advancement;
-- incorrect submission and retry on the same exercise;
-- durable persistence of every attempt;
-- completion and recreation from persisted progress.
-
-The shared Compose presentation boundary is `LearnerLessonScreen` in `app/shared`. It consumes only an existing `LearnerLessonState` and exposes answer submission through an explicit callback. It owns ephemeral answer-input state but does not generate attempt IDs, timestamps, evaluate answers, select exercises, persist attempts, or synchronize progress.
-
-The application `App` surface now acts as a neutral host: it renders the lesson screen when an already-open learner state is supplied and otherwise shows a non-interactive lesson-selection state. Platform entry points remain responsible for constructing future storage/application composition.
-
-The next client slice can consume `LearnerLessonState` from a UI without moving learning rules into presentation code.
+Common tests verify application-level lesson listing/opening and deterministic injection of attempt metadata, while existing coordinator and storage tests continue to verify learning and durability semantics.
