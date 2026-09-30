@@ -3,6 +3,7 @@ package com.kenlikdev.tildash.learning
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.client.LearnerLessonApplication
+import com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator
 import com.kenlikdev.tildash.storage.DownloadedLesson
 import com.kenlikdev.tildash.storage.DownloadedLessonStore
 import com.kenlikdev.tildash.storage.LearningProgressStore
