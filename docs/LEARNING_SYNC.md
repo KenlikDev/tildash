@@ -15,7 +15,7 @@ A LearningProgressSyncBatch contains:
 - `deviceId` — non-blank sender/device metadata;
 - `attempts` — immutable LearningAttempt values.
 
-Attempt IDs remain the idempotency keys. Device IDs do not change attempt identity.
+Attempt IDs remain the idempotency keys. Device IDs do not change attempt identity. New attempts also carry the lesson ID that scopes the exercise identity.
 
 ## Merge rules
 
@@ -54,6 +54,7 @@ A conflict means the same canonical attempt ID has different immutable event dat
 
 Examples include a changed:
 
+- lesson ID;
 - exercise ID;
 - response;
 - outcome;
@@ -109,7 +110,7 @@ The shared core reconciliation layer must not depend on HTTP clients/controllers
 
 The authenticated server endpoint is `POST /api/v1/learning/sync`.
 
-The server accepts immutable attempts, scopes persistence by the authenticated learner subject, acknowledges new or identical attempts, and reports payload conflicts without overwriting stored history. The device ID remains metadata and does not affect idempotency.
+The server accepts immutable attempts with an explicit `lessonId`, scopes persistence by the authenticated learner subject, acknowledges new or identical attempts, and reports payload conflicts without overwriting stored history. The device ID remains metadata and does not affect idempotency.
 
 The endpoint uses the API-wide RFC 9457 Problem Details contract for invalid requests and authentication failures.
 

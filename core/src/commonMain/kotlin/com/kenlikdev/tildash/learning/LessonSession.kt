@@ -24,7 +24,9 @@ data class LessonSession(
         get() =
             plan.exercises.firstOrNull { exercise ->
                 progress.attempts.none {
-                    it.exerciseId == exercise.id && it.outcome == AnswerOutcome.CORRECT
+                    it.lessonId == plan.lessonId &&
+                        it.exerciseId == exercise.id &&
+                        it.outcome == AnswerOutcome.CORRECT
                 }
             }
 
@@ -49,6 +51,7 @@ data class LessonSession(
             LearningEngine.submit(
                 progress = progress,
                 exercise = exercise,
+                lessonId = plan.lessonId,
                 attemptId = attemptId,
                 response = response,
                 occurredAt = occurredAt,

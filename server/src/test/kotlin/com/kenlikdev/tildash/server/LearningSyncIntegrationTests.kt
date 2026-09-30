@@ -79,6 +79,43 @@ class LearningSyncIntegrationTests {
     }
 
     @Test
+    fun sameAttemptIdAndExerciseIdAcrossLessonsIsReportedAsConflict() {
+        mockMvc
+            .perform(
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        "attempt-cross-lesson",
+                        lessonId = "550e8400-e29b-41d4-a716-446655440000",
+                    ),
+                ),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        "attempt-cross-lesson",
+                        lessonId = "550e8400-e29b-41d4-a716-446655440001",
+                    ),
+                ),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.acknowledgedAttemptIds").isEmpty)
+            .andExpect(jsonPath("$.conflictAttemptIds[0]").value("attempt-cross-lesson"))
+
+        assertEquals(
+            "550e8400-e29b-41d4-a716-446655440000",
+            jdbcTemplate.queryForObject(
+                "select lesson_id::text from tildash.learning_attempts where learner_subject = ? and attempt_id = ?",
+                String::class.java,
+                "learner-a",
+                "attempt-cross-lesson",
+            ),
+        )
+    }
+
+    @Test
     fun conflictingRetryIsReportedAndExistingPayloadIsPreserved() {
         mockMvc
             .perform(
@@ -224,6 +261,7 @@ class LearningSyncIntegrationTests {
           "attempts": [
             {
               "attemptId": "attempt-duplicate",
+              "lessonId": "550e8400-e29b-41d4-a716-446655440000",
               "exerciseId": "exercise-1",
               "response": {"type": "TEXT", "value": "hello"},
               "outcome": "CORRECT",
@@ -231,6 +269,7 @@ class LearningSyncIntegrationTests {
             },
             {
               "attemptId": "attempt-duplicate",
+              "lessonId": "550e8400-e29b-41d4-a716-446655440000",
               "exerciseId": "exercise-1",
               "response": {"type": "TEXT", "value": "wrong"},
               "outcome": "INCORRECT",
@@ -245,6 +284,7 @@ class LearningSyncIntegrationTests {
         outcome: String = "CORRECT",
         occurredAt: String = "2026-09-28T09:00:00Z",
         deviceId: String = "device-a",
+        lessonId: String = "550e8400-e29b-41d4-a716-446655440000",
     ): String =
         """
         {
@@ -252,6 +292,7 @@ class LearningSyncIntegrationTests {
           "attempts": [
             {
               "attemptId": "PLACEHOLDER_ATTEMPT",
+              "lessonId": "PLACEHOLDER_LESSON",
               "exerciseId": "exercise-1",
               "response": {"type": "TEXT", "value": "hello"},
               "outcome": "PLACEHOLDER_OUTCOME",
@@ -262,6 +303,7 @@ class LearningSyncIntegrationTests {
         """.trimIndent()
             .replace("PLACEHOLDER_DEVICE", deviceId)
             .replace("PLACEHOLDER_ATTEMPT", attemptId)
+            .replace("PLACEHOLDER_LESSON", lessonId)
             .replace("PLACEHOLDER_OUTCOME", outcome)
             .replace("PLACEHOLDER_OCCURRED_AT", occurredAt)
 }

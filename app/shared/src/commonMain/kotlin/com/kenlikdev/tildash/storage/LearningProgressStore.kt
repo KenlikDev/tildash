@@ -1,6 +1,7 @@
 package com.kenlikdev.tildash.storage
 
 import app.cash.sqldelight.db.SqlDriver
+import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.AttemptIdConflict
 import com.kenlikdev.tildash.learning.LearnerResponse
@@ -31,6 +32,7 @@ class SqlDelightLearningProgressStore(
             queries.selectAllAttempts().executeAsList().map { row ->
                 toLearningAttempt(
                     attemptId = row.attempt_id,
+                    lessonId = row.lesson_id?.let(::ContentId),
                     exerciseId = row.exercise_id,
                     responseType = row.response_type,
                     responseValue = row.response_value,
@@ -47,12 +49,14 @@ class SqlDelightLearningProgressStore(
                 val stored =
                     toLearningAttempt(
                         attemptId = existing.attempt_id,
+                        lessonId = existing.lesson_id?.let(::ContentId),
                         exerciseId = existing.exercise_id,
                         responseType = existing.response_type,
                         responseValue = existing.response_value,
                         outcome = existing.outcome,
                         occurredAtEpochMillis = existing.occurred_at_epoch_millis,
                     )
+
                 if (stored != attempt) {
                     throw AttemptIdConflict(attempt.attemptId)
                 }
@@ -62,6 +66,7 @@ class SqlDelightLearningProgressStore(
             val row = toRow(attempt)
             queries.insertAttempt(
                 attempt_id = row.attemptId,
+                lesson_id = row.lessonId?.value,
                 exercise_id = row.exerciseId,
                 response_type = row.responseType,
                 response_value = row.responseValue,
@@ -76,6 +81,7 @@ class SqlDelightLearningProgressStore(
         queries.selectPendingAttempts().executeAsList().map { row ->
             toLearningAttempt(
                 attemptId = row.attempt_id,
+                lessonId = row.lesson_id?.let(::ContentId),
                 exerciseId = row.exercise_id,
                 responseType = row.response_type,
                 responseValue = row.response_value,
@@ -94,6 +100,7 @@ class SqlDelightLearningProgressStore(
 
     private data class AttemptRow(
         val attemptId: String,
+        val lessonId: ContentId?,
         val exerciseId: String,
         val responseType: String,
         val responseValue: String,
@@ -109,6 +116,7 @@ class SqlDelightLearningProgressStore(
 
         return AttemptRow(
             attemptId = attempt.attemptId,
+            lessonId = attempt.lessonId,
             exerciseId = attempt.exerciseId,
             responseType = response.type,
             responseValue = response.value,
@@ -119,6 +127,7 @@ class SqlDelightLearningProgressStore(
 
     private fun toLearningAttempt(
         attemptId: String,
+        lessonId: ContentId?,
         exerciseId: String,
         responseType: String,
         responseValue: String,
@@ -127,6 +136,7 @@ class SqlDelightLearningProgressStore(
     ): LearningAttempt =
         LearningAttempt(
             attemptId = attemptId,
+            lessonId = lessonId,
             exerciseId = exerciseId,
             response =
                 when (responseType) {

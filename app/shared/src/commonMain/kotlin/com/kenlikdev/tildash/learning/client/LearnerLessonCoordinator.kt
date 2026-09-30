@@ -57,6 +57,7 @@ class LearnerLessonCoordinator(
         learningProgressStore.saveAttempt(
             LearningAttempt(
                 attemptId = attemptId,
+                lessonId = state.session.plan.lessonId,
                 exerciseId = exercise.id,
                 response = response,
                 outcome = submission.evaluation.outcome,

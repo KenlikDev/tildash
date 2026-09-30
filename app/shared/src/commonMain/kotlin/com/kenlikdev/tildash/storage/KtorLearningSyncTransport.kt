@@ -26,6 +26,10 @@ fun interface AccessTokenProvider {
     suspend fun accessToken(): String?
 }
 
+class LearningSyncValidationFailure(
+    message: String,
+) : Exception(message)
+
 class AuthenticationRequiredLearningSyncFailure(
     message: String = "An authenticated access token is required for learning synchronization.",
     val details: LearningSyncFailureDetails? = null,
@@ -57,6 +61,8 @@ class KtorLearningSyncTransport(
     }
 
     override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
+        validateBatch(batch)
+
         val accessToken =
             accessTokenProvider.accessToken()?.trim()
                 ?: throw AuthenticationRequiredLearningSyncFailure()
@@ -65,13 +71,15 @@ class KtorLearningSyncTransport(
             throw AuthenticationRequiredLearningSyncFailure()
         }
 
+        val requestBody = encodeRequest(batch)
+
         val response =
             try {
                 client.post(syncUrl) {
                     header(HttpHeaders.Authorization, "Bearer $accessToken")
                     header(HttpHeaders.Accept, ContentType.Application.Json)
                     contentType(ContentType.Application.Json)
-                    setBody(encodeRequest(batch).toString())
+                    setBody(requestBody.toString())
                 }
             } catch (cancellation: CancellationException) {
                 throw cancellation
@@ -194,6 +202,16 @@ class KtorLearningSyncTransport(
             ?.content
             ?.toIntOrNull()
 
+    private fun validateBatch(batch: LearningProgressSyncBatch) {
+        batch.attempts.forEach { attempt ->
+            if (attempt.lessonId == null) {
+                throw LearningSyncValidationFailure(
+                    "Learning attempt '" + attempt.attemptId + "' is missing lesson scope.",
+                )
+            }
+        }
+    }
+
     private fun encodeRequest(batch: LearningProgressSyncBatch): JsonObject =
         buildJsonObject {
             put("deviceId", JsonPrimitive(batch.deviceId))
@@ -210,6 +228,7 @@ class KtorLearningSyncTransport(
     private fun encodeAttempt(attempt: LearningAttempt): JsonObject =
         buildJsonObject {
             put("attemptId", JsonPrimitive(attempt.attemptId))
+            put("lessonId", JsonPrimitive(attempt.lessonId?.value ?: error("Learning attempt is missing lesson scope.")))
             put("exerciseId", JsonPrimitive(attempt.exerciseId))
             put(
                 "response",

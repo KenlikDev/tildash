@@ -255,6 +255,7 @@ Request:
   "attempts": [
     {
       "attemptId": "attempt-1",
+      "lessonId": "550e8400-e29b-41d4-a716-446655440000",
       "exerciseId": "exercise-1",
       "response": {
         "type": "TEXT",
@@ -267,7 +268,7 @@ Request:
 }
 ```
 
-The endpoint requires the LEARNER application role. An authenticated user without LEARNER is forbidden from using the learner synchronization endpoint. The authenticated identity subject, not device ID, scopes the server-side attempt record.
+The endpoint requires the LEARNER application role. An authenticated user without LEARNER is forbidden from using the learner synchronization endpoint. The authenticated identity subject, not device ID, scopes the server-side attempt record. `lessonId` identifies the lesson containing the exercise and is part of immutable payload conflict comparison.
 
 Successful responses contain two explicit ID sets:
 
@@ -276,4 +277,4 @@ Successful responses contain two explicit ID sets:
 
 A conflicting attempt is never overwritten. Unknown or unsupported payloads are rejected as client errors using RFC 9457 Problem Details.
 
-The server persists attempts under `(learner_subject, attempt_id)`, so the same client-generated attempt ID may legitimately exist for different authenticated learners.
+The server persists attempts under `(learner_subject, attempt_id)`. The immutable payload also stores `lesson_id`, so a reused `exercise_id` in another lesson never shares learner progress.

@@ -16,7 +16,7 @@ The storage implementation is client-side infrastructure. The domain model remai
 
 ## Persistence model
 
-Each immutable LearningAttempt is stored as one row.
+Each immutable LearningAttempt is stored as one row. New attempts include the lesson ID so the same exercise ID can be reused safely across different lessons without sharing progress.
 
 The current response contract supports the existing `LearnerResponse.Text` variant with an explicit response type discriminator. The discriminator is intentionally persisted so future response variants can be introduced without changing the idempotency key.
 
@@ -47,7 +47,7 @@ The outbox stores only the canonical attempt ID because the complete immutable a
 
 A successful remote acknowledgement removes the outbox row but never deletes the attempt history.
 
-Conflicting reuse of an attempt ID is rejected with the existing AttemptIdConflict contract and does not overwrite the stored attempt or its outbox state.
+Conflicting reuse of an attempt ID is rejected with the existing AttemptIdConflict contract when any immutable field differs, including lesson ID, and does not overwrite the stored attempt or its outbox state.
 
 ## Transactions
 
@@ -55,7 +55,7 @@ Persisting a new attempt and enqueueing it for synchronization happen in one dat
 
 Acknowledging an attempt is a separate transaction that only removes its outbox entry.
 
-Loading progress is deterministic and ordered by occurrence timestamp and attempt ID, matching the canonical ordering defined in the learning core.
+Loading progress is deterministic and ordered by occurrence timestamp and attempt ID, matching the canonical ordering defined in the learning core. Legacy rows created before lesson scoping may have a null lesson ID and are retained as history but are not eligible for the new authenticated sync transport.
 
 ## Database technology
 

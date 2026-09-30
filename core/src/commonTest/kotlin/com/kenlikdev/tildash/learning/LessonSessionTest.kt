@@ -34,6 +34,7 @@ class LessonSessionTest {
                 .submit(
                     progress = progress,
                     exercise = first,
+                    lessonId = lessonId,
                     attemptId = "attempt-1",
                     response = LearnerResponse.Text("hello"),
                     occurredAt = occurredAt,
@@ -43,6 +44,34 @@ class LessonSessionTest {
         val session = LessonSession.start(plan, progress)
 
         assertEquals(second.id, session.nextExercise?.id)
+    }
+
+    @Test
+    fun sameExerciseIdFromAnotherLessonDoesNotSkipCurrentExercise() {
+        val otherLessonId = ContentId("550e8400-e29b-41d4-a716-446655440001")
+        val otherLessonExercise =
+            ManualInputExercise(
+                id = first.id,
+                contentId = otherLessonId,
+                prompt = first.prompt,
+                expectedAnswers = first.expectedAnswers,
+            )
+
+        val progress =
+            LearningEngine
+                .submit(
+                    progress = LearningProgress.empty(),
+                    lessonId = otherLessonId,
+                    exercise = otherLessonExercise,
+                    attemptId = "attempt-other-lesson",
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                ).progress
+
+        val session = LessonSession.start(plan, progress)
+
+        assertEquals(first.id, session.nextExercise?.id)
+        assertTrue(session.state == LessonSessionState.ACTIVE)
     }
 
     @Test
@@ -76,7 +105,7 @@ class LessonSessionTest {
 
         assertEquals(AnswerOutcome.INCORRECT, submission.evaluation.outcome)
         assertEquals(first.id, submission.session.nextExercise?.id)
-        assertEquals(1, submission.session.progress.mistakeCount(first.id))
+        assertEquals(1, submission.session.progress.mistakeCount(first.id, lessonId))
     }
 
     @Test
@@ -112,6 +141,7 @@ class LessonSessionTest {
                 .submit(
                     progress = progress,
                     exercise = first,
+                    lessonId = lessonId,
                     attemptId = "attempt-1",
                     response = LearnerResponse.Text("hello"),
                     occurredAt = occurredAt,
@@ -123,6 +153,7 @@ class LessonSessionTest {
                 .submit(
                     progress = progress,
                     exercise = second,
+                    lessonId = lessonId,
                     attemptId = "attempt-2",
                     response = LearnerResponse.Text("world"),
                     occurredAt = later,

@@ -130,6 +130,7 @@ class AttemptIdConflict(
 data class LearningAttempt(
     val attemptId: String,
     val exerciseId: String,
+    val lessonId: ContentId? = null,
     val response: LearnerResponse,
     val outcome: AnswerOutcome,
     val occurredAt: Instant,
@@ -216,10 +217,13 @@ data class LearningProgress private constructor(
         internal fun fromCanonicalAttempts(attempts: List<LearningAttempt>): LearningProgress = LearningProgress(attempts)
     }
 
-    fun reviewState(exerciseId: String): ReviewState {
+    fun reviewState(
+        exerciseId: String,
+        lessonId: ContentId,
+    ): ReviewState {
         val exerciseAttempts =
             attempts
-                .filter { it.exerciseId == exerciseId }
+                .filter { it.exerciseId == exerciseId && it.lessonId == lessonId }
                 .sortedWith(attemptComparator)
 
         require(exerciseAttempts.isNotEmpty()) {
@@ -233,15 +237,22 @@ data class LearningProgress private constructor(
         return state
     }
 
-    fun mistakeCount(exerciseId: String): Int =
+    fun mistakeCount(
+        exerciseId: String,
+        lessonId: ContentId,
+    ): Int =
         attempts.count {
-            it.exerciseId == exerciseId && it.outcome == AnswerOutcome.INCORRECT
+            it.exerciseId == exerciseId &&
+                it.lessonId == lessonId &&
+                it.outcome == AnswerOutcome.INCORRECT
         }
 
     fun isLessonComplete(plan: LearningPlan): Boolean =
         plan.exercises.all { exercise ->
             attempts.any {
-                it.exerciseId == exercise.id && it.outcome == AnswerOutcome.CORRECT
+                it.lessonId == plan.lessonId &&
+                    it.exerciseId == exercise.id &&
+                    it.outcome == AnswerOutcome.CORRECT
             }
         }
 
@@ -252,7 +263,11 @@ data class LearningProgress private constructor(
         val completedExercises = mutableSetOf<String>()
 
         for (attempt in attempts.sortedWith(attemptComparator)) {
-            if (attempt.outcome == AnswerOutcome.CORRECT && attempt.exerciseId in requiredIds) {
+            if (
+                attempt.lessonId == plan.lessonId &&
+                attempt.outcome == AnswerOutcome.CORRECT &&
+                attempt.exerciseId in requiredIds
+            ) {
                 completedExercises += attempt.exerciseId
                 if (completedExercises.size == requiredIds.size) {
                     return attempt.occurredAt
@@ -273,6 +288,7 @@ object LearningEngine {
     fun submit(
         progress: LearningProgress,
         exercise: LearningExercise,
+        lessonId: ContentId,
         attemptId: String,
         response: LearnerResponse,
         occurredAt: Instant,
@@ -284,6 +300,7 @@ object LearningEngine {
         val existing = progress.attempts.firstOrNull { it.attemptId == attemptId }
         if (existing != null) {
             if (
+                existing.lessonId != lessonId ||
                 existing.exerciseId != exercise.id ||
                 existing.response != response ||
                 existing.occurredAt != occurredAt
@@ -302,6 +319,7 @@ object LearningEngine {
             LearningAttempt(
                 attemptId = attemptId,
                 exerciseId = exercise.id,
+                lessonId = lessonId,
                 response = response,
                 outcome = evaluation.outcome,
                 occurredAt = occurredAt,
