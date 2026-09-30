@@ -79,7 +79,6 @@ Platform composition now constructs the existing SQLDelight database through the
 
 The shared `LearnerLessonApplication` consumes the resulting driver through the existing `DownloadedLessonStore` and `LearningProgressStore` implementations.
 
-SQLDelight 2.4.0 documents the platform driver constructors used by this composition, including `AndroidSqliteDriver`, `NativeSqliteDriver`, and the JVM SQLite JDBC driver. citeturn802475search0turn542008search0turn542008search4
 
 Authentication/session UI and platform-specific encrypted-at-rest drivers remain composition concerns. The shared storage layer never persists access or refresh tokens.
 
