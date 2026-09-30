@@ -16,6 +16,7 @@ enum class ValidationSeverity {
 
 enum class ValidationCode {
     LESSON_NOT_FOUND,
+    COURSE_NOT_FOUND,
     TARGET_IS_NOT_LESSON,
     DUPLICATE_CONTENT_ID,
     MISSING_PARENT,
@@ -125,7 +126,7 @@ class ContentValidator {
                     if (expectedKind == ContentKind.LESSON) {
                         ValidationCode.LESSON_NOT_FOUND
                     } else {
-                        ValidationCode.MISSING_PARENT
+                        ValidationCode.COURSE_NOT_FOUND
                     },
                     expectedKind.name.lowercase().replace('_', ' ') +
                         " '" + input.lessonId.value + "' is not present in the content tree.",
