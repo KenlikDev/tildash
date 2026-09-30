@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.learning.client
 
+import com.kenlikdev.tildash.storage.AccessTokenProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
