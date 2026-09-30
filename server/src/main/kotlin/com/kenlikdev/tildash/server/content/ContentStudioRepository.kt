@@ -341,12 +341,9 @@ class JdbcContentStudioRepository(
                             id = exerciseId,
                             prompt = rs.getString("prompt"),
                             expectedAnswers =
-                                objectMapper
-                                    .readTree(rs.getString("expected_answers"))
-                                    .elements()
-                                    .asSequence()
-                                    .map { it.asText() }
-                                    .toList(),
+                                buildList {
+                                    objectMapper.readTree(rs.getString("expected_answers")).forEach { add(it.asText()) }
+                                },
                         )
                 }.groupBy({ it.first }, { it.second })
 
