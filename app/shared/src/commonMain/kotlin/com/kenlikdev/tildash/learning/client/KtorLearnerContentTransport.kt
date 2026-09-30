@@ -11,7 +11,7 @@ import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.ManualInputExercise
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRequestTimeoutException
-import io.ktor.client.request.HttpHeaders
+import io.ktor.http.HttpHeaders
 import io.ktor.client.request.header
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
@@ -21,7 +21,6 @@ import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
