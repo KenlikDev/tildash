@@ -31,7 +31,7 @@ fun LearnerLessonScreen(
     onSubmitAnswer: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var answer by remember { mutableStateOf("") }
+    var answer by remember(state.lesson.lesson.id) { mutableStateOf("") }
 
     LearnerLessonContent(
         state = state,
