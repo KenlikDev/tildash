@@ -1,8 +1,8 @@
 package com.kenlikdev.tildash
 
 import android.content.Context
-import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.kenlikdev.tildash.storage.TildashDatabase
 
 fun createTildashDatabaseDriver(context: Context): SqlDriver =
