@@ -15,3 +15,5 @@ Integrity is mandatory: never weaken a test, lint rule, security control, CI gat
 The implementation does not define the intended behavior. Specifications define behavior; tests make relevant specifications executable; implementation satisfies them.
 
 Protected branches are never a place for direct development. Use short-lived task branches and pull requests.
+
+The final `ai/integration -> develop` merge has a mandatory human local-acceptance gate. The project owner must synchronize `ai/integration` locally, run the applicable verification commands, and manually exercise the changed product behavior on the local machine before merging. GitHub CI and AI verification are necessary evidence but never a replacement for hands-on local acceptance. The AI must not present the promotion PR as ready for merge until that local acceptance is explicitly confirmed.

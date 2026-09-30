@@ -102,6 +102,34 @@ For final development integration, the normal source is `ai/integration` and the
 
 AI review is not a fictional second human reviewer. Final integration into `develop` remains a human decision.
 
+## Human local acceptance gate
+
+The final `ai/integration -> develop` promotion requires two separate forms of evidence:
+
+1. **Automated repository verification** — required GitHub checks for the current `ai/integration` tip are green.
+2. **Human local acceptance** — the project owner has synchronized that exact `ai/integration` tip to the local computer, run the applicable local checks, launched the affected application(s), and manually exercised the changed user-visible behavior and critical acceptance path.
+
+The human local acceptance gate is mandatory even when all GitHub checks are green. The owner is not expected to trust the AI, the PR description, or CI in place of personally verifying the product.
+
+For the final promotion PR, the AI must always provide:
+- the exact local branch synchronization commands for the current `ai/integration` tip;
+- the applicable local build/test/lint commands based on the actual change;
+- the manual acceptance scenarios to exercise on the local machine;
+- the exact evidence that must be confirmed before merging.
+
+The AI must not say or imply "merge now" until the owner explicitly confirms that local acceptance is complete. Creating the promotion PR before local acceptance is allowed when the automated gates are green, but the PR remains pending the human local-acceptance gate.
+
+Recommended local synchronization sequence:
+
+```text
+git fetch origin
+git switch ai/integration
+git pull --ff-only origin ai/integration
+git rev-parse HEAD
+```
+
+The reported local `HEAD` must equal the promotion PR head SHA before acceptance testing begins.
+
 ## Commits
 
 Use Conventional Commits:
