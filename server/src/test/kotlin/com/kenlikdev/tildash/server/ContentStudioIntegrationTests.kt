@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.server
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -26,6 +27,10 @@ import kotlin.test.assertNotNull
 @AutoConfigureMockMvc
 @Import(PostgresTestConfiguration::class)
 class ContentStudioIntegrationTests {
+    @BeforeEach
+    fun clearFixtures() {
+        jdbcTemplate.execute("TRUNCATE tildash.content_nodes CASCADE")
+    }
     @Autowired
     private lateinit var mockMvc: MockMvc
 
