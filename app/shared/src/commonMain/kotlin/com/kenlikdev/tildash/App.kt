@@ -22,9 +22,7 @@ import com.kenlikdev.tildash.learning.client.LearnerLessonScreen
 import com.kenlikdev.tildash.learning.client.LearnerLessonState
 
 @Composable
-fun App(
-    learnerApplication: LearnerLessonApplication? = null,
-) {
+fun App(learnerApplication: LearnerLessonApplication? = null) {
     MaterialTheme {
         if (learnerApplication == null) {
             EmptyApplicationState()
@@ -35,9 +33,7 @@ fun App(
 }
 
 @Composable
-private fun LearnerApplicationContent(
-    learnerApplication: LearnerLessonApplication,
-) {
+private fun LearnerApplicationContent(learnerApplication: LearnerLessonApplication) {
     var learnerLessonState by
         remember(learnerApplication) {
             mutableStateOf<LearnerLessonState?>(null)
