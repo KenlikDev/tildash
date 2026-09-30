@@ -18,8 +18,27 @@ For a full repository review, additionally follow `03-processes/FULL_REPOSITORY_
 15. Re-verify the resulting `ai/integration` state after integration.
 16. Remove obsolete task branches only when they are no longer needed.
 17. Open the final PR from `ai/integration` to `develop`.
-18. Merge into `develop` only after required checks and human approval.
-19. Never merge a task branch directly into `develop`.
+18. Have the project owner synchronize the exact `ai/integration` PR head locally.
+19. Have the project owner run the applicable local verification and manually exercise the affected product behavior and acceptance path.
+20. Confirm that local acceptance is complete before considering the final PR mergeable for the owner.
+21. Merge into `develop` only after required GitHub checks and explicit human local acceptance.
+22. Never merge a task branch directly into `develop`.
+
+## Final promotion gate
+
+The final promotion sequence is:
+
+```text
+ai/integration green
+  -> final promotion PR
+  -> owner syncs exact PR head locally
+  -> owner runs applicable local checks
+  -> owner manually exercises affected product behavior
+  -> owner explicitly confirms local acceptance
+  -> owner merges PR into develop
+```
+
+The AI must never substitute its own repository inspection, GitHub CI, PR metadata, or prior local results for the owner's hands-on verification of the exact current tip. If `ai/integration` moves after local acceptance, the owner must repeat acceptance against the new tip before merging.
 
 ## Integration discipline
 

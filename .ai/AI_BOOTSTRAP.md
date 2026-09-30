@@ -22,6 +22,10 @@ For branch, commit, PR, merge, or release operations:
 - never merge task branches directly into `develop`;
 - use the canonical path `task branch -> ai/integration -> develop`;
 - before declaring `ai/integration` ready for `develop`, verify the integrated result rather than relying only on checks previously run on the task branch;
+- before the human-controlled `ai/integration -> develop` merge, require explicit local acceptance by the project owner on the owner's own computer;
+- never treat GitHub CI, PR mergeability, or prior AI verification as a substitute for that local acceptance;
+- never tell the project owner to merge the final promotion PR until local acceptance has been explicitly confirmed;
+- always provide concrete local synchronization, verification, and manual UI/behavior acceptance steps for the final promotion;
 - never bypass the repository rules protecting `ai/integration` or `develop`.
 
 ## Evidence states
