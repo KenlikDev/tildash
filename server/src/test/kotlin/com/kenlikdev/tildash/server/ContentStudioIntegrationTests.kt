@@ -36,18 +36,35 @@ class ContentStudioIntegrationTests {
 
     @Test
     fun nonLessonContentCannotEnterContentWorkflow() {
-        val exampleId =
-            createNode(
-                "EXAMPLE",
-                null,
-                "Example",
-            )
+        val courseId = createNode("COURSE", null, "Course")
+        val exampleId = createNode("EXAMPLE", courseId, "Example")
 
         mockMvc
             .perform(
                 post("/api/v1/content/$exampleId/submit")
                     .with(user("teacher").roles("TEACHER")),
-            ).andExpect(status().isBadRequest())
+            ).andExpect(status().isConflict())
+    }
+
+    @Test
+    fun lessonWithoutExercisesCannotBeSubmitted() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode(
+            kind = "LESSON",
+            parentId = courseId,
+            value = "Empty lesson",
+            seedExercise = false,
+        )
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/submit")
+                    .with(user("teacher").roles("TEACHER"))
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON),
+            )
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.type").value("urn:tildash:problem:validation-failed"))
+            .andExpect(jsonPath("$.errors[0].code").value("EMPTY_LESSON_EXERCISES"))
     }
 
     @Test
@@ -387,6 +404,7 @@ class ContentStudioIntegrationTests {
         value: String,
         copyrightStatus: String = "LICENSED",
         includeLicense: Boolean = true,
+        seedExercise: Boolean = true,
     ): String {
         val result =
             mockMvc
@@ -423,7 +441,7 @@ class ContentStudioIntegrationTests {
         val id = response.get("id")?.asText()
         assertNotNull(id)
 
-        if (kind == "LESSON") {
+        if (kind == "LESSON" && seedExercise) {
             mockMvc
                 .perform(
                     post("/api/v1/content/$id/exercises")
