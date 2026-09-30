@@ -27,7 +27,7 @@ class DevelopmentSecurityIntegrationTests {
                 get("/api/v1/learning/catalog")
                     .header("X-Tildash-Development-Role", "learner")
                     .header("Host", "localhost")
-                    .withRemoteAddress("127.0.0.1")
+                    .with { request -> request.remoteAddr = "127.0.0.1"; request }
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(status().isOk)
     }
@@ -49,7 +49,7 @@ class DevelopmentSecurityIntegrationTests {
                 get("/api/v1/learning/catalog")
                     .header("X-Tildash-Development-Role", "learner")
                     .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                    .withRemoteAddress("192.168.1.10"),
+                    .with { request -> request.remoteAddr = "192.168.1.10"; request },
             ).andExpect(status().isUnauthorized)
     }
 
