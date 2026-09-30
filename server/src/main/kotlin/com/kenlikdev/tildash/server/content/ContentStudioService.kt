@@ -228,7 +228,9 @@ class ContentStudioService(
                 publishedAt = now(),
             )
 
-        exerciseRepository.snapshotPublishedLesson(contentId, version)
+        if (requireNode(contentId).node.kind == ContentKind.LESSON) {
+            exerciseRepository.snapshotPublishedLesson(contentId, version)
+        }
         return response.copy(version = version)
     }
 
@@ -355,13 +357,10 @@ class ContentStudioService(
         validate: Boolean,
     ): ContentMutationResponse {
         val stored = requireNode(contentId)
-        if (stored.node.kind != ContentKind.LESSON) {
-            throw ContentWorkflowViolation("Content workflow is only available for lesson nodes.")
-        }
 
         val validation =
             if (validate) {
-                validateLesson(contentId)
+                validateForWorkflow(stored.node.kind, contentId)
             } else {
                 ReviewResult(emptyList())
             }
@@ -401,18 +400,33 @@ class ContentStudioService(
         )
     }
 
-    private fun validateLesson(contentId: ContentId): ReviewResult {
+    private fun validateForWorkflow(
+        kind: ContentKind,
+        contentId: ContentId,
+    ): ReviewResult {
         val input = repository.validationInput(contentId)
         if (input.nodes.isEmpty()) throw ContentNotFoundException(contentId)
-        val result =
-            validator.validateLesson(
-                LessonValidationInput(
-                    lessonId = contentId,
-                    nodes = input.nodes,
-                    sourceRevisions = input.sourceRevisions,
-                    localizationRevisions = input.localizations,
-                ),
+
+        val validationInput =
+            LessonValidationInput(
+                lessonId = contentId,
+                nodes = input.nodes,
+                sourceRevisions = input.sourceRevisions,
+                localizationRevisions = input.localizations,
+                exercisesByContentId = input.exercisesByContentId,
             )
+
+        val result =
+            when (kind) {
+                ContentKind.COURSE -> validator.validateCourse(validationInput)
+                ContentKind.LESSON -> validator.validateLesson(validationInput)
+                else -> {
+                    throw ContentWorkflowViolation(
+                        "Content workflow is only available for course and lesson nodes.",
+                    )
+                }
+            }
+
         if (!result.canSubmit) throw ContentValidationException(result)
         return result
     }
