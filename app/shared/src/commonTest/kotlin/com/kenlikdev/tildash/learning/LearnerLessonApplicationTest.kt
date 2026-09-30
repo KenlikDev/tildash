@@ -72,7 +72,10 @@ class LearnerLessonApplicationTest {
             )
 
         assertEquals(listOf(lesson), application.listDownloadedLessons())
-        assertEquals(lessonId, application.openLesson(lessonId)?.lesson?.lesson?.id)
+        assertEquals(
+            lessonId,
+            application.openLesson(lessonId)?.lesson?.lesson?.id,
+        )
     }
 
     @Test
@@ -138,7 +141,8 @@ class LearnerLessonApplicationTest {
                 )
         }
 
-        override fun loadPendingSyncAttempts(): List<LearningAttempt> = savedAttempts.toList()
+        override fun loadPendingSyncAttempts(): List<LearningAttempt> =
+            savedAttempts.toList()
 
         override fun acknowledgeAttempt(attemptId: String) {
             savedAttempts.removeAll { it.attemptId == attemptId }
