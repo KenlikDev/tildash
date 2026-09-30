@@ -54,16 +54,15 @@ private fun LearnerLessonContent(
     modifier: Modifier = Modifier,
 ) {
     val totalExercises = state.session.plan.exercises.size
-    val completedExercises =
+    val completedExerciseIds =
         state.session.progress.attempts
             .asSequence()
             .filter { it.lessonId == state.session.plan.lessonId }
             .filter { it.outcome == AnswerOutcome.CORRECT }
             .map { it.exerciseId }
             .toSet()
-            .count { exerciseId ->
-                state.session.plan.exercises.any { it.id == exerciseId }
-            }
+    val completedExercises =
+        state.session.plan.exercises.count { it.id in completedExerciseIds }
 
     Column(
         modifier =
