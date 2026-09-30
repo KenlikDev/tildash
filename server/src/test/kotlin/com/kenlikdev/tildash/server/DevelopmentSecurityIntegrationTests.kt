@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.RequestPostProcessor
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -22,6 +23,12 @@ class DevelopmentSecurityIntegrationTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
+    private fun remoteAddress(address: String): RequestPostProcessor =
+        RequestPostProcessor { request ->
+            request.remoteAddr = address
+            request
+        }
+
     @Test
     fun developmentLearnerRoleCanAccessLearnerCatalogWithoutJwt() {
         mockMvc
@@ -29,7 +36,7 @@ class DevelopmentSecurityIntegrationTests {
                 get("/api/v1/learning/catalog")
                     .header("X-Tildash-Development-Role", "learner")
                     .header("Host", "localhost")
-                    .with { request -> request.remoteAddr = "127.0.0.1"; request }
+                    .with(remoteAddress("127.0.0.1"))
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(status().isOk)
     }
@@ -51,7 +58,7 @@ class DevelopmentSecurityIntegrationTests {
                 get("/api/v1/learning/catalog")
                     .header("X-Tildash-Development-Role", "learner")
                     .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                    .with { request -> request.remoteAddr = "192.168.1.10"; request },
+                    .with(remoteAddress("192.168.1.10")),
             ).andExpect(status().isUnauthorized)
     }
 
