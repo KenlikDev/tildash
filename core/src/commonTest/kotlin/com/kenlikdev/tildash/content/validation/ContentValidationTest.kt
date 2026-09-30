@@ -32,6 +32,7 @@ class ContentValidationTest {
     @Test
     fun validLessonPassesAndWarningsAreAbsent() {
         val result = validator.validateLesson(validInput())
+        
 
         assertEquals(ReviewOutcome.PASS, result.outcome)
         assertTrue(result.issues.isEmpty())
@@ -365,11 +366,32 @@ class ContentValidationTest {
         assertHasCode(result, ValidationCode.DUPLICATE_EXERCISE_ID)
     }
 
+
+
+    @Test
+    fun lessonWithoutExercisesIsRejected() {
+        val result = validator.validateLesson(validInput(exercisesByContentId = emptyMap()))
+
+        assertEquals(ReviewOutcome.FAIL, result.outcome)
+        assertHasCode(result, ValidationCode.EMPTY_LESSON_EXERCISES)
+        assertFalse(result.canPublish)
+    }
+
     private fun validInput(
         nodes: List<ContentNode> = defaultNodes(),
         sourceRevisions: List<SourceContentRevision> = defaultRevisions(),
         localizationRevisions: List<LocalizedContentRevision> = emptyList(),
-        exercisesByContentId: Map<ContentId, List<ExerciseDefinition>> = emptyMap(),
+        exercisesByContentId: Map<ContentId, List<ExerciseDefinition>> =
+            mapOf(
+                lessonId to
+                    listOf(
+                        ExerciseDefinition(
+                            id = "exercise-1",
+                            prompt = "Write the greeting.",
+                            expectedAnswers = listOf("merhaba"),
+                        ),
+                    ),
+            ),
     ) = LessonValidationInput(
         lessonId = lessonId,
         nodes = nodes,
