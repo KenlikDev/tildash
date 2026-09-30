@@ -62,7 +62,8 @@ private fun LearnerLessonContent(
             .map { it.exerciseId }
             .toSet()
     val completedExercises =
-        state.session.plan.exercises.count { it.id in completedExerciseIds }
+        state.session.plan.exercises
+            .count { it.id in completedExerciseIds }
 
     Column(
         modifier =
