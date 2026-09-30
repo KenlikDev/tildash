@@ -1,0 +1,1 @@
+ALTER TABLE learning_attempt ADD COLUMN lesson_id TEXT;

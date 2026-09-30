@@ -1,9 +1,33 @@
 spring:
   application:
     name: tildash-server
+  mvc:
+    problemdetails:
+      enabled: true
+  datasource:
+    url: ${TILDASH_DATABASE_URL:jdbc:postgresql://localhost:5432/tildash}
+    username: ${TILDASH_DATABASE_USERNAME:tildash}
+    password: ${TILDASH_DATABASE_PASSWORD:tildash-dev}
+  flyway:
+    enabled: ${TILDASH_FLYWAY_ENABLED:true}
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    clean-disabled: true
 
 management:
   endpoints:
     web:
       exposure:
         include: health
+
+springdoc:
+  packages-to-scan: com.kenlikdev.tildash.server.api
+  swagger-ui:
+    path: /swagger-ui.html
+
+tildash:
+  security:
+    resource-server:
+      enabled: ${TILDASH_SECURITY_RESOURCE_SERVER_ENABLED:false}
+    jwt:
+      roles-claim: ${TILDASH_SECURITY_JWT_ROLES_CLAIM:roles}

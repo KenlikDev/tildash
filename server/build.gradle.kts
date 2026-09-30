@@ -22,13 +22,23 @@ dependencies {
 
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.boot.starter.data.jdbc)
+    implementation(libs.spring.boot.starter.flyway)
     implementation(libs.spring.boot.starter.webmvc)
+    implementation(libs.spring.boot.starter.security)
+    implementation(libs.spring.boot.starter.oauth2.resource.server)
+    runtimeOnly(libs.postgresql)
+    implementation(libs.flyway.database.postgresql)
+    implementation(libs.springdoc.openapi.starter.webmvc.ui)
     implementation(libs.kotlin.reflect)
     implementation(libs.jackson.module.kotlin)
 
     testImplementation(libs.spring.boot.starter.actuator.test)
     testImplementation(libs.spring.boot.starter.validation.test)
     testImplementation(libs.spring.boot.starter.webmvc.test)
+    testImplementation(libs.spring.security.test)
+    testImplementation(libs.spring.boot.testcontainers)
+    testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.kotlin.test.junit5)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
