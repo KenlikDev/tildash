@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.server
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -24,6 +25,11 @@ class LearningCatalogIntegrationTests {
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    @BeforeEach
+    fun clearContentFixtures() {
+        jdbcTemplate.execute("TRUNCATE tildash.content_nodes CASCADE")
+    }
 
     @Test
     fun learnerReceivesPublishedCatalogWithStableProjection() {
