@@ -9,9 +9,11 @@ import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -34,6 +36,38 @@ class ContentStudioController(
         ResponseEntity
             .status(201)
             .body(service.createNode(request))
+
+    @GetMapping("/{contentId}/exercises")
+    @PreAuthorize("hasAnyRole('TEACHER', 'REVIEWER', 'ADMINISTRATOR')")
+    @Operation(summary = "List draft lesson exercises")
+    fun listExercises(@PathVariable contentId: String): List<ContentExerciseResponse> =
+        service.listExercises(contentId.toContentId())
+
+    @PostMapping("/{contentId}/exercises")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMINISTRATOR')")
+    @Operation(summary = "Create a manual-input lesson exercise")
+    fun createExercise(
+        @PathVariable contentId: String,
+        @Valid @RequestBody request: CreateExerciseRequest,
+    ): ResponseEntity<ContentExerciseResponse> =
+        ResponseEntity.status(201).body(service.createExercise(contentId.toContentId(), request))
+
+    @PutMapping("/{contentId}/exercises/{exerciseId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMINISTRATOR')")
+    @Operation(summary = "Update a draft lesson exercise")
+    fun updateExercise(
+        @PathVariable contentId: String,
+        @PathVariable exerciseId: String,
+        @Valid @RequestBody request: UpdateExerciseRequest,
+    ): ContentExerciseResponse = service.updateExercise(contentId.toContentId(), exerciseId, request)
+
+    @DeleteMapping("/{contentId}/exercises/{exerciseId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMINISTRATOR')")
+    @Operation(summary = "Delete a draft lesson exercise")
+    fun deleteExercise(
+        @PathVariable contentId: String,
+        @PathVariable exerciseId: String,
+    ) = service.deleteExercise(contentId.toContentId(), exerciseId)
 
     @GetMapping("/{contentId}/preview")
     @PreAuthorize("hasAnyRole('TEACHER', 'REVIEWER', 'ADMINISTRATOR')")
