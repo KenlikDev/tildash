@@ -41,6 +41,7 @@ enum class ValidationCode {
     DUPLICATE_EXPECTED_ANSWER,
     EXERCISE_OPTION_SET_INVALID,
     EXPECTED_ANSWER_NOT_IN_OPTIONS,
+    EMPTY_LESSON_EXERCISES,
 }
 
 data class ValidationIssue(
@@ -187,6 +188,14 @@ class ContentValidator {
             validateSourceRevisions(input, issues, nodesById)
             validateLocalizations(input, issues, nodeIdSet, nodesById)
             validateExercises(input, issues, nodeIdSet, lesson.id)
+            if (input.exercisesByContentId.values.sumOf { it.size } == 0) {
+                issues +=
+                    validationError(
+                        ValidationCode.EMPTY_LESSON_EXERCISES,
+                        "Lesson '" + lesson.id.value + "' must define at least one exercise.",
+                        "exercises",
+                    )
+            }
             validatePayloads(input.sourceRevisions, issues, nodesById)
         }
 
