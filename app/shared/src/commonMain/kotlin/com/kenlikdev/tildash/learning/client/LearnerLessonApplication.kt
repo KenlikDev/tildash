@@ -19,7 +19,8 @@ class LearnerLessonApplication(
     fun listDownloadedLessons(): List<DownloadedLesson> =
         downloadedLessonStore.listLessons()
 
-    fun openLesson(lessonId: ContentId): LearnerLessonState? = coordinator.open(lessonId)
+    fun openLesson(lessonId: ContentId): LearnerLessonState? =
+        coordinator.open(lessonId)
 
     fun submitText(
         state: LearnerLessonState,
