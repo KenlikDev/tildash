@@ -8,7 +8,6 @@ import com.kenlikdev.tildash.storage.DownloadedLessonStore
 import com.kenlikdev.tildash.storage.LearningProgressStore
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.time.Clock
 import kotlin.time.Instant
 
