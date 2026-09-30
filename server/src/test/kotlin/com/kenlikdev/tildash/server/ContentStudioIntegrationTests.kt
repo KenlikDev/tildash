@@ -35,6 +35,22 @@ class ContentStudioIntegrationTests {
     private lateinit var jdbcTemplate: JdbcTemplate
 
     @Test
+    fun nonLessonContentCannotEnterContentWorkflow() {
+        val exampleId =
+            createNode(
+                "EXAMPLE",
+                null,
+                "Example",
+            )
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$exampleId/submit")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isBadRequest())
+    }
+
+    @Test
     fun teacherCanCreateUpdateAndDeleteDraftLessonExerciseAndPublishedSnapshotKeepsIt() {
         val courseId = createNode("COURSE", null, "Course")
         val lessonId = createNode("LESSON", courseId, "Lesson")
