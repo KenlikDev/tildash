@@ -36,7 +36,7 @@ A published lesson must have a published COURSE parent.
 
 Malformed hierarchy is rejected instead of being silently omitted.
 
-Other content kinds remain outside this first catalog projection and may be exposed by later learner feature slices.
+Other content kinds remain outside this catalog projection and may be exposed by later learner feature slices.
 
 ## Ordering
 
