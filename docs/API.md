@@ -241,6 +241,58 @@ Requires TEACHER, REVIEWER, or ADMINISTRATOR.
 Malformed content requests use RFC 9457 Problem Details. Validation and workflow conflicts use stable problem types rather than framework exception names.
 
 
+
+## Learning catalog
+
+GET /api/v1/learning/catalog
+
+Returns the deterministic learner course catalog projected from canonical content nodes and immutable published snapshots.
+
+Requires the LEARNER application role.
+
+Successful response:
+
+```json
+{
+  "courses": [
+    {
+      "id": "course-id",
+      "title": "Course title",
+      "sourceLocale": "crh",
+      "publishedVersion": 1,
+      "lessons": [
+        {
+          "id": "lesson-id",
+          "title": "Lesson title",
+          "sourceLocale": "crh",
+          "publishedVersion": 1,
+          "localizations": [
+            {
+              "locale": "ru",
+              "value": "Название урока"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+The response contains only explicit learner-facing DTOs. It does not expose persistence records, provenance objects, Spring types, JDBC types, or database-specific identifiers.
+
+The server loads the published snapshots required by the shared LearningCatalogProjector. The projector selects the highest published version per content ID, rejects ambiguous duplicate versions and malformed hierarchy, and applies deterministic course/lesson ordering.
+
+An empty published catalog returns:
+
+```json
+{
+  "courses": []
+}
+```
+
+The endpoint does not seed or infer unpublished content.
+
 ## Learning synchronization
 
 POST /api/v1/learning/sync
