@@ -3,6 +3,7 @@ package com.kenlikdev.tildash
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -66,7 +67,7 @@ private fun LearnerApplicationContent(
                             learnerLessonState =
                                 learnerApplication.openLesson(downloadedLesson.lesson.id)
                         },
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Column(
                             modifier = Modifier.padding(8.dp),
@@ -86,6 +87,7 @@ private fun LearnerApplicationContent(
             }
         }
     } else {
+        val currentLessonState = checkNotNull(learnerLessonState)
         Column(
             modifier =
                 Modifier
@@ -100,15 +102,15 @@ private fun LearnerApplicationContent(
             }
 
             LearnerLessonScreen(
-                state = learnerLessonState!!,
+                state = currentLessonState,
                 onSubmitAnswer = { value ->
                     learnerLessonState =
                         learnerApplication.submitText(
-                            state = learnerLessonState!!,
+                            state = currentLessonState,
                             value = value,
                         )
                 },
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -117,7 +119,10 @@ private fun LearnerApplicationContent(
 @Composable
 private fun EmptyDownloadedLessonsState() {
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
@@ -134,7 +139,10 @@ private fun EmptyDownloadedLessonsState() {
 @Composable
 private fun EmptyApplicationState() {
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
