@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package com.kenlikdev.tildash
 
 import app.cash.sqldelight.db.SqlDriver
