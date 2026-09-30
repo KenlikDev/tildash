@@ -254,7 +254,8 @@ class ContentStudioService(
     fun listExercises(contentId: ContentId): List<ContentExerciseResponse> {
         val identity = currentIdentityProvider.current()
         requireAuthorOrReviewer(identity)
-        requireNode(contentId)
+        val node = requireNode(contentId).node
+        requireLessonNode(node.kind)
         return exerciseRepository.list(contentId).map(::toExerciseResponse)
     }
 
@@ -265,7 +266,9 @@ class ContentStudioService(
     ): ContentExerciseResponse {
         val identity = currentIdentityProvider.current()
         requireAuthor(identity)
-        requireDraft(requireNode(contentId).node.state)
+        val node = requireNode(contentId).node
+        requireLessonNode(node.kind)
+        requireDraft(node.state)
         validateExerciseRequest(request.id, request.prompt, request.position, request.expectedAnswers)
         if (exerciseRepository.list(contentId).any { it.id == request.id }) {
             throw ContentWorkflowViolation(
@@ -285,7 +288,9 @@ class ContentStudioService(
     ): ContentExerciseResponse {
         val identity = currentIdentityProvider.current()
         requireAuthor(identity)
-        requireDraft(requireNode(contentId).node.state)
+        val node = requireNode(contentId).node
+        requireLessonNode(node.kind)
+        requireDraft(node.state)
         validateExerciseRequest(exerciseId, request.prompt, request.position, request.expectedAnswers)
         val definition = ExerciseDefinition(exerciseId, request.prompt, request.expectedAnswers)
         if (!exerciseRepository.update(contentId, exerciseId, request.position, definition)) {
@@ -298,9 +303,17 @@ class ContentStudioService(
     fun deleteExercise(contentId: ContentId, exerciseId: String) {
         val identity = currentIdentityProvider.current()
         requireAuthor(identity)
-        requireDraft(requireNode(contentId).node.state)
+        val node = requireNode(contentId).node
+        requireLessonNode(node.kind)
+        requireDraft(node.state)
         if (!exerciseRepository.delete(contentId, exerciseId)) {
             throw ContentNotFoundException(contentId)
+        }
+    }
+
+    private fun requireLessonNode(kind: ContentKind) {
+        if (kind != ContentKind.LESSON) {
+            throw ContentWorkflowViolation("Exercises can only be managed for lesson nodes.")
         }
     }
 
@@ -357,6 +370,11 @@ class ContentStudioService(
         validate: Boolean,
     ): ContentMutationResponse {
         val stored = requireNode(contentId)
+        if (stored.node.kind !in setOf(ContentKind.COURSE, ContentKind.LESSON)) {
+            throw ContentWorkflowViolation(
+                "Content workflow is only available for course and lesson nodes.",
+            )
+        }
 
         val validation =
             if (validate) {
