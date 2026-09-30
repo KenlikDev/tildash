@@ -118,7 +118,8 @@ class LearnerLessonApplicationTest {
     private class FakeDownloadedLessonStore(
         private val lesson: DownloadedLesson,
     ) : DownloadedLessonStore {
-        override fun save(downloadedLesson: DownloadedLesson): Unit = Unit
+        override fun save(downloadedLesson: DownloadedLesson): Unit =
+            Unit
 
         override fun loadLesson(lessonId: ContentId): DownloadedLesson? =
             lesson.takeIf { it.lesson.id == lessonId }
@@ -126,9 +127,11 @@ class LearnerLessonApplicationTest {
         override fun listLessons(): List<DownloadedLesson> =
             listOf(lesson)
 
-        override fun deleteLesson(lessonId: ContentId): Unit = Unit
+        override fun deleteLesson(lessonId: ContentId): Unit =
+            Unit
 
-        override fun countLessons(): Long = 1
+        override fun countLessons(): Long =
+            1
     }
 
     private class FakeLearningProgressStore(
