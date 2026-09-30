@@ -343,7 +343,10 @@ class JdbcContentStudioRepository(
                             expectedAnswers =
                                 objectMapper
                                     .readTree(rs.getString("expected_answers"))
-                                    .map { it.asText() },
+                                    .elements()
+                                    .asSequence()
+                                    .map { it.asText() }
+                                    .toList(),
                         )
                 }.groupBy({ it.first }, { it.second })
 
