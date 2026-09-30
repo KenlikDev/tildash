@@ -72,12 +72,9 @@ class PublishedLearningLessonRepository(
                     contentId = contentId,
                     prompt = rs.getString("prompt"),
                     expectedAnswers =
-                        objectMapper
-                            .readTree(rs.getString("expected_answers"))
-                            .elements()
-                            .asSequence()
-                            .map { it.asText() }
-                            .toList(),
+                        buildList {
+                            objectMapper.readTree(rs.getString("expected_answers")).forEach { add(it.asText()) }
+                        },
                 )
             }
 
