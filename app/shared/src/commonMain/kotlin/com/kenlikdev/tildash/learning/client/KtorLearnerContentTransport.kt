@@ -24,6 +24,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlin.coroutines.cancellation.CancellationException
 
 class LearnerContentTransportFailure(
     val statusCode: Int?,
@@ -64,6 +65,8 @@ class KtorLearnerContentTransport(
                         header("X-Tildash-Development-Role", role)
                     }
                 }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
             } catch (timeout: HttpRequestTimeoutException) {
                 throw LearnerContentTransportFailure(
                     statusCode = null,
