@@ -102,3 +102,30 @@ data class ReviewDecisionResponse(
     val state: ContentState,
     val validationOutcome: String,
 )
+
+
+data class CreateExerciseRequest(
+    @field:NotBlank
+    val id: String,
+    @field:NotBlank
+    val prompt: String,
+    @field:Min(0)
+    val position: Int,
+    val expectedAnswers: List<String>,
+)
+
+data class UpdateExerciseRequest(
+    @field:NotBlank
+    val prompt: String,
+    @field:Min(0)
+    val position: Int,
+    val expectedAnswers: List<String>,
+)
+
+data class ContentExerciseResponse(
+    val id: String,
+    val contentId: String,
+    val prompt: String,
+    val position: Int,
+    val expectedAnswers: List<String>,
+)
