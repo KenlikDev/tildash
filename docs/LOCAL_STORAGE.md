@@ -71,9 +71,15 @@ This verifies durable storage rather than an in-memory test double.
 
 ## Platform boundary
 
-Platform composition is responsible for constructing a persistent SQLDelight driver and injecting it into SqlDelightLearningProgressStore.
+Platform composition now constructs the existing SQLDelight database through the following durable targets:
 
-The storage implementation itself does not know whether the driver is backed by Android application storage, an iOS native SQLite file, or a JVM SQLite file.
+- Android: `AndroidSqliteDriver` using the application context and `tildash.db`;
+- iOS: `NativeSqliteDriver` using `Library/Application Support/Tildash/tildash.db` inside the application sandbox;
+- Desktop/JVM: the existing SQLite JDBC driver using `~/.tildash/tildash.db`.
+
+The shared `LearnerLessonApplication` consumes the resulting driver through the existing `DownloadedLessonStore` and `LearningProgressStore` implementations.
+
+SQLDelight 2.4.0 documents the platform driver constructors used by this composition, including `AndroidSqliteDriver`, `NativeSqliteDriver`, and the JVM SQLite JDBC driver. citeturn802475search0turn542008search0turn542008search4
 
 Authentication/session UI and platform-specific encrypted-at-rest drivers remain composition concerns. The shared storage layer never persists access or refresh tokens.
 
