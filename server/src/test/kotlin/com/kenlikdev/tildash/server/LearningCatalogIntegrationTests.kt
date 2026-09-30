@@ -6,7 +6,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -16,7 +15,6 @@ import java.time.Instant
 import java.util.UUID
 
 @SpringBootTest
-@org.springframework.test.context.ContextConfiguration
 @org.springframework.context.annotation.Import(PostgresTestConfiguration::class)
 class LearningCatalogIntegrationTests {
     @Autowired
@@ -32,10 +30,10 @@ class LearningCatalogIntegrationTests {
         val lessonB = uuid("00000000-0000-4000-8000-000000000003")
         val draftLesson = uuid("00000000-0000-4000-8000-000000000004")
 
-        insertNode(courseId, "COURSE", null, 0, "Course")
-        insertNode(lessonB, "LESSON", courseId, 1, "Lesson B")
-        insertNode(lessonA, "LESSON", courseId, 0, "Lesson A")
-        insertNode(draftLesson, "LESSON", courseId, 2, "Draft lesson")
+        insertNode(courseId, "COURSE", null, 0)
+        insertNode(lessonB, "LESSON", courseId, 1)
+        insertNode(lessonA, "LESSON", courseId, 0)
+        insertNode(draftLesson, "LESSON", courseId, 2)
 
         publish(courseId, 1, "Course")
         publish(lessonB, 1, "Lesson B")
@@ -90,12 +88,7 @@ class LearningCatalogIntegrationTests {
         kind: String,
         parentId: UUID?,
         position: Int,
-        value: String,
     ) {
-        val provenanceId = UUID.randomUUID()
-        val sourceRevisionId = UUID.randomUUID()
-        val now = Timestamp.from(Instant.parse("2026-09-30T10:00:00Z"))
-
         jdbcTemplate.update(
             """
             insert into tildash.content_nodes (
@@ -108,32 +101,6 @@ class LearningCatalogIntegrationTests {
             parentId,
             "crh",
             position,
-        )
-
-        jdbcTemplate.update(
-            """
-            insert into tildash.content_provenance (
-                id, source_title, copyright_status
-            )
-            values (?::uuid, ?, 'PUBLIC_DOMAIN')
-            """.trimIndent(),
-            provenanceId,
-            "Integration test source",
-        )
-
-        jdbcTemplate.update(
-            """
-            insert into tildash.content_source_revisions (
-                id, content_node_id, revision_no, payload, provenance_id, created_by, created_at
-            )
-            values (?::uuid, ?::uuid, 1, CAST(? AS jsonb), ?::uuid, ?, ?)
-            """.trimIndent(),
-            sourceRevisionId,
-            id,
-            """{"value":"$value"}""",
-            provenanceId,
-            "integration-test",
-            now,
         )
     }
 
