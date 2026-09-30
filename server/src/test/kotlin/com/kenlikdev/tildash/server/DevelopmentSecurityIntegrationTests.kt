@@ -68,8 +68,8 @@ class DevelopmentSecurityIntegrationTests {
             .perform(
                 get("/api/v1/learning/catalog")
                     .header("X-Tildash-Development-Role", "teacher")
-                    .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                    .withRemoteAddress("127.0.0.1"),
+                    .with(remoteAddress("127.0.0.1"))
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON),
             ).andExpect(status().isForbidden)
     }
 }
