@@ -97,33 +97,60 @@ data class LessonValidationInput(
 )
 
 class ContentValidator {
-    fun validateLesson(input: LessonValidationInput): ReviewResult {
+    fun validateLesson(input: LessonValidationInput): ReviewResult =
+        validateTarget(
+            input = input,
+            expectedKind = ContentKind.LESSON,
+            requireExercises = true,
+        )
+
+    fun validateCourse(input: LessonValidationInput): ReviewResult =
+        validateTarget(
+            input = input,
+            expectedKind = ContentKind.COURSE,
+            requireExercises = false,
+        )
+
+    private fun validateTarget(
+        input: LessonValidationInput,
+        expectedKind: ContentKind,
+        requireExercises: Boolean,
+    ): ReviewResult {
         val issues = mutableListOf<ValidationIssue>()
         val nodesById = input.nodes.groupBy { it.id }
 
         if (nodesById[input.lessonId].isNullOrEmpty()) {
             issues +=
                 validationError(
-                    ValidationCode.LESSON_NOT_FOUND,
-                    "Lesson '${input.lessonId.value}' is not present in the content tree.",
-                    "lessonId",
+                    if (expectedKind == ContentKind.LESSON) {
+                        ValidationCode.LESSON_NOT_FOUND
+                    } else {
+                        ValidationCode.MISSING_PARENT
+                    },
+                    expectedKind.name.lowercase().replace('_', ' ') +
+                        " '" + input.lessonId.value + "' is not present in the content tree.",
+                    "contentId",
                 )
         } else if (nodesById.getValue(input.lessonId).size > 1) {
             issues +=
                 validationError(
                     ValidationCode.DUPLICATE_CONTENT_ID,
-                    "Lesson '${input.lessonId.value}' appears more than once.",
-                    "lessonId",
+                    "Validation target '${input.lessonId.value}' appears more than once.",
+                    "contentId",
                 )
         }
 
-        val lesson = nodesById[input.lessonId]?.singleOrNull()
-        if (lesson != null && lesson.kind != ContentKind.LESSON) {
+        val target = nodesById[input.lessonId]?.singleOrNull()
+        if (target != null && target.kind != expectedKind) {
             issues +=
                 validationError(
-                    ValidationCode.TARGET_IS_NOT_LESSON,
-                    "Validation target '${input.lessonId.value}' must be a lesson node.",
-                    "lessonId",
+                    if (expectedKind == ContentKind.LESSON) {
+                        ValidationCode.TARGET_IS_NOT_LESSON
+                    } else {
+                        ValidationCode.INVALID_ROOT_PARENT
+                    },
+                    "Validation target '${input.lessonId.value}' must be a " + expectedKind.name + " node.",
+                    "contentId",
                 )
         }
 
@@ -172,14 +199,23 @@ class ContentValidator {
             }
         }
 
-        if (lesson != null) {
-            val parent = lesson.parentId?.let { nodesById[it]?.singleOrNull() }
-            if (parent != null && parent.kind != ContentKind.COURSE) {
+        if (target != null) {
+            if (expectedKind == ContentKind.LESSON) {
+                val parent = target.parentId?.let { nodesById[it]?.singleOrNull() }
+                if (parent != null && parent.kind != ContentKind.COURSE) {
+                    issues +=
+                        validationError(
+                            ValidationCode.INVALID_LESSON_PARENT,
+                            "Lesson '${target.id.value}' must be a direct child of a course.",
+                            "lesson.parentId",
+                        )
+                }
+            } else if (target.parentId != null) {
                 issues +=
                     validationError(
-                        ValidationCode.INVALID_LESSON_PARENT,
-                        "Lesson '${lesson.id.value}' must be a direct child of a course.",
-                        "lesson.parentId",
+                        ValidationCode.INVALID_ROOT_PARENT,
+                        "Course '${target.id.value}' must not have a parent.",
+                        "course.parentId",
                     )
             }
 
@@ -187,14 +223,16 @@ class ContentValidator {
             validateSiblingPositions(input.nodes, issues)
             validateSourceRevisions(input, issues, nodesById)
             validateLocalizations(input, issues, nodeIdSet, nodesById)
-            validateExercises(input, issues, nodeIdSet, lesson.id)
-            if (input.exercisesByContentId.values.sumOf { it.size } == 0) {
-                issues +=
-                    validationError(
-                        ValidationCode.EMPTY_LESSON_EXERCISES,
-                        "Lesson '" + lesson.id.value + "' must define at least one exercise.",
-                        "exercises",
-                    )
+            if (requireExercises) {
+                validateExercises(input, issues, nodeIdSet, target.id)
+                if (input.exercisesByContentId.values.sumOf { it.size } == 0) {
+                    issues +=
+                        validationError(
+                            ValidationCode.EMPTY_LESSON_EXERCISES,
+                            "Lesson '${target.id.value}' must define at least one exercise.",
+                            "exercises",
+                        )
+                }
             }
             validatePayloads(input.sourceRevisions, issues, nodesById)
         }
@@ -285,7 +323,7 @@ class ContentValidator {
         val descendants = descendantsOf(input.lessonId, nodesById.mapNotNullValuesSingle())
         nodesById.values
             .flatten()
-            .filter { it.id in descendants && it.kind != ContentKind.COURSE }
+            .filter { it.id in descendants }
             .forEach { node ->
                 if (revisionsByContent[node.id].isNullOrEmpty()) {
                     issues +=
