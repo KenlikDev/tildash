@@ -74,7 +74,10 @@ class LearnerLessonApplicationTest {
         assertEquals(listOf(lesson), application.listDownloadedLessons())
         assertEquals(
             lessonId,
-            application.openLesson(lessonId)?.lesson?.lesson?.id,
+            application.openLesson(lessonId)
+                ?.lesson
+                ?.lesson
+                ?.id,
         )
     }
 
@@ -114,14 +117,16 @@ class LearnerLessonApplicationTest {
     private class FakeDownloadedLessonStore(
         private val lesson: DownloadedLesson,
     ) : DownloadedLessonStore {
-        override fun save(downloadedLesson: DownloadedLesson) = Unit
+        override fun save(downloadedLesson: DownloadedLesson) =
+            Unit
 
         override fun loadLesson(lessonId: ContentId): DownloadedLesson? =
             lesson.takeIf { it.lesson.id == lessonId }
 
         override fun listLessons(): List<DownloadedLesson> = listOf(lesson)
 
-        override fun deleteLesson(lessonId: ContentId) = Unit
+        override fun deleteLesson(lessonId: ContentId) =
+            Unit
 
         override fun countLessons(): Long = 1
     }
@@ -148,6 +153,7 @@ class LearnerLessonApplicationTest {
             savedAttempts.removeAll { it.attemptId == attemptId }
         }
 
-        override fun pendingSyncCount(): Long = savedAttempts.size.toLong()
+        override fun pendingSyncCount(): Long =
+            savedAttempts.size.toLong()
     }
 }
