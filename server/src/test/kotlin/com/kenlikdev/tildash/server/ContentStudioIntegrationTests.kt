@@ -147,6 +147,28 @@ class ContentStudioIntegrationTests {
                 lessonId,
             ),
         )
+
+        mockMvc
+            .perform(
+                put("/api/v1/content/$lessonId/exercises/exercise-1")
+                    .with(user("teacher").roles("TEACHER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        objectMapper.writeValueAsString(
+                            mapOf(
+                                "prompt" to "Tamper after publish.",
+                                "position" to 0,
+                                "expectedAnswers" to listOf("tampered"),
+                            ),
+                        ),
+                    ),
+            ).andExpect(status().isConflict())
+
+        mockMvc
+            .perform(
+                delete("/api/v1/content/$lessonId/exercises/exercise-1")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isConflict())
     }
 
     @Test
@@ -321,6 +343,50 @@ class ContentStudioIntegrationTests {
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$[2].action").value("REJECT"))
             .andExpect(jsonPath("$[2].reason").value("Fix the source citation."))
+    }
+
+    @Test
+    fun publishedExercisesAreImmutableAtDatabaseBoundary() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+        publishLesson(lessonId)
+
+        val publishedVersionId =
+            jdbcTemplate.queryForObject(
+                """
+                select pv.id::text
+                from tildash.content_published_versions pv
+                where pv.content_node_id = ?::uuid
+                order by pv.version_no desc
+                limit 1
+                """.trimIndent(),
+                String::class.java,
+                lessonId,
+            )
+        assertNotNull(publishedVersionId)
+
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
+                """
+                update tildash.content_published_exercises
+                set prompt = 'Tampered'
+                where published_version_id = ?::uuid
+                  and exercise_id = 'exercise-1'
+                """.trimIndent(),
+                publishedVersionId,
+            )
+        }
+
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
+                """
+                delete from tildash.content_published_exercises
+                where published_version_id = ?::uuid
+                  and exercise_id = 'exercise-1'
+                """.trimIndent(),
+                publishedVersionId,
+            )
+        }
     }
 
     @Test
