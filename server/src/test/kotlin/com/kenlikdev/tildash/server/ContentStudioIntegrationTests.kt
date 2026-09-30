@@ -27,10 +27,6 @@ import kotlin.test.assertNotNull
 @AutoConfigureMockMvc
 @Import(PostgresTestConfiguration::class)
 class ContentStudioIntegrationTests {
-    @BeforeEach
-    fun clearFixtures() {
-        jdbcTemplate.execute("TRUNCATE tildash.content_nodes CASCADE")
-    }
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -39,6 +35,11 @@ class ContentStudioIntegrationTests {
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    @BeforeEach
+    fun clearFixtures() {
+        jdbcTemplate.execute("TRUNCATE tildash.content_nodes CASCADE")
+    }
 
     @Test
     fun nonLessonContentCannotEnterContentWorkflow() {
