@@ -74,4 +74,8 @@ Common tests verify:
 - durable persistence of every attempt;
 - completion and recreation from persisted progress.
 
+The shared Compose presentation boundary is `LearnerLessonScreen` in `app/shared`. It consumes only an existing `LearnerLessonState` and exposes answer submission through an explicit callback. It owns ephemeral answer-input state but does not generate attempt IDs, timestamps, evaluate answers, select exercises, persist attempts, or synchronize progress.
+
+The application `App` surface now acts as a neutral host: it renders the lesson screen when an already-open learner state is supplied and otherwise shows a non-interactive lesson-selection state. Platform entry points remain responsible for constructing future storage/application composition.
+
 The next client slice can consume `LearnerLessonState` from a UI without moving learning rules into presentation code.
