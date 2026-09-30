@@ -24,3 +24,18 @@ data class LearningLocalizedTextResponse(
     val locale: String,
     val value: String,
 )
+
+
+data class LearningLessonPackageResponse(
+    val course: LearningCourseResponse,
+    val lesson: LearningLessonResponse,
+    val exercises: List<LearningExerciseResponse>,
+)
+
+data class LearningExerciseResponse(
+    val id: String,
+    val contentId: String,
+    val type: String,
+    val prompt: String,
+    val expectedAnswers: List<String>,
+)
