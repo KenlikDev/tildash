@@ -16,7 +16,6 @@ class PublishedLearningLessonNotFoundException(
 ) : RuntimeException("Published learner lesson '${lessonId.value}' was not found.")
 
 class PublishedLearningLessonInvalidException(
-    lessonId: ContentId,
     cause: Throwable? = null,
 ) : RuntimeException("Published learner lesson data is invalid.", cause)
 
@@ -70,9 +69,7 @@ class PublishedLearningLessonRepository(
                     )
                 val type = rs.getString("exercise_type")
                 if (type != "MANUAL_INPUT") {
-                    throw IllegalStateException(
-                        "Unsupported published learning exercise type '$type' for lesson '${lessonId.value}'.",
-                    )
+                    throw PublishedLearningLessonInvalidException()
                 }
 
                 ManualInputExercise(
@@ -87,7 +84,7 @@ class PublishedLearningLessonRepository(
             }
 
         if (exercises.isEmpty()) {
-            throw PublishedLearningLessonInvalidException(lessonId)
+            throw PublishedLearningLessonInvalidException()
         }
 
         return LearnerLessonPackage(
