@@ -66,6 +66,13 @@ private fun LearningAttemptRequest.toDomain(): LearningAttempt {
                 LearningOutcomeRequest.CORRECT -> AnswerOutcome.CORRECT
                 LearningOutcomeRequest.INCORRECT -> AnswerOutcome.INCORRECT
             },
-        occurredAt = Instant.fromEpochSeconds(occurredAt.toEpochSecond(), occurredAt.nano.toLong()),
+        occurredAt = occurredAt.toPostgresPrecision(),
     )
 }
+
+
+private fun Instant.toPostgresPrecision(): Instant =
+    Instant.fromEpochSeconds(
+        epochSeconds,
+        (nanosecondsOfSecond / 1_000L) * 1_000L,
+    )
