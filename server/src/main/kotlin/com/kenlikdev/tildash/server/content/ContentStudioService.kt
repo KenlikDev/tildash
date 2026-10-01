@@ -439,8 +439,14 @@ class ContentStudioService(
 
         val result =
             when (kind) {
-                ContentKind.COURSE -> validator.validateCourse(validationInput)
-                ContentKind.LESSON -> validator.validateLesson(validationInput)
+                ContentKind.COURSE -> {
+                    validator.validateCourse(validationInput)
+                }
+
+                ContentKind.LESSON -> {
+                    validator.validateLesson(validationInput)
+                }
+
                 else -> {
                     throw ContentWorkflowViolation(
                         "Content workflow is only available for course and lesson nodes.",
