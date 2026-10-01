@@ -121,6 +121,28 @@ class LearningLessonPackageIntegrationTests {
     }
 
     @Test
+    fun invalidPublishedLessonDoesNotExposeInternalFailure() {
+        val courseId = UUID.fromString("10000000-0000-4000-8000-000000000031")
+        val lessonId = UUID.fromString("10000000-0000-4000-8000-000000000032")
+
+        insertNode(courseId, "COURSE", null, 0)
+        insertNode(lessonId, "LESSON", courseId, 0)
+        publish(courseId, 1, "Course")
+        publish(lessonId, 1, "Lesson")
+
+        mockMvc
+            .perform(
+                get("/api/v1/learning/lessons/$lessonId")
+                    .with(user("learner").roles("LEARNER"))
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON),
+            )
+            .andExpect(status().isInternalServerError)
+            .andExpect(jsonPath("$.type").value("urn:tildash:problem:learning-lesson-invalid"))
+            .andExpect(jsonPath("$.title").value("Published learner lesson unavailable"))
+            .andExpect(jsonPath("$.detail").value("The published learner lesson could not be loaded."))
+    }
+
+    @Test
     fun unpublishedLessonIsNotVisible() {
         val courseId = UUID.fromString("10000000-0000-4000-8000-000000000021")
         val lessonId = UUID.fromString("10000000-0000-4000-8000-000000000022")
