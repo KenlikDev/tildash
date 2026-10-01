@@ -2,7 +2,7 @@
 
 The backend framework is Spring Boot with Kotlin. Ktor is not part of the target backend architecture.
 
-Use the latest stable Spring Boot release that is verified compatible with the repository Kotlin, Gradle, and JDK versions. As of 2026-09-21, Spring Boot 4.1.1 is the latest stable release; re-check this before integration.
+Use the latest stable Spring Boot release that is verified compatible with the repository Kotlin, Gradle, and JDK versions. Record the exact version used for the change and verify compatibility before integration.
 
 Target layering:
 
