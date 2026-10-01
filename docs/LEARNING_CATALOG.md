@@ -4,7 +4,7 @@
 
 The learner catalog is a deterministic read-side projection over the canonical content tree and immutable published snapshots.
 
-The projection lives in the shared core and does not depend on HTTP, Spring, JDBC, PostgreSQL, or UI code.
+The projection lives in the shared core and does not depend on HTTP, Spring, JDBC, PostgreSQL, or UI code. The server exposes this read model through the authenticated `/api/v1/learning/catalog` HTTP boundary.
 
 ## Input
 
@@ -81,7 +81,6 @@ Keeping these responsibilities separate avoids mixing content browsing, publicat
 
 This slice does not implement:
 
-- HTTP catalog endpoints;
 - learner UI;
 - offline local persistence;
 - synchronization;
