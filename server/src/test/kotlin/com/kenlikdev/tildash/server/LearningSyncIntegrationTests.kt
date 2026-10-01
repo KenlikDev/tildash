@@ -97,7 +97,9 @@ class LearningSyncIntegrationTests {
         assertEquals(
             "2026-09-28 09:00:00.123456+00",
             jdbcTemplate.queryForObject(
-                "select to_char(occurred_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') from tildash.learning_attempts " +
+                "select to_char(occurred_at at time zone 'UTC', " +
+                    "'YYYY-MM-DD HH24:MI:SS.US') " +
+                    "from tildash.learning_attempts " +
                     "where learner_subject = ? and attempt_id = ?",
                 String::class.java,
                 "learner-a",
