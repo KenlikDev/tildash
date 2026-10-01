@@ -40,7 +40,9 @@ class ContentStudioController(
     @GetMapping("/{contentId}/exercises")
     @PreAuthorize("hasAnyRole('TEACHER', 'REVIEWER', 'ADMINISTRATOR')")
     @Operation(summary = "List draft lesson exercises")
-    fun listExercises(@PathVariable contentId: String): List<ContentExerciseResponse> =
+    fun listExercises(
+        @PathVariable contentId: String,
+    ): List<ContentExerciseResponse> =
         service.listExercises(contentId.toContentId())
 
     @PostMapping("/{contentId}/exercises")
@@ -50,7 +52,9 @@ class ContentStudioController(
         @PathVariable contentId: String,
         @Valid @RequestBody request: CreateExerciseRequest,
     ): ResponseEntity<ContentExerciseResponse> =
-        ResponseEntity.status(201).body(service.createExercise(contentId.toContentId(), request))
+        ResponseEntity
+            .status(201)
+            .body(service.createExercise(contentId.toContentId(), request))
 
     @PutMapping("/{contentId}/exercises/{exerciseId}")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMINISTRATOR')")
