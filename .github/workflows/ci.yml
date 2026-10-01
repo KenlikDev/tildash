@@ -59,6 +59,9 @@ jobs:
       - name: Run full test suite
         run: ./gradlew clean test --no-configuration-cache
 
+      - name: Run Desktop UI tests
+        run: ./gradlew :app:shared:jvmTest --no-configuration-cache
+
       - name: Run KtLint
         run: ./gradlew ktlintCheck --no-configuration-cache
 
