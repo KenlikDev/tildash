@@ -8,6 +8,7 @@ import com.kenlikdev.tildash.learning.LearnerLessonSummary
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.ManualInputExercise
 import java.nio.file.Files
+import java.util.Properties
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -132,7 +133,14 @@ class SqlDelightDownloadedLessonStoreTest {
     }
 
     private fun open(path: String): TestStore {
-        val driver = JdbcSqliteDriver("jdbc:sqlite:" + path)
+        val driver =
+            JdbcSqliteDriver(
+                url = "jdbc:sqlite:" + path,
+                properties =
+                    Properties().apply {
+                        put("foreign_keys", "true")
+                    },
+            )
         TildashDatabase.Schema.create(driver)
         return TestStore(driver, SqlDelightDownloadedLessonStore(driver))
     }
