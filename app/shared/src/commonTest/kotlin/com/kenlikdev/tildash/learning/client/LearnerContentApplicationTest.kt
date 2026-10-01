@@ -30,7 +30,8 @@ class LearnerContentApplicationTest {
                     transport = transport,
                     downloadedLessonStore = store,
                     clock = object : kotlin.time.Clock {
-                        override fun now(): Instant = Instant.parse("2026-10-01T08:00:00Z")
+                        override fun now(): Instant =
+                            Instant.parse("2026-10-01T08:00:00Z")
                     },
                 )
 
@@ -39,7 +40,15 @@ class LearnerContentApplicationTest {
 
             assertTrue(application.isDownloaded(lessonId))
             assertEquals(1, application.listDownloadedLessons().size)
-            assertEquals("Translate hello.", application.listDownloadedLessons().single().plan.exercises.single().prompt)
+            assertEquals(
+                "Translate hello.",
+                application.listDownloadedLessons()
+                    .single()
+                    .plan
+                    .exercises
+                    .single()
+                    .prompt,
+            )
 
             application.deleteDownloadedLesson(lessonId)
 
