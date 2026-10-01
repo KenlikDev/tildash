@@ -33,7 +33,6 @@ Recommended task branch names:
 `docs/<description>`
 `chore/<description>`
 `hotfix/<description>`
-`release/<version-or-description>`
 
 ## Protected branches
 
@@ -68,7 +67,7 @@ Before creating a task branch:
 
 Before opening or merging a task PR:
 - compare the task branch with the current `develop`;
-- if `develop` has advanced materially, refresh the task branch deliberately rather than silently integrating stale work;
+- if `develop` has advanced, determine explicitly whether to refresh the task branch or preserve the documented immutable baseline;
 - after any rebase, merge-from-`develop`, or other task-head change, re-run the applicable verification on the resulting head.
 
 Never treat CI, review, or acceptance evidence from an older task-branch SHA as evidence for a newer SHA.
@@ -85,8 +84,11 @@ A task branch may enter `develop` only when:
 5. broader applicable checks pass;
 6. no unresolved merge conflict remains;
 7. the change is within task scope;
-8. the required checks and review evidence cover the exact task-branch head;
-9. the resulting integration state is re-verified after merge.
+8. the required checks and review evidence cover the exact task-branch head.
+
+For security-sensitive changes, applicable security verification must also pass even when the corresponding security check is not currently a required protected-branch status check.
+
+After integration, re-verify the resulting `develop` state before treating the change as part of a releasable state.
 
 Do not merge code simply because:
 - it compiles;
