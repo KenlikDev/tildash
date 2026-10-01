@@ -59,7 +59,10 @@ class PublishedLearningLessonRepository(
                 MapSqlParameterSource("versionId", versionId),
             ) { rs, _ ->
                 val exerciseId = rs.getString("exercise_id")
-                val contentId = ContentId(rs.getObject("content_node_id", UUID::class.java).toString())
+                val contentId =
+                    ContentId(
+                        rs.getObject("content_node_id", UUID::class.java).toString(),
+                    )
                 val type = rs.getString("exercise_type")
                 if (type != "MANUAL_INPUT") {
                     throw IllegalStateException(
