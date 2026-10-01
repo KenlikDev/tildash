@@ -20,5 +20,13 @@ fun createTildashDatabaseDriver(): SqlDriver {
     return NativeSqliteDriver(
         schema = TildashDatabase.Schema,
         name = "$directory/tildash.db",
+        onConfiguration = { config ->
+            config.copy(
+                extendedConfig =
+                    config.extendedConfig.copy(
+                        foreignKeyConstraints = true,
+                    ),
+            )
+        },
     )
 }
