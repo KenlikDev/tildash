@@ -20,6 +20,6 @@ After generation:
 1. keep the project outside the Tildash repository;
 2. run the generated test task without modification;
 3. record the generated Kotlin, Gradle, Spring Boot, and JDK versions;
-4. provide the complete generated project/ZIP for inspection.
+4. preserve the complete generated project/ZIP for inspection as required by the task.
 
-The integration agent adapts the bootstrap into Tildash; it does not replace the repository root.
+The generated project is reference input. Adapt it into the existing Tildash `server` module; do not replace the repository root.
