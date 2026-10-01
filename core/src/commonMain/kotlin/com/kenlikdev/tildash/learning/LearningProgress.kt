@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.learning
 
+import kotlin.ConsistentCopyVisibility
 import com.kenlikdev.tildash.content.model.ContentId
 import kotlin.time.Instant
 
@@ -200,6 +201,7 @@ object ReviewScheduler {
         )
 }
 
+@ConsistentCopyVisibility
 data class LearningProgress private constructor(
     val attempts: List<LearningAttempt>,
 ) {
