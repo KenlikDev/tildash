@@ -300,7 +300,10 @@ class ContentStudioService(
     }
 
     @Transactional
-    fun deleteExercise(contentId: ContentId, exerciseId: String) {
+    fun deleteExercise(
+        contentId: ContentId,
+        exerciseId: String,
+    ) {
         val identity = currentIdentityProvider.current()
         requireAuthor(identity)
         val node = requireNode(contentId).node
