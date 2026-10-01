@@ -15,6 +15,11 @@ class PublishedLearningLessonNotFoundException(
     lessonId: ContentId,
 ) : RuntimeException("Published learner lesson '${lessonId.value}' was not found.")
 
+class PublishedLearningLessonInvalidException(
+    lessonId: ContentId,
+    cause: Throwable? = null,
+) : RuntimeException("Published learner lesson data is invalid.", cause)
+
 @Repository
 class PublishedLearningLessonRepository(
     private val catalogRepository: PublishedLearningCatalogRepository,
