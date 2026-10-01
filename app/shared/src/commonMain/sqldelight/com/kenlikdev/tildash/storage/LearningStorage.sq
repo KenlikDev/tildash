@@ -88,7 +88,8 @@ CREATE TABLE downloaded_lesson (
     source_locale TEXT NOT NULL,
     published_version INTEGER NOT NULL,
     position INTEGER NOT NULL,
-    downloaded_at_epoch_millis INTEGER NOT NULL DEFAULT 0
+    downloaded_at_epoch_millis INTEGER NOT NULL DEFAULT 0,
+    course_lessons_json TEXT NOT NULL DEFAULT '[]'
 );
 
 CREATE TABLE downloaded_exercise (
@@ -132,18 +133,6 @@ SELECT lesson_id,
 FROM downloaded_lesson
 ORDER BY course_id ASC, position ASC, lesson_id ASC;
 
-selectDownloadedLessonsForCourse:
-SELECT lesson_id,
-       course_id,
-       title,
-       source_locale,
-       published_version,
-       position,
-       downloaded_at_epoch_millis
-FROM downloaded_lesson
-WHERE course_id = ?
-ORDER BY position ASC, lesson_id ASC;
-
 selectDownloadedLesson:
 SELECT lesson_id,
        course_id,
@@ -151,7 +140,8 @@ SELECT lesson_id,
        source_locale,
        published_version,
        position,
-       downloaded_at_epoch_millis
+       downloaded_at_epoch_millis,
+       course_lessons_json
 FROM downloaded_lesson
 WHERE lesson_id = ?;
 
@@ -214,9 +204,10 @@ INSERT INTO downloaded_lesson(
     source_locale,
     published_version,
     position,
-    downloaded_at_epoch_millis
+    downloaded_at_epoch_millis,
+    course_lessons_json
 )
-VALUES (?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 insertDownloadedExercise:
 INSERT INTO downloaded_exercise(
