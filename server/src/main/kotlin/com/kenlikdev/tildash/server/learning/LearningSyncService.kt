@@ -9,9 +9,9 @@ import com.kenlikdev.tildash.server.api.learning.LearningOutcomeRequest
 import com.kenlikdev.tildash.server.api.learning.LearningResponseType
 import com.kenlikdev.tildash.server.api.learning.LearningSyncRequest
 import com.kenlikdev.tildash.server.api.learning.LearningSyncResponse
-import java.time.OffsetDateTime
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.OffsetDateTime
 import kotlin.time.Instant
 
 @Service
