@@ -88,7 +88,10 @@ class ContentExerciseRepository(
                 .addValue("expectedAnswers", objectMapper.writeValueAsString(definition.expectedAnswers)),
         ) == 1
 
-    fun delete(contentId: ContentId, id: String): Boolean =
+    fun delete(
+        contentId: ContentId,
+        id: String,
+    ): Boolean =
         jdbc.update(
             """
             delete from tildash.content_exercise_definitions
