@@ -222,37 +222,39 @@ private fun CatalogContent(
 
         else -> {
             LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            catalog.courses.forEach { course ->
-                item(key = "course-" + course.id.value) {
-                    Text(course.title, style = MaterialTheme.typography.titleLarge)
-                }
-                items(course.lessons, key = { it.id.value }) { lesson ->
-                    val isDownloaded = downloaded.any { it.lesson.id == lesson.id }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(lesson.title, style = MaterialTheme.typography.titleMedium)
-                            Text("Published version " + lesson.publishedVersion)
-                        }
-                                        when {
-                            downloadingLessonId == lesson.id -> {
-                                CircularProgressIndicator()
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                catalog.courses.forEach { course ->
+                    item(key = "course-" + course.id.value) {
+                        Text(course.title, style = MaterialTheme.typography.titleLarge)
+                    }
+                    items(course.lessons, key = { it.id.value }) { lesson ->
+                        val isDownloaded = downloaded.any { it.lesson.id == lesson.id }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(lesson.title, style = MaterialTheme.typography.titleMedium)
+                                Text("Published version " + lesson.publishedVersion)
                             }
 
-                            isDownloaded -> {
-                                Button(onClick = { onOpen(lesson.id) }) {
-                                    Text("Open")
+                            when {
+                                downloadingLessonId == lesson.id -> {
+                                    CircularProgressIndicator()
                                 }
-                            }
 
-                            else -> {
-                                Button(onClick = { onDownload(lesson.id) }) {
-                                    Text("Download")
+                                isDownloaded -> {
+                                    Button(onClick = { onOpen(lesson.id) }) {
+                                        Text("Open")
+                                    }
+                                }
+
+                                else -> {
+                                    Button(onClick = { onDownload(lesson.id) }) {
+                                        Text("Download")
+                                    }
                                 }
                             }
                         }
@@ -260,7 +262,6 @@ private fun CatalogContent(
                 }
             }
         }
-    }
 }
 
 @Composable
