@@ -71,6 +71,7 @@ Before opening or merging a task PR:
 - after any rebase, merge-from-`develop`, or other task-head change, re-run the applicable verification on the resulting head.
 
 Never treat CI, review, or acceptance evidence from an older task-branch SHA as evidence for a newer SHA.
+When CI or workflow configuration changes, require a fresh pull-request workflow run after that change. Do not use a successful run that executed an older workflow revision as evidence for the new workflow configuration.
 
 Do not rewrite a task branch history after review or verification unless necessary. If history is rewritten, treat the resulting branch as a new verification target and repeat affected review and checks.
 
