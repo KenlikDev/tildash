@@ -4,20 +4,20 @@
 
 Before substantive work:
 
-1. Read `00-core/ENGINEERING_CONSTITUTION.md`.
-2. Read `00-core/INTEGRITY.md`.
-3. Read `00-core/EVIDENCE.md`.
-4. Select exactly one primary role from `01-roles/` for the current engineering phase.
-5. For code or developer-documentation changes, read `02-standards/CODE_AND_DOCS.md`.
-6. Read only the standards and processes required by that role and task.
-7. Inspect the actual Git state, target branch, repository structure, relevant source, tests, build files, and configuration before editing.
-8. For behavior changes, read `03-processes/CHANGE_WORKFLOW.md` and the testing/TDD standard.
-9. For full repository reviews, read `03-processes/FULL_REPOSITORY_REVIEW.md` before inspecting findings or making review conclusions.
-10. For branch, commit, PR, merge, or release operations, read `02-standards/GIT_AND_REPO.md`.
-11. For build, dependency, Kotlin, KMP, or JVM changes, read `02-standards/BUILD_AND_KMP.md`.
-12. For backend work, read `02-standards/SPRING_BACKEND.md`.
-13. Never infer unseen files, logs, command output, dependency state, or runtime behavior.
-
+1. Read `.ai/AI_INSTRUCTIONS.md` and use it together with this bootstrap as the startup contract.
+2. Read `00-core/ENGINEERING_CONSTITUTION.md`.
+3. Read `00-core/INTEGRITY.md`.
+4. Read `00-core/EVIDENCE.md`.
+5. Select exactly one primary role from `01-roles/` for the current engineering phase.
+6. For code or developer-documentation changes, read `02-standards/CODE_AND_DOCS.md`.
+7. Read only the standards and processes required by that role and task.
+8. Inspect the actual Git state, target branch, repository structure, relevant source, tests, build files, and configuration before editing.
+9. For behavior changes, read `03-processes/CHANGE_WORKFLOW.md` and the testing/TDD standard.
+10. For full repository reviews, read `03-processes/FULL_REPOSITORY_REVIEW.md` before inspecting findings or making review conclusions.
+11. For branch, commit, PR, merge, or release operations, read `02-standards/GIT_AND_REPO.md`.
+12. For build, dependency, Kotlin, KMP, or JVM changes, read `02-standards/BUILD_AND_KMP.md`.
+13. For backend work, read `02-standards/SPRING_BACKEND.md`.
+14. Never infer unseen files, logs, command output, dependency state, or runtime behavior.
 For branch, commit, PR, merge, or release operations:
 - treat `ai/integration` as the permanent AI integration branch;
 - never merge task branches directly into `develop`;

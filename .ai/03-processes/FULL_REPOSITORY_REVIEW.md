@@ -93,6 +93,7 @@ For this repository, that includes when present:
 
 - .ai/AI_BOOTSTRAP.md;
 - .ai/AI_INSTRUCTIONS.md;
+- .ai/AI_REVIEW_PROMPT.md for review tasks;
 - the active role instructions;
 - ENGINEERING_CONSTITUTION.md;
 - EVIDENCE.md;

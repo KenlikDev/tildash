@@ -10,7 +10,8 @@
 8. Run broader applicable checks.
 9. Re-read the applicable instruction files at the final-review checkpoint.
 10. Inspect the final diff.
-11. Run an independent review for non-trivial changes.
+11. Switch the active role to `REVIEWER` and reread its role instructions before running the independent review.
+    Run an independent review for non-trivial changes.
 For a full repository review, additionally follow `03-processes/FULL_REPOSITORY_REVIEW.md` in full.
 12. Commit one coherent change.
 13. Push only the authorized task branch.
