@@ -54,13 +54,24 @@ class SqlDelightDownloadedLessonStore(
                 queries.deleteDownloadedCourseIfOrphaned(existing.course_id)
             }
 
-            queries.upsertDownloadedCourse(
-                course_id = downloadedLesson.course.id.value,
-                title = downloadedLesson.course.title,
-                source_locale = downloadedLesson.course.sourceLocale.value,
-                published_version = downloadedLesson.course.publishedVersion.toLong(),
-                downloaded_at_epoch_millis = downloadedLesson.downloadedAt.toEpochMilliseconds(),
-            )
+            val courseId = downloadedLesson.course.id.value
+            if (queries.selectDownloadedCourse(courseId).executeAsOneOrNull() == null) {
+                queries.insertDownloadedCourse(
+                    course_id = courseId,
+                    title = downloadedLesson.course.title,
+                    source_locale = downloadedLesson.course.sourceLocale.value,
+                    published_version = downloadedLesson.course.publishedVersion.toLong(),
+                    downloaded_at_epoch_millis = downloadedLesson.downloadedAt.toEpochMilliseconds(),
+                )
+            } else {
+                queries.updateDownloadedCourse(
+                    title = downloadedLesson.course.title,
+                    source_locale = downloadedLesson.course.sourceLocale.value,
+                    published_version = downloadedLesson.course.publishedVersion.toLong(),
+                    downloaded_at_epoch_millis = downloadedLesson.downloadedAt.toEpochMilliseconds(),
+                    course_id = courseId,
+                )
+            }
 
             queries.insertDownloadedLesson(
                 lesson_id = lessonId,
