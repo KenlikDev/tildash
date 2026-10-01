@@ -5,6 +5,7 @@ import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
+import com.kenlikdev.tildash.learning.LearnerLocalizedText
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.ManualInputExercise
 import java.nio.file.Files
@@ -28,7 +29,23 @@ class SqlDelightDownloadedLessonStoreTest {
 
         try {
             open(databaseFile.toString()).use { store ->
-                store.save(downloadedLesson(firstLessonId, "Lesson one", 1))
+                store.save(
+                    downloadedLesson(
+                        firstLessonId,
+                        "Lesson one",
+                        1,
+                        courseLessons =
+                            listOf(
+                                lessonSummary(
+                                    firstLessonId,
+                                    "Lesson one",
+                                    1,
+                                    localizations = listOf(LearnerLocalizedText(LanguageTag("ru"), "Урок один")),
+                                ),
+                                lessonSummary(secondLessonId, "Lesson two", 2),
+                            ),
+                    ),
+                )
                 assertEquals(1L, store.countLessons())
 
                 val loaded = store.loadLesson(firstLessonId)
@@ -43,6 +60,14 @@ class SqlDelightDownloadedLessonStoreTest {
 
                 assertEquals(firstLessonId, loaded?.lesson?.id)
                 assertEquals("Lesson one", loaded?.lesson?.title)
+                assertEquals(
+                    listOf(firstLessonId, secondLessonId),
+                    loaded?.course?.lessons?.map { it.id },
+                )
+                assertEquals(
+                    listOf("Урок один"),
+                    loaded?.lesson?.localizations?.map { it.value },
+                )
                 val exercise = loaded?.plan?.exercises?.single() as ManualInputExercise
                 assertEquals("Translate hello", exercise.prompt)
                 assertEquals(listOf("hello"), exercise.expectedAnswers)
@@ -189,12 +214,13 @@ class SqlDelightDownloadedLessonStoreTest {
         lessonId: ContentId,
         title: String,
         version: Int,
+        localizations: List<LearnerLocalizedText> = emptyList(),
     ) = LearnerLessonSummary(
         id = lessonId,
         title = title,
         sourceLocale = LanguageTag("crh"),
         publishedVersion = version,
-        localizations = emptyList(),
+        localizations = localizations,
     )
 
     private class TestStore(
