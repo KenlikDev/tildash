@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines deterministic reconciliation for offline learner attempts, the client synchronization coordinator, and the implemented authenticated server synchronization transport. It does not implement downloaded-content storage or user-facing sync UI.
+This document defines deterministic reconciliation for offline learner attempts, the client synchronization coordinator, the implemented authenticated server synchronization transport, and their storage boundary. User-facing sync UI and some platform composition remain outside this contract.
 
 Implementation:
 
