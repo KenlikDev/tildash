@@ -4,9 +4,10 @@
 
 This slice provides durable local persistence for immutable learner attempts, the synchronization outbox, and downloaded learner lesson packages.
 
-Implementation:
+Implementations:
 
-app/shared/src/commonMain/kotlin/com/kenlikdev/tildash/storage/LearningProgressStore.kt
+- `app/shared/src/commonMain/kotlin/com/kenlikdev/tildash/storage/LearningProgressStore.kt`
+- `app/shared/src/commonMain/kotlin/com/kenlikdev/tildash/storage/DownloadedLessonStore.kt`
 
 Database schema:
 
