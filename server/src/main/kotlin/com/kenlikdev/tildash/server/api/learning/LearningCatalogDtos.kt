@@ -25,7 +25,6 @@ data class LearningLocalizedTextResponse(
     val value: String,
 )
 
-
 data class LearningLessonPackageResponse(
     val course: LearningCourseResponse,
     val lesson: LearningLessonResponse,
