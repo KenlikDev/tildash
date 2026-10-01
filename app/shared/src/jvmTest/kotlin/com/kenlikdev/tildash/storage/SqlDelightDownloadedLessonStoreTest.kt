@@ -65,13 +65,24 @@ class SqlDelightDownloadedLessonStoreTest {
                         lessonSummary(secondLessonId, "Lesson two", 2),
                     )
                 store.save(downloadedLesson(firstLessonId, "Lesson one", 1, courseLessons))
-                store.save(downloadedLesson(secondLessonId, "Lesson two", 2, courseLessons))
+                store.save(
+                    downloadedLesson(
+                        secondLessonId,
+                        "Lesson two",
+                        2,
+                        courseLessons,
+                        downloadedAt = Instant.parse("2026-09-29T09:00:00Z"),
+                    ),
+                )
 
-                val loaded = store.loadLesson(secondLessonId)
+                val firstLoaded = store.loadLesson(firstLessonId)
+                val secondLoaded = store.loadLesson(secondLessonId)
 
                 assertEquals(2L, store.countLessons())
-                assertEquals(listOf(firstLessonId, secondLessonId), loaded?.course?.lessons?.map { it.id })
-                assertEquals(listOf("Lesson one", "Lesson two"), loaded?.course?.lessons?.map { it.title })
+                assertEquals(listOf(firstLessonId, secondLessonId), secondLoaded?.course?.lessons?.map { it.id })
+                assertEquals(listOf("Lesson one", "Lesson two"), secondLoaded?.course?.lessons?.map { it.title })
+                assertEquals(Instant.parse("2026-09-29T08:00:00Z"), firstLoaded?.downloadedAt)
+                assertEquals(Instant.parse("2026-09-29T09:00:00Z"), secondLoaded?.downloadedAt)
             }
         } finally {
             Files.deleteIfExists(databaseFile)
@@ -150,6 +161,7 @@ class SqlDelightDownloadedLessonStoreTest {
         title: String,
         version: Int,
         courseLessons: List<LearnerLessonSummary> = listOf(lessonSummary(lessonId, title, version)),
+        downloadedAt: Instant = this.downloadedAt,
         exercises: List<ManualInputExercise> =
             listOf(
                 ManualInputExercise(
