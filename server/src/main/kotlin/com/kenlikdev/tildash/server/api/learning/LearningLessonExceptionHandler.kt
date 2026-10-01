@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.server.api.learning
 
+import com.kenlikdev.tildash.server.learning.PublishedLearningLessonInvalidException
 import com.kenlikdev.tildash.server.learning.PublishedLearningLessonNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -21,13 +22,13 @@ class LearningLessonExceptionHandler {
             detail = exception.message ?: "The requested published learner lesson does not exist.",
         )
 
-    @ExceptionHandler(IllegalArgumentException::class, IllegalStateException::class)
-    fun handleInvalidPackage(exception: RuntimeException): ResponseEntity<ProblemDetail> =
+    @ExceptionHandler(PublishedLearningLessonInvalidException::class)
+    fun handleInvalidPackage(): ResponseEntity<ProblemDetail> =
         problem(
-            status = HttpStatus.BAD_REQUEST,
+            status = HttpStatus.INTERNAL_SERVER_ERROR,
             type = "urn:tildash:problem:learning-lesson-invalid",
-            title = "Invalid published learner lesson",
-            detail = exception.message ?: "The published learner lesson is invalid.",
+            title = "Published learner lesson unavailable",
+            detail = "The published learner lesson could not be loaded.",
         )
 
     private fun problem(
