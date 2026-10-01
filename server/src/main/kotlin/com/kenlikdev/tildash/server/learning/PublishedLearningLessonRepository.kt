@@ -82,9 +82,7 @@ class PublishedLearningLessonRepository(
             }
 
         if (exercises.isEmpty()) {
-            throw IllegalStateException(
-                "Published learner lesson '${lessonId.value}' contains no exercises.",
-            )
+            throw PublishedLearningLessonInvalidException(lessonId)
         }
 
         return LearnerLessonPackage(
