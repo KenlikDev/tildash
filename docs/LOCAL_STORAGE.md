@@ -2,7 +2,7 @@
 
 ## Scope
 
-This slice provides durable local persistence for immutable learner attempts and the synchronization outbox.
+This slice provides durable local persistence for immutable learner attempts, the synchronization outbox, and downloaded learner lesson packages.
 
 Implementation:
 
