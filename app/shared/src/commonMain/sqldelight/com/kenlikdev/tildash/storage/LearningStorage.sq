@@ -171,8 +171,8 @@ FROM downloaded_manual_answer
 WHERE lesson_id = ?
 ORDER BY exercise_id ASC, position ASC;
 
-upsertDownloadedCourse:
-INSERT OR REPLACE INTO downloaded_course(
+insertDownloadedCourse:
+INSERT INTO downloaded_course(
     course_id,
     title,
     source_locale,
@@ -180,6 +180,14 @@ INSERT OR REPLACE INTO downloaded_course(
     downloaded_at_epoch_millis
 )
 VALUES (?, ?, ?, ?, ?);
+
+updateDownloadedCourse:
+UPDATE downloaded_course
+SET title = ?,
+    source_locale = ?,
+    published_version = ?,
+    downloaded_at_epoch_millis = ?
+WHERE course_id = ?;
 
 deleteDownloadedLesson:
 DELETE FROM downloaded_lesson
