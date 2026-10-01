@@ -19,12 +19,14 @@ When diagnosis is incomplete, preserve the original failure and state exactly wh
 
 ## Integration integrity
 
-- Never merge an unverified task branch into `ai/integration`.
-- Never merge a task branch directly into `develop`.
-- Never bypass repository protection on `ai/integration` or `develop`.
+- Never merge an unverified task branch into `develop`.
+- Never merge a task branch directly into `main`.
+- Never bypass repository protection on `develop` or `main`.
 - The canonical integration path is:
-  task branch -> `ai/integration` -> `develop`.
-- A task branch being green does not prove that the combined integration branch is green.
-- After integrating a task branch, verify the resulting `ai/integration` state.
+  task branch -> `develop` -> `main`.
+- A task branch should start from the current `develop` state. If `develop` advances before integration, refresh the task branch deliberately and re-verify the resulting head.
+- CI, review, and acceptance evidence is valid only for the exact commit SHA it covers. After the task branch changes, previous evidence must not be treated as current.
+- A task branch being green does not prove that the combined `develop` state is green.
+- After integrating a task branch, verify the resulting `develop` state.
 - Never treat the existence of a PR as evidence that its code is safe or correct.
-- Never integrate unrelated changes into `ai/integration` merely because they are available.
+- Never integrate unrelated changes merely because they are available on another branch.
