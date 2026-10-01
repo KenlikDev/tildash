@@ -2,6 +2,8 @@ package com.kenlikdev.tildash
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -72,7 +74,12 @@ class LearnerApplicationUiTest {
             waitForIdle()
 
             onNodeWithText("Translate hello.").assertIsDisplayed()
-            onNodeWithText("Your answer").performTextInput("merhaba")
+            onNode(hasSetTextAction()).performTextInput("wrong")
+            onNodeWithText("Check answer").performClick()
+            waitForIdle()
+            onNodeWithText("Try again").assertIsDisplayed()
+
+            onNode(hasSetTextAction()).performTextInput("merhaba")
             onNodeWithText("Check answer").performClick()
             waitForIdle()
 
