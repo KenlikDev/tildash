@@ -18,11 +18,12 @@ Before substantive work:
 12. Never infer unseen files, logs, command output, dependency state, or runtime behavior.
 
 For branch, commit, PR, merge, or release operations:
-- treat `ai/integration` as the permanent AI integration branch;
-- never merge task branches directly into `develop`;
-- use the canonical path `task branch -> ai/integration -> develop`;
-- before declaring `ai/integration` ready for `develop`, verify the integrated result rather than relying only on checks previously run on the task branch;
-- never bypass the repository rules protecting `ai/integration` or `develop`.
+- treat `develop` as the protected development/integration branch;
+- use the canonical path `task branch -> develop -> main`;
+- never develop directly on `develop` or `main`;
+- before declaring `develop` ready for `main`, verify the integrated result rather than relying only on checks previously run on the task branch;
+- do not create or use an AI-specific integration branch;
+- never bypass the repository rules protecting `develop` or `main`.
 
 ## Evidence states
 
