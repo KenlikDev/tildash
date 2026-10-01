@@ -5,7 +5,7 @@ Create the bootstrap project separately from the Tildash repository.
 Recommended parameters:
 - Project: Gradle - Kotlin
 - Language: Kotlin
-- Spring Boot: latest stable; currently verified as 4.1.1
+- Spring Boot: latest stable release verified for the current task
 - Group: `com.kenlikdev.tildash`
 - Artifact: `tildash-server`
 - Name: `Tildash Server`
