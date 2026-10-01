@@ -13,17 +13,17 @@
 11. Run an independent review for non-trivial changes.
 For a full repository review, additionally follow `03-processes/FULL_REPOSITORY_REVIEW.md` in full.
 12. Commit one coherent change.
-12. Push only the authorized task branch.
-13. Open a PR from the task branch to `ai/integration`.
-14. Merge into `ai/integration` only after all applicable checks pass.
-15. Re-verify the resulting `ai/integration` state after integration.
-16. Remove obsolete task branches only when they are no longer needed.
-17. Open the final PR from `ai/integration` to `develop`.
-18. Have the project owner synchronize the exact `ai/integration` PR head locally.
-19. Have the project owner run the applicable local verification and manually exercise the affected product behavior and acceptance path.
-20. Confirm that local acceptance is complete before considering the final PR mergeable for the owner.
-21. Merge into `develop` only after required GitHub checks and explicit human local acceptance.
-22. Never merge a task branch directly into `develop`.
+13. Push only the authorized task branch.
+14. Open a PR from the task branch to `ai/integration`.
+15. Merge into `ai/integration` only after all applicable checks pass.
+16. Re-verify the resulting `ai/integration` state after integration.
+17. Remove obsolete task branches only when they are no longer needed.
+18. Open the final PR from `ai/integration` to `develop`.
+19. Have the project owner synchronize the exact `ai/integration` PR head locally.
+20. Have the project owner run the applicable local verification and manually exercise the affected product behavior and acceptance path.
+21. Confirm that local acceptance is complete before considering the final PR mergeable for the owner.
+22. Merge into `develop` only after required GitHub checks and explicit human local acceptance.
+23. Never merge a task branch directly into `develop`.
 
 ## Final promotion gate
 
