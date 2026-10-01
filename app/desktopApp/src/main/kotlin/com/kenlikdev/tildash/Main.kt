@@ -22,8 +22,8 @@ fun main() {
                     client = httpClient,
                     baseUrl =
                         System.getenv("TILDASH_API_URL")
-                            ?.trim()
-                            ?.takeIf { it.isNotBlank() }
+                        ?.trim()
+                        ?.takeIf { it.isNotBlank() }
                             ?: "http://127.0.0.1:8080",
                     accessTokenProvider =
                         AccessTokenProvider {
