@@ -30,9 +30,13 @@ The local client also persists downloaded lesson packages required for offline d
 A downloaded package contains:
 
 - course metadata and published version;
+- the complete course lesson-summary snapshot supplied by the published catalog;
 - lesson metadata and published version;
+- lesson localizations from that published package;
 - the lesson's executable learning plan;
 - the exercise type, content ID, prompt, and expected answers.
+
+The course lesson summaries and lesson localizations are persisted with each downloaded package so reopening the local database reconstructs the same learner-facing package metadata rather than deriving it only from currently downloaded rows.
 
 The current persisted exercise contract covers ManualInputExercise. Unknown future exercise types fail closed during rehydration instead of being silently downgraded.
 
