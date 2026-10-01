@@ -105,7 +105,7 @@ Every public endpoint should document:
 - request parameters/body;
 - successful response schemas;
 - validation/client errors;
-- authorization requirements once security is introduced.
+- authorization requirements.
 
 ## Compatibility
 
