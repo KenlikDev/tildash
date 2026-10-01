@@ -194,16 +194,29 @@ class JdbcContentStudioRepository(
             ) { rs, _ -> mapNode(rs) }
             .firstOrNull()
 
-    override fun nextRevision(contentId: ContentId): Int =
+    override fun nextRevision(contentId: ContentId): Int {
+        val params = MapSqlParameterSource("id", UUID.fromString(contentId.value))
         jdbc.queryForObject(
+            """
+            select id
+            from tildash.content_nodes
+            where id = :id
+            for update
+            """.trimIndent(),
+            params,
+            UUID::class.java,
+        ) ?: throw ContentNotFoundException(contentId)
+
+        return jdbc.queryForObject(
             """
             select coalesce(max(revision_no), 0) + 1
             from tildash.content_source_revisions
             where content_node_id = :id
             """.trimIndent(),
-            MapSqlParameterSource("id", UUID.fromString(contentId.value)),
+            params,
             Int::class.java,
         ) ?: 1
+    }
 
     override fun updateState(
         contentId: ContentId,
