@@ -46,8 +46,14 @@ fun App(
             learnerApplication != null && contentApplication != null -> {
                 LearnerApplicationContent(learnerApplication, contentApplication)
             }
-            learnerApplication != null -> LocalDownloadedLessonsContent(learnerApplication)
-            else -> PreviewOnlyState()
+
+            learnerApplication != null -> {
+                LocalDownloadedLessonsContent(learnerApplication)
+            }
+
+            else -> {
+                PreviewOnlyState()
+            }
         }
     }
 }
@@ -168,9 +174,20 @@ private fun LearnerApplicationContent(
 }
 
 @Composable
-private fun tabButton(label: String, selected: Boolean, onClick: () -> Unit) {
-    if (selected) Button(onClick = onClick) { Text(label) }
-    else OutlinedButton(onClick = onClick) { Text(label) }
+private fun tabButton(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    if (selected) {
+        Button(onClick = onClick) {
+            Text(label)
+        }
+    } else {
+        OutlinedButton(onClick = onClick) {
+            Text(label)
+        }
+    }
 }
 
 @Composable
@@ -189,9 +206,17 @@ private fun CatalogContent(
                 Text("Loading published lessons…")
             }
         }
-        catalog == null -> Text("The learner catalog has not been loaded.")
-        catalog.courses.isEmpty() -> Text("No published courses are available for this learner.")
-        else -> LazyColumn(
+
+        catalog == null -> {
+            Text("The learner catalog has not been loaded.")
+        }
+
+        catalog.courses.isEmpty() -> {
+            Text("No published courses are available for this learner.")
+        }
+
+        else -> {
+            LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -209,10 +234,22 @@ private fun CatalogContent(
                             Text(lesson.title, style = MaterialTheme.typography.titleMedium)
                             Text("Published version " + lesson.publishedVersion)
                         }
-                        when {
-                            downloadingLessonId == lesson.id -> CircularProgressIndicator()
-                            isDownloaded -> Button(onClick = { onOpen(lesson.id) }) { Text("Open") }
-                            else -> Button(onClick = { onDownload(lesson.id) }) { Text("Download") }
+                                        when {
+                            downloadingLessonId == lesson.id -> {
+                                CircularProgressIndicator()
+                            }
+
+                            isDownloaded -> {
+                                Button(onClick = { onOpen(lesson.id) }) {
+                                    Text("Open")
+                                }
+                            }
+
+                            else -> {
+                                Button(onClick = { onDownload(lesson.id) }) {
+                                    Text("Download")
+                                }
+                            }
                         }
                     }
                 }
@@ -257,14 +294,19 @@ private fun DownloadedLessonsContent(
 @Composable
 private fun LocalDownloadedLessonsContent(learnerApplication: LearnerLessonApplication) {
     var lessonState by remember { mutableStateOf<LearnerLessonState?>(null) }
-    val downloadedLessons = remember(learnerApplication) { learnerApplication.listDownloadedLessons() }
+    val downloadedLessons =
+        remember(learnerApplication) {
+            learnerApplication.listDownloadedLessons()
+        }
 
     lessonState?.let { state ->
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             OutlinedButton(onClick = { lessonState = null }) { Text("Back") }
             LearnerLessonScreen(
                 state = state,
-                onSubmitAnswer = { value -> lessonState = learnerApplication.submitText(state, value) },
+                onSubmitAnswer = { value ->
+                    lessonState = learnerApplication.submitText(state, value)
+                },
                 modifier = Modifier.weight(1f),
             )
         }
