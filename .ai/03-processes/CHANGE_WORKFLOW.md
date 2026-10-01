@@ -1,15 +1,16 @@
 # Change Workflow
 
 1. Confirm the current branch and target branch.
-2. Read the relevant role, standards, and process instructions.
+2. Re-read `.ai/AI_BOOTSTRAP.md` and `.ai/AI_INSTRUCTIONS.md` at the start of the workflow, then read the relevant role, standards, and process instructions.
 3. Inspect the actual repository state.
 4. Define or verify specification and acceptance criteria.
 5. Write tests first for behavior where applicable.
 6. Implement the smallest coherent change.
 7. Run focused checks early.
 8. Run broader applicable checks.
-9. Inspect the final diff.
-10. Run an independent review for non-trivial changes.
+9. Re-read the applicable instruction files at the final-review checkpoint.
+10. Inspect the final diff.
+11. Run an independent review for non-trivial changes.
 For a full repository review, additionally follow `03-processes/FULL_REPOSITORY_REVIEW.md` in full.
 11. Commit one coherent change.
 12. Push only the authorized task branch.
