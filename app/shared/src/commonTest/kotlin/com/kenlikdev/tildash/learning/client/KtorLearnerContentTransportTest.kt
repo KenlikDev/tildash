@@ -179,6 +179,37 @@ class KtorLearnerContentTransportTest {
         }
 
     @Test
+    fun malformedSuccessfulCatalogResponseIsReportedAsTransportFailure() =
+        runTest {
+            val client =
+                HttpClient(
+                    MockEngine {
+                        respond(
+                            content = """{"courses":"not-an-array"}""",
+                            status = HttpStatusCode.OK,
+                        )
+                    },
+                )
+
+            try {
+                val transport =
+                    KtorLearnerContentTransport(
+                        client = client,
+                        baseUrl = "http://example.test",
+                    )
+
+                val failure =
+                    assertFailsWith<LearnerContentTransportFailure> {
+                        transport.loadCatalog()
+                    }
+
+                assertEquals("The learner content response is malformed.", failure.message)
+            } finally {
+                client.close()
+            }
+        }
+
+    @Test
     fun httpFailureExposesStatusAndProblemDetail() =
         runTest {
             val client =
