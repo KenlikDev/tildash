@@ -3,7 +3,6 @@
 package com.kenlikdev.tildash
 
 import app.cash.sqldelight.db.SqlDriver
-import app.cash.sqldelight.driver.native.DatabaseConfiguration
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
 import com.kenlikdev.tildash.storage.TildashDatabase
 import platform.Foundation.NSFileManager
@@ -21,10 +20,5 @@ fun createTildashDatabaseDriver(): SqlDriver {
     return NativeSqliteDriver(
         schema = TildashDatabase.Schema,
         name = "$directory/tildash.db",
-        onConfiguration = { config: DatabaseConfiguration ->
-            config.copy(
-                extendedConfig = DatabaseConfiguration.Extended(foreignKeyConstraints = true),
-            )
-        },
     )
 }
