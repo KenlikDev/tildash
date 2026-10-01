@@ -21,18 +21,21 @@ fun main() {
                 KtorLearnerContentTransport(
                     client = httpClient,
                     baseUrl =
-                        System.getenv("TILDASH_API_URL")
+                        System
+                            .getenv("TILDASH_API_URL")
                             ?.trim()
                             ?.takeIf { it.isNotBlank() }
                             ?: "http://127.0.0.1:8080",
                     accessTokenProvider =
                         AccessTokenProvider {
-                            System.getenv("TILDASH_ACCESS_TOKEN")
+                            System
+                                .getenv("TILDASH_ACCESS_TOKEN")
                                 ?.trim()
                                 ?.takeIf { it.isNotBlank() }
                         },
                     developmentRole =
-                        System.getenv("TILDASH_DEVELOPMENT_ROLE")
+                        System
+                            .getenv("TILDASH_DEVELOPMENT_ROLE")
                             ?.trim()
                             ?.takeIf { it.isNotBlank() },
                 ),
