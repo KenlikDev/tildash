@@ -28,8 +28,9 @@ class LearningCatalogController(
         ApiResponse(responseCode = "403", description = "Learner role required"),
         ApiResponse(responseCode = "404", description = "Published lesson not found"),
     )
-    fun lesson(@PathVariable lessonId: String): LearningLessonPackageResponse =
-        service.lesson(ContentId(lessonId)).toResponse()
+    fun lesson(
+        @PathVariable lessonId: String,
+    ): LearningLessonPackageResponse = service.lesson(ContentId(lessonId)).toResponse()
 
     @GetMapping("/catalog")
     @PreAuthorize("hasRole('LEARNER')")
@@ -39,8 +40,7 @@ class LearningCatalogController(
         ApiResponse(responseCode = "401", description = "Authentication required"),
         ApiResponse(responseCode = "403", description = "Learner role required"),
     )
-    fun catalog(
-    ): LearningCatalogResponse =
+    fun catalog(): LearningCatalogResponse =
         service
             .catalog()
             .toResponse()
