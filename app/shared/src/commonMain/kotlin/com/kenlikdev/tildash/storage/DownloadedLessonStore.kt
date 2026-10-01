@@ -80,6 +80,7 @@ class SqlDelightDownloadedLessonStore(
                 source_locale = downloadedLesson.lesson.sourceLocale.value,
                 published_version = downloadedLesson.lesson.publishedVersion.toLong(),
                 position = downloadedLesson.position().toLong(),
+                downloaded_at_epoch_millis = downloadedLesson.downloadedAt.toEpochMilliseconds(),
             )
 
             downloadedLesson.plan.exercises.forEachIndexed { index, exercise ->
@@ -187,7 +188,7 @@ class SqlDelightDownloadedLessonStore(
                     lessonId = lessonSummary.id,
                     exercises = exercises,
                 ),
-            downloadedAt = Instant.fromEpochMilliseconds(course.downloaded_at_epoch_millis),
+            downloadedAt = Instant.fromEpochMilliseconds(lessonRow.downloaded_at_epoch_millis),
         )
     }
 
