@@ -69,8 +69,7 @@ class ContentStudioIntegrationTests {
                 post("/api/v1/content/$lessonId/submit")
                     .with(user("teacher").roles("TEACHER"))
                     .accept(MediaType.APPLICATION_PROBLEM_JSON),
-            )
-            .andExpect(status().isConflict())
+            ).andExpect(status().isConflict())
             .andExpect(jsonPath("$.type").value("urn:tildash:problem:validation-failed"))
             .andExpect(jsonPath("$.errors[0].code").value("EMPTY_LESSON_EXERCISES"))
     }
