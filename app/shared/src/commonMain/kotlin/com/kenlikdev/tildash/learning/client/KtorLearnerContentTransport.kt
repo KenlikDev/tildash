@@ -194,9 +194,9 @@ class KtorLearnerContentTransport(
             lesson = lesson,
             plan =
                 LearningPlan(
-                lessonId = lesson.id,
-                exercises = exercises,
-            ),
+                    lessonId = lesson.id,
+                    exercises = exercises,
+                ),
         )
     }
 
