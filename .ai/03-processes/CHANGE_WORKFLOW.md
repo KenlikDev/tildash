@@ -13,11 +13,12 @@
 11. Run an independent review for non-trivial changes. For a full repository review, additionally follow `03-processes/FULL_REPOSITORY_REVIEW.md` in full.
 12. Commit one coherent change.
 13. Push only the authorized task branch.
-14. Before opening the PR, verify that CI/review evidence refers to the exact current task-branch HEAD.
+14. Before opening the PR, verify that the local verification evidence refers to the exact current task-branch HEAD.
 15. Open a PR from the task branch to `develop`.
-16. Merge into `develop` only after all applicable checks pass, review conditions are satisfied, and the project owner authorizes the merge when human approval is required.
-17. Re-verify the resulting `develop` state after integration.
-18. Remove obsolete task branches only when they are no longer needed.
+16. After the PR is opened and after every subsequent push, verify that applicable CI and review evidence refers to the exact current task-branch HEAD.
+17. Merge into `develop` only after all applicable checks pass, review conditions are satisfied, and the project owner authorizes the merge when human approval is required.
+18. Re-verify the resulting `develop` state after integration.
+19. Remove obsolete task branches only when they are no longer needed.
 
 The release flow below is a separate operation and is not performed automatically for every task.
 
