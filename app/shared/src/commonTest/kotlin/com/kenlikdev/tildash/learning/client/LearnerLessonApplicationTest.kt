@@ -67,9 +67,10 @@ class LearnerLessonApplicationTest {
                 downloadedLessonStore = downloadedLessonStore,
                 learningProgressStore = progressStore,
             ),
-        clock = object : Clock {
-            override fun now(): Instant = Instant.parse("2026-10-01T08:00:00Z")
-        },
+        clock =
+            object : Clock {
+                override fun now(): Instant = Instant.parse("2026-10-01T08:00:00Z")
+            },
         attemptIdGenerator = attemptIdGenerator,
     )
 
@@ -133,7 +134,8 @@ class LearnerLessonApplicationTest {
     private class FakeLearningProgressStore : LearningProgressStore {
         val attempts = mutableListOf<LearningAttempt>()
 
-        override fun loadProgress() = com.kenlikdev.tildash.learning.LearningProgress.fromPersistedAttempts(attempts)
+        override fun loadProgress() =
+            com.kenlikdev.tildash.learning.LearningProgress.fromPersistedAttempts(attempts)
 
         override fun saveAttempt(attempt: LearningAttempt) {
             attempts += attempt
