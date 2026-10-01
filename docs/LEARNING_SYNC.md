@@ -140,8 +140,8 @@ The transport does not implement login, refresh-token storage, secure token pers
 The coordinator also exposes LearningSyncState and LearningSyncObserver for deterministic sync observability. State transitions include running, retrying, succeeded, conflicted, and failed outcomes. Observers are informational; they do not alter acknowledgement or retry semantics.
 
 
-## Future work under #16
+## Remaining offline-first work
 
-Remaining offline-first work includes wiring the client coordinator to a concrete HTTP client, retry/error presentation, sync observability, downloaded-content availability, secure-at-rest policy, and end-to-end offline recovery.
+The concrete learner content HTTP transport and lesson download flow are implemented. Remaining offline-first work is focused on user-facing authentication/session handling, retry/error presentation, sync UX, downloaded-content secure-at-rest policy, broader platform verification, and end-to-end recovery coverage beyond the current desktop/JVM slice.
 
-The durable design decision is recorded in ADR-0012.
+The durable design decisions are recorded in ADR-0012, ADR-0016, ADR-0017, and ADR-0019.
