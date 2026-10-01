@@ -1,7 +1,7 @@
 package com.kenlikdev.tildash.learning
 
-import kotlin.ConsistentCopyVisibility
 import com.kenlikdev.tildash.content.model.ContentId
+import kotlin.ConsistentCopyVisibility
 import kotlin.time.Instant
 
 interface LearningExercise {
