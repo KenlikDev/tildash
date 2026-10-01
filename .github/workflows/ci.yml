@@ -33,7 +33,7 @@ jobs:
         run: |
           if [ "$EVENT_NAME" = "pull_request" ] && [ "$BASE_BRANCH" = "develop" ]; then
             case "$HEAD_BRANCH" in
-              feature/*|feat/*|fix/*|refactor/*|test/*|security/*|docs/*|chore/*|hotfix/*|release/*)
+              feature/*|feat/*|fix/*|refactor/*|test/*|security/*|docs/*|chore/*|hotfix/*)
                 echo "Task-branch source policy passed."
                 ;;
               *)
