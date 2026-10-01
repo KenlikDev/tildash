@@ -387,6 +387,6 @@ Successful responses contain two explicit ID sets:
 - `acknowledgedAttemptIds` — newly stored or already-identical attempts;
 - `conflictAttemptIds` — attempt IDs whose immutable payload differs from the stored record, or which are contradictory duplicates inside the same request batch.
 
-A conflicting attempt is never overwritten. Unknown or unsupported payloads are rejected as client errors using RFC 9457 Problem Details.
+Every submitted attempt ID appears exactly once across these two sets. A conflicting attempt is never overwritten. Unknown or unsupported payloads are rejected as client errors using RFC 9457 Problem Details.
 
 The server persists attempts under `(learner_subject, attempt_id)`. The immutable payload also stores `lesson_id`, so a reused `exercise_id` in another lesson never shares learner progress.
