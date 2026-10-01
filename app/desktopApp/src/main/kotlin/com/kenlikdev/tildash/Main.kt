@@ -34,8 +34,7 @@ fun main() {
                     developmentRole =
                         System.getenv("TILDASH_DEVELOPMENT_ROLE")
                             ?.trim()
-                            ?.takeIf { it.isNotBlank() }
-                            ?: "learner",
+                            ?.takeIf { it.isNotBlank() },
                 ),
             downloadedLessonStore = SqlDelightDownloadedLessonStore(databaseDriver),
         )
