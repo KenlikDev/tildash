@@ -21,7 +21,10 @@ class ContentExerciseRepository(
             where content_node_id = :contentId
             order by position, exercise_id
             """.trimIndent(),
-            MapSqlParameterSource("contentId", UUID.fromString(contentId.value)),
+            MapSqlParameterSource(
+                "contentId",
+                UUID.fromString(contentId.value),
+            ),
         ) { rs, _ ->
             val exerciseId = rs.getString("exercise_id")
             StoredExerciseDefinition(
