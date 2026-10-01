@@ -39,7 +39,8 @@ class LearningCatalogController(
         ApiResponse(responseCode = "401", description = "Authentication required"),
         ApiResponse(responseCode = "403", description = "Learner role required"),
     )
-    fun catalog(): LearningCatalogResponse =
+    fun catalog(
+    ): LearningCatalogResponse =
         service
             .catalog()
             .toResponse()
@@ -84,20 +85,20 @@ private fun LearnerLessonPackage.toResponse(): LearningLessonPackageResponse =
                 publishedVersion = course.publishedVersion,
                 lessons =
                     course.lessons.map { lesson ->
-                    LearningLessonResponse(
-                        id = lesson.id.value,
-                        title = lesson.title,
-                        sourceLocale = lesson.sourceLocale.value,
-                        publishedVersion = lesson.publishedVersion,
-                        localizations =
-                            lesson.localizations.map { localization ->
-                            LearningLocalizedTextResponse(
-                                locale = localization.locale.value,
-                                value = localization.value,
-                            )
-                        },
-                    )
-                },
+                        LearningLessonResponse(
+                            id = lesson.id.value,
+                            title = lesson.title,
+                            sourceLocale = lesson.sourceLocale.value,
+                            publishedVersion = lesson.publishedVersion,
+                            localizations =
+                                lesson.localizations.map { localization ->
+                                    LearningLocalizedTextResponse(
+                                        locale = localization.locale.value,
+                                        value = localization.value,
+                                    )
+                                },
+                        )
+                    },
             ),
         lesson =
             LearningLessonResponse(
