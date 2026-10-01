@@ -98,6 +98,7 @@ For this repository, that includes when present:
 - ENGINEERING_CONSTITUTION.md;
 - EVIDENCE.md;
 - INTEGRITY.md;
+- CODE_AND_DOCS.md for code/documentation review;
 - GIT_AND_REPO.md;
 - BUILD_AND_KMP.md;
 - SPRING_BACKEND.md for backend review;
