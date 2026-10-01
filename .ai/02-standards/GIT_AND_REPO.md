@@ -4,28 +4,25 @@
 
 ```
 main
-  <- release PRs
+  <- release PRs from `develop`
 
 develop
-  <- PRs from `ai/integration` only
-
-ai/integration
   <- PRs from short-lived task branches
 
 short-lived task branches
 ```
 
-Never develop directly on `main` or `develop`.
+`main` and `develop` are the project's two protected long-lived branches.
 
-`ai/integration` is a permanent integration branch used to combine verified task branches before the final human-controlled merge into `develop`.
+Never develop directly on `main` or `develop`.
 
 Canonical flow:
 
 ```
-task branch -> ai/integration -> develop
+task branch -> develop -> main
 ```
 
-Never merge a task branch directly into `develop`.
+Task work is reviewed and merged into `develop`. Promotion from `develop` to `main` is the release boundary. Do not create or use an AI-specific integration branch.
 
 Recommended task branch names:
 `feature/<description>`
@@ -40,35 +37,32 @@ Recommended task branch names:
 
 ## Protected branches
 
-`main`, `develop`, and `ai/integration` are integration boundaries and must be protected.
-
-Required repository policy for `ai/integration`:
-- pull requests are required;
-- direct updates are not allowed;
-- force pushes are not allowed;
-- branch deletion is not allowed;
-- non-fast-forward updates are not allowed;
-- required CI checks must pass before merge;
-- the branch must be up to date with its base before merge;
-- unresolved review threads must block merge;
-- merge method is squash unless preserving topology is materially necessary and explicitly justified;
-- repository protection must not be bypassed.
+`main` and `develop` are the project's two protected long-lived branches.
 
 Required repository policy for `develop`:
 - pull requests are required;
-- only `ai/integration` is an allowed source under the project workflow;
 - direct updates are not allowed;
 - force pushes are not allowed;
 - branch deletion is not allowed;
 - required CI checks must pass;
-- the final `ai/integration` -> `develop` merge is human-controlled;
+- unresolved review threads must block merge;
+- repository protection must not be bypassed.
+
+Required repository policy for `main`:
+- pull requests are required;
+- direct updates are not allowed;
+- force pushes are not allowed;
+- branch deletion is not allowed;
+- required CI checks must pass;
+- unresolved review threads must block merge;
+- release promotion is from `develop`;
 - repository protection must not be bypassed.
 
 GitHub rulesets are the enforcement mechanism. The documented workflow is not a substitute for repository protection.
 
 ## Integration rules
 
-A task branch may enter `ai/integration` only when:
+A task branch may enter `develop` only when:
 1. the applicable project instructions have been read;
 2. the task branch diff has been inspected;
 3. acceptance criteria are satisfied;
@@ -96,9 +90,9 @@ A PR must explain:
 - source branch;
 - target branch.
 
-For task integration, the normal target is `ai/integration`.
+For task integration, the normal target is `develop`.
 
-For final development integration, the normal source is `ai/integration` and the target is `develop`.
+For release promotion, the normal source is `develop` and the target is `main`.
 
 AI review is not a fictional second human reviewer. Final integration into `develop` remains a human decision.
 
@@ -129,20 +123,15 @@ AI may prepare or execute Git operations only when explicitly authorized by the 
 
 After a task branch has been successfully integrated and is no longer needed for review, recovery, follow-up work, or traceability, it may be deleted.
 
-Never delete `ai/integration` as part of routine cleanup.
+Never delete `main` or `develop` as part of routine cleanup.
 
 
-## Integration branch synchronization
+## Release promotion
 
-After a squash-based promotion from `ai/integration` into `develop`, the protected branches may have different commit ancestry even when their file content is aligned at the promotion point.
+Before a `develop -> main` promotion:
+- inspect the exact `develop` tree and compare it with `main`;
+- verify all required checks on the exact release candidate;
+- confirm local acceptance for the current `develop` state;
+- open the release PR from `develop` to `main`.
 
-Before the next final `ai/integration -> develop` promotion, synchronize `ai/integration` with the current `develop` ancestry through a dedicated short-lived task branch and pull request.
-
-The synchronization PR must:
-- preserve the current `ai/integration` tree;
-- add the current `develop` tip as an ancestor;
-- use a normal merge commit when preserving topology requires it;
-- contain no unrelated source changes;
-- pass the normal integration verification after merge.
-
-The `ai/integration` ruleset must permit the topology-preserving merge method needed for this synchronization. Ordinary task PRs should continue to use squash merges.
+Do not introduce an intermediate AI integration branch or an additional permanent branch for release promotion.
