@@ -29,7 +29,7 @@ For a full repository review, additionally follow `03-processes/FULL_REPOSITORY_
 
 The final promotion sequence is:
 
-```text
+```
 ai/integration green
   -> final promotion PR
   -> owner syncs exact PR head locally
@@ -79,3 +79,7 @@ Delete a short-lived task branch only after its merge is confirmed and it is no 
 Never delete `ai/integration` during routine cleanup.
 
 Never delete a branch merely because the working tree is clean.
+
+## CI iteration discipline
+
+Group multiple known corrections into one coherent patch whenever practical. Do not create a commit solely to retrigger or refresh CI. Once a relevant check is running, avoid changing the branch unless new evidence identifies a concrete defect or missing verification; this prevents unnecessary CI cancellation and preserves useful evidence from the most recent complete run.

@@ -37,6 +37,8 @@ At the beginning of the review, record:
 - current issue state relevant to the reviewed milestone;
 - latest CI and security workflow results for the reviewed HEAD.
 
+Resolve a moving branch or tag to the exact HEAD SHA being reviewed and treat that SHA as the frozen review reference. If the branch moves later, the new HEAD is a new repository state and requires final verification before its results can be applied.
+
 Never treat a PR description, issue description, README claim, or previous review as evidence that the current implementation satisfies a requirement.
 
 ## Evidence states
@@ -73,7 +75,7 @@ Inventory:
 - binary assets and their metadata when present;
 - repository-level files such as LICENSE, SECURITY.md, CODEOWNERS, README, and ignore files.
 
-Count and account for every tracked file. Every file must end in one of these states:
+Count and account for every tracked file using the repository Git tree/index, not inferred directory contents. Record the inventory method and total file count. Every file must end in one of these states:
 
 - reviewed;
 - intentionally excluded with a documented reason;
@@ -225,7 +227,7 @@ For every test suite, determine:
 - whether KMP common behavior is tested across applicable targets;
 - whether native-specific code is verified where the project claims support.
 
-Look for:
+Verify that every acceptance-critical test source set is actually executed by its named CI or local task before treating it as coverage evidence. Look for:
 
 - tests that pass without asserting meaningful behavior;
 - overly broad mocks;
@@ -267,7 +269,7 @@ Review:
 - required checks;
 - failure propagation.
 
-Determine whether a workflow can report green while an important check was skipped, cancelled, or never executed.
+Determine whether a workflow can report green while an important check was skipped, cancelled, or never executed. For aggregate Gradle commands, inspect task output or equivalent evidence to confirm that required target-specific suites actually ran.
 
 Check whether push and pull-request events require different security behavior.
 

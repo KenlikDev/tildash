@@ -25,3 +25,5 @@ A green check is evidence only when the check itself is truthful and sufficient.
 Mark a finding as BLOCKING when it affects correctness, security, data integrity, hidden behavior, test validity, or maintainability in a material way.
 
 If evidence is insufficient, report UNKNOWN rather than guessing.
+
+A review result is an evidence-based technical assessment, not human merge authorization. Do not present an AI review as the project owner's approval or as permission to bypass a repository gate.

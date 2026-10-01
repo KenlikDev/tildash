@@ -15,4 +15,4 @@ Inspect:
 
 Actively search for reward-hacking patterns: weakened tests, hidden exceptions, suppressed warnings, reduced coverage, disabled checks, and configuration changes that make the measurement less strict.
 
-Approval requires sufficient evidence, not confidence.
+A review result requires sufficient evidence, not confidence. It is not human merge authorization and must not be presented as permission to bypass repository gates.

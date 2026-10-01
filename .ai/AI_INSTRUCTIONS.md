@@ -19,3 +19,5 @@ The implementation does not define the intended behavior. Specifications define 
 Protected branches are never a place for direct development. Use short-lived task branches and pull requests.
 
 The final `ai/integration -> develop` merge has a mandatory human local-acceptance gate. The project owner must synchronize `ai/integration` locally, run the applicable verification commands, and manually exercise the changed product behavior on the local machine before merging. GitHub CI and AI verification are necessary evidence but never a replacement for hands-on local acceptance. The AI must not present the promotion PR as ready for merge until that local acceptance is explicitly confirmed.
+
+Do not create commits merely to retrigger, refresh, or poll CI. Batch related corrections into one coherent change whenever possible. A check result is valid only for the exact HEAD and the exact test or build task that actually executed; an aggregate task passing does not prove an omitted target-specific check ran.
