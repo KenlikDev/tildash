@@ -99,7 +99,7 @@ archived
 
 These values are represented in code as `ContentState` and in PostgreSQL as constrained text values.
 
-Issue #12 defines the state model. Review transition rules remain a separate application workflow concern covered by ADR-0006.
+Issue #12 defines the state model. The server-side review transition rules are implemented as a separate application workflow governed by ADR-0006.
 
 ## Published versions
 
