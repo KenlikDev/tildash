@@ -8,14 +8,18 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.runComposeUiTest
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.LanguageTag
-import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
+import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.ManualInputExercise
+import com.kenlikdev.tildash.learning.client.LearnerContentApplication
+import com.kenlikdev.tildash.learning.client.LearnerContentTransport
+import com.kenlikdev.tildash.learning.client.LearnerLessonApplication
+import com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator
 import com.kenlikdev.tildash.storage.DownloadedLesson
 import com.kenlikdev.tildash.storage.DownloadedLessonStore
 import com.kenlikdev.tildash.storage.LearningProgressStore
@@ -33,16 +37,16 @@ class LearnerApplicationUiTest {
         runComposeUiTest {
             val downloadedLessonStore = FakeDownloadedLessonStore()
             val contentApplication =
-                com.kenlikdev.tildash.learning.client.LearnerContentApplication(
+                LearnerContentApplication(
                     transport = FakeContentTransport(),
                     downloadedLessonStore = downloadedLessonStore,
                     clock = fixedClock(),
                 )
             val lessonApplication =
-                com.kenlikdev.tildash.learning.client.LearnerLessonApplication(
+                LearnerLessonApplication(
                     downloadedLessonStore = downloadedLessonStore,
                     coordinator =
-                        com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator(
+                        LearnerLessonCoordinator(
                             downloadedLessonStore = downloadedLessonStore,
                             learningProgressStore = FakeLearningProgressStore(),
                         ),
@@ -82,7 +86,7 @@ class LearnerApplicationUiTest {
         }
 
     private class FakeContentTransport :
-        com.kenlikdev.tildash.learning.client.LearnerContentTransport {
+        LearnerContentTransport {
         override suspend fun loadCatalog(): LearnerCourseCatalog =
             LearnerCourseCatalog(listOf(course()))
 
@@ -146,7 +150,7 @@ class LearnerApplicationUiTest {
         private val attempts = mutableListOf<LearningAttempt>()
 
         override fun loadProgress() =
-            com.kenlikdev.tildash.learning.LearningProgress.fromPersistedAttempts(attempts)
+            LearningProgress.fromPersistedAttempts(attempts)
 
         override fun saveAttempt(attempt: LearningAttempt) {
             attempts += attempt
