@@ -254,6 +254,29 @@ class LearningSyncCoordinatorTest {
         }
 
     @Test
+    fun transportMustClassifyEverySubmittedAttempt() =
+        runTest {
+            val store = FakeStore(first, second)
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch) =
+                        LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = listOf("attempt-a"),
+                        )
+                }
+
+            assertFailsWith<IllegalArgumentException> {
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                ).synchronize("device-a")
+            }
+
+            assertEquals(listOf("attempt-a", "attempt-b"), store.pendingIds())
+        }
+
+    @Test
     fun observerReceivesRunningRetryingAndSucceededStates() =
         runTest {
             val store = FakeStore(first)
