@@ -28,6 +28,21 @@ For branch, commit, PR, merge, or release operations:
 - always provide concrete local synchronization, verification, and manual UI/behavior acceptance steps for the final promotion;
 - never bypass the repository rules protecting `ai/integration` or `develop`.
 
+## Instruction reread checkpoints
+
+Re-read `.ai/AI_BOOTSTRAP.md` and `.ai/AI_INSTRUCTIONS.md` at these checkpoints:
+
+1. after context compaction, reconnect, or a long interruption;
+2. when switching engineering roles or technical domains;
+3. before the first repository mutation in a task;
+4. before any commit, branch, pull request, merge, or release operation;
+5. before final diff review and final verification;
+6. whenever the task expands beyond its original acceptance criteria.
+
+Re-read the relevant role, standard, and process file immediately before work in that domain when the task has crossed a checkpoint.
+
+These rereads are mandatory even when the same files were read earlier in the same conversation. They prevent stale working context from silently overriding repository instructions.
+
 ## Evidence states
 
 Use:
