@@ -48,12 +48,32 @@ class KtorLearnerContentTransport(
     }
 
     override suspend fun loadCatalog(): LearnerCourseCatalog =
-        getJson("/api/v1/learning/catalog")
-            .toCatalog()
+        mapSuccessfulResponse("catalog") {
+            getJson("/api/v1/learning/catalog")
+                .toCatalog()
+        }
 
     override suspend fun loadLesson(lessonId: ContentId): LearnerLessonPackage =
-        getJson("/api/v1/learning/lessons/" + lessonId.value)
-            .toLessonPackage()
+        mapSuccessfulResponse("lesson package") {
+            getJson("/api/v1/learning/lessons/" + lessonId.value)
+                .toLessonPackage()
+        }
+
+    private inline fun <T> mapSuccessfulResponse(
+        resource: String,
+        block: () -> T,
+    ): T =
+        try {
+            block()
+        } catch (failure: LearnerContentTransportFailure) {
+            throw failure
+        } catch (failure: Exception) {
+            throw LearnerContentTransportFailure(
+                statusCode = null,
+                message = "The learner content response is malformed.",
+                cause = failure,
+            )
+        }
 
     private suspend fun getJson(path: String): JsonObject {
         val response =
