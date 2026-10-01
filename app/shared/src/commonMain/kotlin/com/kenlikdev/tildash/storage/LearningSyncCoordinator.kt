@@ -178,6 +178,9 @@ class LearningSyncCoordinator(
         require(acknowledgedIds.intersect(conflictIds).isEmpty()) {
             "An attempt cannot be acknowledged and conflicted in the same sync result."
         }
+        require(acknowledgedIds.toSet() + conflictIds.toSet() == pendingIds) {
+            "Transport must classify every submitted attempt as acknowledged or conflicted."
+        }
 
         acknowledgedIds.forEach(store::acknowledgeAttempt)
 
