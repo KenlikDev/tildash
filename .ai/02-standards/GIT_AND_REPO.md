@@ -60,6 +60,21 @@ Required repository policy for `main`:
 
 GitHub rulesets are the enforcement mechanism. The documented workflow is not a substitute for repository protection.
 
+## Task branch freshness
+
+Before creating a task branch:
+- inspect the current `develop` reference and confirm the branch is current;
+- create the task branch from the current `develop` state unless the task explicitly requires another immutable baseline.
+
+Before opening or merging a task PR:
+- compare the task branch with the current `develop`;
+- if `develop` has advanced materially, refresh the task branch deliberately rather than silently integrating stale work;
+- after any rebase, merge-from-`develop`, or other task-head change, re-run the applicable verification on the resulting head.
+
+Never treat CI, review, or acceptance evidence from an older task-branch SHA as evidence for a newer SHA.
+
+Do not rewrite a task branch history after review or verification unless necessary. If history is rewritten, treat the resulting branch as a new verification target and repeat affected review and checks.
+
 ## Integration rules
 
 A task branch may enter `develop` only when:
@@ -70,7 +85,8 @@ A task branch may enter `develop` only when:
 5. broader applicable checks pass;
 6. no unresolved merge conflict remains;
 7. the change is within task scope;
-8. the resulting integration state is re-verified after merge.
+8. the required checks and review evidence cover the exact task-branch head;
+9. the resulting integration state is re-verified after merge.
 
 Do not merge code simply because:
 - it compiles;
@@ -94,7 +110,7 @@ For task integration, the normal target is `develop`.
 
 For release promotion, the normal source is `develop` and the target is `main`.
 
-AI review is not a fictional second human reviewer. Final integration into `develop` remains a human decision.
+Final integration into protected branches remains human-controlled. AI may execute a protected-branch merge only when the project owner explicitly authorizes that exact operation; explicit authorization never permits bypassing repository protection or required checks.
 
 ## Commits
 
@@ -117,21 +133,26 @@ Examples:
 
 One coherent change per commit. Never use a commit to hide a failing check.
 
-AI may prepare or execute Git operations only when explicitly authorized by the project owner.
+AI may prepare or execute Git operations only when explicitly authorized by the project owner. Destructive operations such as closing PRs, deleting branches, or rewriting branch history require that authorization as well.
 
 ## Branch cleanup
 
 After a task branch has been successfully integrated and is no longer needed for review, recovery, follow-up work, or traceability, it may be deleted.
 
-Never delete `main` or `develop` as part of routine cleanup.
+If a branch or PR belongs to a retired workflow, first preserve or migrate any still-required work into the current task flow, then close the obsolete PR and remove the obsolete branch/ruleset when repository permissions allow.
 
+Never delete `main` or `develop` as part of routine cleanup.
 
 ## Release promotion
 
-Before a `develop -> main` promotion:
+Release promotion is a separate operation, not an automatic step of every task.
+
+When a release is requested:
 - inspect the exact `develop` tree and compare it with `main`;
 - verify all required checks on the exact release candidate;
 - confirm local acceptance for the current `develop` state;
-- open the release PR from `develop` to `main`.
+- inspect known open blocking findings relevant to the release candidate;
+- open the release PR from `develop` to `main`;
+- merge only after the required checks pass and the project owner gives the required approval/authorization.
 
 Do not introduce an intermediate AI integration branch or an additional permanent branch for release promotion.
