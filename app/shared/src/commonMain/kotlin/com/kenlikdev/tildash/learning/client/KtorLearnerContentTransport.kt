@@ -48,19 +48,18 @@ class KtorLearnerContentTransport(
     }
 
     override suspend fun loadCatalog(): LearnerCourseCatalog =
-        mapSuccessfulResponse("catalog") {
+        mapSuccessfulResponse {
             getJson("/api/v1/learning/catalog")
                 .toCatalog()
         }
 
     override suspend fun loadLesson(lessonId: ContentId): LearnerLessonPackage =
-        mapSuccessfulResponse("lesson package") {
+        mapSuccessfulResponse {
             getJson("/api/v1/learning/lessons/" + lessonId.value)
                 .toLessonPackage()
         }
 
     private inline fun <T> mapSuccessfulResponse(
-        resource: String,
         block: () -> T,
     ): T =
         try {
