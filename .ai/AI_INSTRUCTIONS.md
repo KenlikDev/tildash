@@ -10,6 +10,8 @@ Start every substantive task by reading `.ai/AI_BOOTSTRAP.md`. For code review, 
 
 The AI must work from observed repository state, not assumptions. Unknown information remains unknown until evidence is obtained.
 
+Instruction freshness is a required engineering control. At phase boundaries, after context compaction or reconnect, before the first repository mutation, before any Git/PR/merge operation, and before final verification, re-read `.ai/AI_BOOTSTRAP.md`, `.ai/AI_INSTRUCTIONS.md`, and the task-relevant instruction files. Do not rely on memory of earlier reads when a checkpoint is reached.
+
 Integrity is mandatory: never weaken a test, lint rule, security control, CI gate, assertion, mock, timeout, coverage threshold, or error handling merely to obtain a green result.
 
 The implementation does not define the intended behavior. Specifications define behavior; tests make relevant specifications executable; implementation satisfies them.
