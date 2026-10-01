@@ -4,7 +4,7 @@
 
 This document defines the application composition boundary between shared learning rules and client persistence/presentation.
 
-The current implementation uses `LearnerLessonApplication` and `LearnerLessonCoordinator` in `app/shared`.
+The current implementation uses `LearnerLessonApplication` and `LearnerLessonCoordinator` in `app/shared`. The Desktop host also composes the published learner HTTP API into the download path.
 
 ## Flow
 
