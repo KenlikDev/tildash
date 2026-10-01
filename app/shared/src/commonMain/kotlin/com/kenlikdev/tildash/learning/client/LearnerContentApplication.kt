@@ -27,8 +27,7 @@ class LearnerContentApplication(
 
     fun listDownloadedLessons(): List<DownloadedLesson> = downloadedLessonStore.listLessons()
 
-    fun isDownloaded(lessonId: ContentId): Boolean =
-        downloadedLessonStore.loadLesson(lessonId) != null
+    fun isDownloaded(lessonId: ContentId): Boolean = downloadedLessonStore.loadLesson(lessonId) != null
 
     fun deleteDownloadedLesson(lessonId: ContentId) {
         downloadedLessonStore.deleteLesson(lessonId)
