@@ -90,7 +90,8 @@ class PublishedLearningLessonRepository(
         return LearnerLessonPackage(
             course = course,
             lesson = lesson,
-            plan = LearningPlan(
+            plan =
+                LearningPlan(
                 lessonId = lessonId,
                 exercises = exercises,
             ),
