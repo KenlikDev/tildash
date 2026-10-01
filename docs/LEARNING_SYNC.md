@@ -114,6 +114,8 @@ The authenticated server endpoint is `POST /api/v1/learning/sync`.
 
 The server accepts immutable attempts with an explicit `lessonId`, scopes persistence by the authenticated learner subject, acknowledges new or identical attempts, and reports payload conflicts without overwriting stored history. The device ID remains metadata and does not affect idempotency.
 
+The current synchronization contract accepts the client's `CORRECT` / `INCORRECT` outcome as part of the immutable payload; the server does not yet independently rescore the submitted text response against the published exercise. This is an explicit integrity limitation tracked by issue #78 and must not be treated as a server-authoritative scoring boundary.
+
 The endpoint uses the API-wide RFC 9457 Problem Details contract for invalid requests and authentication failures.
 
 ## Concrete client HTTP transport
