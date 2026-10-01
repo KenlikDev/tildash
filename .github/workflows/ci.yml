@@ -96,10 +96,6 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Set up Gradle
-        uses: actions/setup-gradle@v6
-
-      # Android uses the Gradle Wrapper directly; shared Gradle setup is validated by Linux verification.
       - name: Assemble Android debug APK
         run: ./gradlew :app:androidApp:assembleDebug --no-configuration-cache
 
