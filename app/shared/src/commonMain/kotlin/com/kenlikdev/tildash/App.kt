@@ -137,38 +137,43 @@ private fun LearnerApplicationContent(
         }
 
         when (tab) {
-            LearnerHomeTab.CATALOG -> CatalogContent(
-                catalog = catalog,
-                loading = loadingCatalog,
-                downloaded = downloaded,
-                downloadingLessonId = downloading,
-                onDownload = { id ->
-                    scope.launch {
-                        downloading = id
-                        error = null
-                        try {
-                            contentApplication.downloadLesson(id)
-                            refreshDownloaded()
-                        } catch (failure: Exception) {
-                            error = failure.message ?: "Unable to download the lesson."
-                        } finally {
-                            downloading = null
+            LearnerHomeTab.CATALOG -> {
+                CatalogContent(
+                    catalog = catalog,
+                    loading = loadingCatalog,
+                    downloaded = downloaded,
+                    downloadingLessonId = downloading,
+                    onDownload = { id ->
+                        scope.launch {
+                            downloading = id
+                            error = null
+                            try {
+                                contentApplication.downloadLesson(id)
+                                refreshDownloaded()
+                            } catch (failure: Exception) {
+                                error = failure.message ?: "Unable to download the lesson."
+                            } finally {
+                                downloading = null
+                            }
                         }
-                    }
-                },
-                onOpen = { id ->
-                    lessonState = learnerApplication.openLesson(id)
-                    tab = LearnerHomeTab.DOWNLOADED
-                },
-            )
-            LearnerHomeTab.DOWNLOADED -> DownloadedLessonsContent(
-                downloadedLessons = downloaded,
-                onOpen = { id -> lessonState = learnerApplication.openLesson(id) },
-                onRemove = { id ->
-                    contentApplication.deleteDownloadedLesson(id)
-                    refreshDownloaded()
-                },
-            )
+                    },
+                    onOpen = { id ->
+                        lessonState = learnerApplication.openLesson(id)
+                        tab = LearnerHomeTab.DOWNLOADED
+                    },
+                )
+            }
+
+            LearnerHomeTab.DOWNLOADED -> {
+                DownloadedLessonsContent(
+                    downloadedLessons = downloaded,
+                    onOpen = { id -> lessonState = learnerApplication.openLesson(id) },
+                    onRemove = { id ->
+                        contentApplication.deleteDownloadedLesson(id)
+                        refreshDownloaded()
+                    },
+                )
+            }
         }
     }
 }
