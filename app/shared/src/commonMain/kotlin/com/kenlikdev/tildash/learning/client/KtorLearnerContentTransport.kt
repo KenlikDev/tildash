@@ -59,9 +59,7 @@ class KtorLearnerContentTransport(
                 .toLessonPackage()
         }
 
-    private inline fun <T> mapSuccessfulResponse(
-        block: () -> T,
-    ): T =
+    private inline fun <T> mapSuccessfulResponse(block: () -> T): T =
         try {
             block()
         } catch (failure: LearnerContentTransportFailure) {
@@ -194,7 +192,8 @@ class KtorLearnerContentTransport(
         return LearnerLessonPackage(
             course = course,
             lesson = lesson,
-            plan = LearningPlan(
+            plan =
+                LearningPlan(
                 lessonId = lesson.id,
                 exercises = exercises,
             ),
