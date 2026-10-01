@@ -26,7 +26,8 @@ class DevelopmentIdentityFilter(
         }
 
         val role =
-            request.getHeader("X-Tildash-Development-Role")
+            request
+                .getHeader("X-Tildash-Development-Role")
                 ?.let(Role::fromTokenValue)
         if (role == null) {
             filterChain.doFilter(request, response)
@@ -34,7 +35,8 @@ class DevelopmentIdentityFilter(
         }
 
         val subject =
-            request.getHeader("X-Tildash-Development-Subject")
+            request
+                .getHeader("X-Tildash-Development-Subject")
                 ?.trim()
                 ?.takeIf { it.isNotEmpty() }
                 ?: properties.development.subject
