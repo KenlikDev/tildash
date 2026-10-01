@@ -40,7 +40,13 @@ class SqlDelightDownloadedLessonStoreTest {
                                     firstLessonId,
                                     "Lesson one",
                                     1,
-                                    localizations = listOf(LearnerLocalizedText(LanguageTag("ru"), "Урок один")),
+                                    localizations =
+                                        listOf(
+                                            LearnerLocalizedText(
+                                                LanguageTag("ru"),
+                                                "Урок один",
+                                            ),
+                                        ),
                                 ),
                                 lessonSummary(secondLessonId, "Lesson two", 2),
                             ),
