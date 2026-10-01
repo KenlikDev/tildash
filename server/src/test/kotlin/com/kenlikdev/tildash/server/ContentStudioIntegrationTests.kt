@@ -56,12 +56,13 @@ class ContentStudioIntegrationTests {
     @Test
     fun lessonWithoutExercisesCannotBeSubmitted() {
         val courseId = createNode("COURSE", null, "Course")
-        val lessonId = createNode(
-            kind = "LESSON",
-            parentId = courseId,
-            value = "Empty lesson",
-            seedExercise = false,
-        )
+        val lessonId =
+            createNode(
+                kind = "LESSON",
+                parentId = courseId,
+                value = "Empty lesson",
+                seedExercise = false,
+            )
 
         mockMvc
             .perform(
