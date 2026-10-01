@@ -32,7 +32,6 @@ class ContentValidationTest {
     @Test
     fun validLessonPassesAndWarningsAreAbsent() {
         val result = validator.validateLesson(validInput())
- 
 
         assertEquals(ReviewOutcome.PASS, result.outcome)
         assertTrue(result.issues.isEmpty())
