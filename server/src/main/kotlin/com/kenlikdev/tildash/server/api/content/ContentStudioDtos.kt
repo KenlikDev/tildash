@@ -103,7 +103,6 @@ data class ReviewDecisionResponse(
     val validationOutcome: String,
 )
 
-
 data class CreateExerciseRequest(
     @field:NotBlank
     val id: String,
