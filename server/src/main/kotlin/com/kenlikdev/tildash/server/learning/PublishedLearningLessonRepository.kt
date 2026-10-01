@@ -92,9 +92,9 @@ class PublishedLearningLessonRepository(
             lesson = lesson,
             plan =
                 LearningPlan(
-                lessonId = lessonId,
-                exercises = exercises,
-            ),
+                    lessonId = lessonId,
+                    exercises = exercises,
+                ),
         )
     }
 }
