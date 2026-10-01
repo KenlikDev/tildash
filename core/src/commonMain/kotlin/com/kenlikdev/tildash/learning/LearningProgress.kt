@@ -25,6 +25,9 @@ data class ManualInputExercise(
         require(expectedAnswers.isNotEmpty()) {
             "Exercise must define at least one expected answer."
         }
+        require(expectedAnswers.all { it.isNotBlank() }) {
+            "Exercise expected answers must not be blank."
+        }
         require(expectedAnswers.map(::normalize).distinct().size == expectedAnswers.size) {
             "Exercise expected answers must be unique after normalization."
         }
