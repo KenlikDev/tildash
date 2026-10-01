@@ -68,9 +68,30 @@ class KtorLearnerContentTransportTest {
 
                 val catalog = transport.loadCatalog()
 
-                assertEquals("Basic Crimean Tatar", catalog.courses.single().title)
-                assertEquals("Greetings", catalog.courses.single().lessons.single().title)
-                assertEquals("Приветствия", catalog.courses.single().lessons.single().localizations.single().value)
+                assertEquals(
+                    "Basic Crimean Tatar",
+                    catalog.courses
+                        .single()
+                        .title,
+                )
+                assertEquals(
+                    "Greetings",
+                    catalog.courses
+                        .single()
+                        .lessons
+                        .single()
+                        .title,
+                )
+                assertEquals(
+                    "Приветствия",
+                    catalog.courses
+                        .single()
+                        .lessons
+                        .single()
+                        .localizations
+                        .single()
+                        .value,
+                )
                 assertEquals(HttpMethod.Get, request.method)
                 assertEquals(
                     "http://127.0.0.1:8080/api/v1/learning/catalog",
@@ -146,7 +167,12 @@ class KtorLearnerContentTransportTest {
 
                 assertEquals("Greetings", packageData.lesson.title)
                 assertEquals(1, packageData.plan.exercises.size)
-                assertEquals("Translate hello.", packageData.plan.exercises.single().prompt)
+                assertEquals(
+                    "Translate hello.",
+                    packageData.plan.exercises
+                        .single()
+                        .prompt,
+                )
             } finally {
                 client.close()
             }
