@@ -29,9 +29,10 @@ class LearnerContentApplicationTest {
                 LearnerContentApplication(
                     transport = transport,
                     downloadedLessonStore = store,
-                    clock = object : kotlin.time.Clock {
-                        override fun now(): Instant = Instant.parse("2026-10-01T08:00:00Z")
-                    },
+                    clock =
+                        object : kotlin.time.Clock {
+                            override fun now(): Instant = Instant.parse("2026-10-01T08:00:00Z")
+                        },
                 )
 
             application.loadCatalog()
