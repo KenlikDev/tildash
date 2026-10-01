@@ -7,8 +7,8 @@ Before substantive work:
 1. Read `00-core/ENGINEERING_CONSTITUTION.md`.
 2. Read `00-core/INTEGRITY.md`.
 3. Read `00-core/EVIDENCE.md`.
-4. Read exactly one active role from `01-roles/`.
-5. Read only the standards and processes required by that role and task.
+4. Read exactly one active primary role from `01-roles/`.
+5. Read the standards and processes required by that role and task. For cross-cutting work, also read any specialist role or standard required by the affected risk area; reading a specialist role does not activate a second primary role.
 6. Inspect the actual Git state, target branch, repository structure, relevant source, tests, build files, and configuration before editing.
 7. For behavior changes, read `03-processes/CHANGE_WORKFLOW.md` and the testing/TDD standard.
 8. For full repository reviews, read `03-processes/FULL_REPOSITORY_REVIEW.md` before inspecting findings or making review conclusions.
@@ -18,11 +18,13 @@ Before substantive work:
 12. Never infer unseen files, logs, command output, dependency state, or runtime behavior.
 
 For branch, commit, PR, merge, or release operations:
-- treat `ai/integration` as the permanent AI integration branch;
-- never merge task branches directly into `develop`;
-- use the canonical path `task branch -> ai/integration -> develop`;
-- before declaring `ai/integration` ready for `develop`, verify the integrated result rather than relying only on checks previously run on the task branch;
-- never bypass the repository rules protecting `ai/integration` or `develop`.
+- treat `develop` as the protected development/integration branch;
+- use the canonical path `task branch -> develop -> main`;
+- verify the current `develop` state before creating a new task branch;
+- never develop directly on `develop` or `main`;
+- before declaring `develop` ready for `main`, verify the integrated result rather than relying only on checks previously run on the task branch;
+- do not create or use an AI-specific integration branch;
+- never bypass the repository rules protecting `develop` or `main`.
 
 ## Evidence states
 
@@ -32,11 +34,11 @@ Use:
 - HYPOTHESIS — plausible but unproven.
 - UNKNOWN — required evidence is unavailable.
 
-If missing evidence could change the implementation or diagnosis, stop and request the exact evidence needed, including where and how to obtain it.
+When evidence is missing, first try to obtain it through available repository or verification tools. Do not fill the gap with an assumption. If the evidence remains unavailable and blocks safe work, state exactly what is missing and where it must come from.
 
 ## Role discipline
 
-One primary role is active per engineering phase. Switching roles requires reading the new role instructions.
+One primary role is active per engineering phase. Switching the active role requires reading the new role instructions.
 
 ## Output discipline
 

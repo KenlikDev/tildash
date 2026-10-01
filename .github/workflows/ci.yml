@@ -11,7 +11,6 @@ on:
     branches:
       - main
       - develop
-      - ai/integration
   workflow_dispatch:
 
 permissions:
@@ -32,10 +31,17 @@ jobs:
           BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
-          if [ "$EVENT_NAME" = "pull_request" ] && [ "$BASE_BRANCH" = "develop" ] && [ "$HEAD_BRANCH" != "ai/integration" ]; then
-            echo "Pull requests targeting develop must originate from ai/integration."
-            echo "Actual source branch: $HEAD_BRANCH"
-            exit 1
+          if [ "$EVENT_NAME" = "pull_request" ] && [ "$BASE_BRANCH" = "develop" ]; then
+            case "$HEAD_BRANCH" in
+              feature/*|feat/*|fix/*|refactor/*|test/*|security/*|docs/*|chore/*|hotfix/*)
+                echo "Task-branch source policy passed."
+                ;;
+              *)
+                echo "Pull requests targeting develop must originate from a supported short-lived task branch."
+                echo "Actual source branch: $HEAD_BRANCH"
+                exit 1
+                ;;
+            esac
           fi
 
           echo "Source-branch policy passed."
@@ -89,9 +95,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
 
       - name: Assemble Android debug APK
         run: ./gradlew :app:androidApp:assembleDebug --no-configuration-cache

@@ -16,7 +16,7 @@ Keep business rules in shared/common code. Platform-specific implementations are
 
 Treat the JDK/toolchain version and JVM bytecode target as separate decisions.
 
-The current Gradle daemon configuration uses JDK 21. The generated Android KMP `JVM_11` override is obsolete for this project and is being aligned to JVM 17 after explicit verification. Backend Java uses its own toolchain policy.
+The current Gradle daemon and backend Java toolchain use JDK 21. The Android app currently targets JVM 11. A move to JVM 17 requires explicit compatibility verification and corresponding build configuration changes; do not describe that migration as completed until it has been verified.
 
 Remove wizard-generated sample code once its replacement is understood. Do not keep placeholder greetings, sample buttons, unused platform APIs, or demo tests as product code merely because the IDE generated them.
 
