@@ -48,10 +48,12 @@ class KtorLearnerContentTransport(
     }
 
     override suspend fun loadCatalog(): LearnerCourseCatalog =
-        getJson("/api/v1/learning/catalog").toCatalog()
+        getJson("/api/v1/learning/catalog")
+            .toCatalog()
 
     override suspend fun loadLesson(lessonId: ContentId): LearnerLessonPackage =
-        getJson("/api/v1/learning/lessons/" + lessonId.value).toLessonPackage()
+        getJson("/api/v1/learning/lessons/" + lessonId.value)
+            .toLessonPackage()
 
     private suspend fun getJson(path: String): JsonObject {
         val response =
@@ -136,8 +138,12 @@ class KtorLearnerContentTransport(
         )
 
     private fun JsonObject.toLessonPackage(): LearnerLessonPackage {
-        val course = requiredObject("course").toCourseSummary()
-        val lesson = requiredObject("lesson").toLessonSummary()
+        val course =
+            requiredObject("course")
+                .toCourseSummary()
+        val lesson =
+            requiredObject("lesson")
+                .toLessonSummary()
         val exercises =
             requiredArray("exercises").map { element ->
                 val exercise = element.jsonObject
@@ -208,7 +214,8 @@ class KtorLearnerContentTransport(
 
     private fun parseProblemDetail(payload: String): String? =
         runCatching {
-            json.parseToJsonElement(payload)
+            json
+                .parseToJsonElement(payload)
                 .jsonObject["detail"]
                 ?.jsonPrimitive
                 ?.content
