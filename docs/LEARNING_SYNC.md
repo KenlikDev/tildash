@@ -38,6 +38,8 @@ Given local progress and an incoming batch:
 
 Conflict IDs are not acknowledged as successfully delivered.
 
+A successful transport response must classify every submitted attempt ID exactly once: an ID appears in either `acknowledgedAttemptIds` or `conflictAttemptIds`, never both. A response that omits a submitted ID is a protocol failure.
+
 `canAcknowledgeBatch` is false whenever any conflict exists.
 
 The sender should keep unacknowledged/conflicted attempts in its durable outbox until a higher-level conflict workflow resolves them.
