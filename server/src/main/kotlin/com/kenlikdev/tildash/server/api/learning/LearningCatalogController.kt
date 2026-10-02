@@ -28,7 +28,9 @@ class LearningCatalogController(
         ApiResponse(responseCode = "403", description = "Learner role required"),
         ApiResponse(responseCode = "404", description = "Published lesson not found"),
     )
-    fun lesson(@PathVariable lessonId: String): LearningLessonPackageResponse =
+    fun lesson(
+        @PathVariable lessonId: String,
+    ): LearningLessonPackageResponse =
         service.lesson(ContentId(lessonId)).toResponse()
 
     @GetMapping("/catalog")
