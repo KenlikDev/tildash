@@ -3,6 +3,7 @@ package com.kenlikdev.tildash
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -14,10 +15,10 @@ import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
+import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.ManualInputExercise
-import com.kenlikdev.tildash.learning.client.KtorLearnerContentTransport
 import com.kenlikdev.tildash.learning.client.LearnerContentApplication
 import com.kenlikdev.tildash.learning.client.LearnerLessonApplication
 import com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator
@@ -195,11 +196,11 @@ class AppUiTest {
 
         override fun loadProgress(): LearningProgress = progress
 
-        override fun saveAttempt(attempt: com.kenlikdev.tildash.learning.LearningAttempt) {
+        override fun saveAttempt(attempt: LearningAttempt) {
             progress = LearningProgress.fromPersistedAttempts(progress.attempts + attempt)
         }
 
-        override fun loadPendingSyncAttempts(): List<com.kenlikdev.tildash.learning.LearningAttempt> = emptyList()
+        override fun loadPendingSyncAttempts(): List<LearningAttempt> = emptyList()
 
         override fun acknowledgeAttempt(attemptId: String) = Unit
 
