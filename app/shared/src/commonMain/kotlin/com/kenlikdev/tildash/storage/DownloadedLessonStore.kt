@@ -12,6 +12,7 @@ import com.kenlikdev.tildash.learning.ManualInputExercise
 import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
@@ -243,18 +244,18 @@ class SqlDelightDownloadedLessonStore(
             lessons.forEach { lesson ->
                 add(
                     buildJsonObject {
-                        put("id", lesson.id.value)
-                        put("title", lesson.title)
-                        put("sourceLocale", lesson.sourceLocale.value)
-                        put("publishedVersion", lesson.publishedVersion)
+                        put("id", JsonPrimitive(lesson.id.value))
+                        put("title", JsonPrimitive(lesson.title))
+                        put("sourceLocale", JsonPrimitive(lesson.sourceLocale.value))
+                        put("publishedVersion", JsonPrimitive(lesson.publishedVersion))
                         put(
                             "localizations",
                             buildJsonArray {
                                 lesson.localizations.forEach { localization ->
                                     add(
                                         buildJsonObject {
-                                            put("locale", localization.locale.value)
-                                            put("value", localization.value)
+                                            put("locale", JsonPrimitive(localization.locale.value))
+                                            put("value", JsonPrimitive(localization.value))
                                         },
                                     )
                                 }
