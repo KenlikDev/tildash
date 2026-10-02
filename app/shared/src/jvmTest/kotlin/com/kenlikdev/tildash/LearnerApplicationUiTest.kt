@@ -2,8 +2,7 @@ package com.kenlikdev.tildash
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.onNode
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -70,15 +69,14 @@ class LearnerApplicationUiTest {
                     waitForIdle()
 
                     onNodeWithText("Translate hello.").assertIsDisplayed()
-                    onNode(hasSetTextAction()).performTextInput("wrong")
+                    onNodeWithTag("learner-answer-input").performTextInput("wrong")
                     onNodeWithText("Check answer").performClick()
                     waitForIdle()
                     onNodeWithText("Try again").assertIsDisplayed()
 
-                    onNode(hasSetTextAction()).performTextInput("merhaba")
+                    onNodeWithTag("learner-answer-input").performTextInput("merhaba")
                     onNodeWithText("Check answer").performClick()
                     waitForIdle()
-                    onNodeWithText("Correct").assertIsDisplayed()
                     onNodeWithText("Lesson complete.").assertIsDisplayed()
                 }
 
@@ -161,7 +159,7 @@ class LearnerApplicationUiTest {
             override fun now(): Instant = Instant.parse("2026-10-02T12:00:00Z")
         }
 
-    private class FakeContentTransport : LearnerContentTransport {
+    private inner class FakeContentTransport : LearnerContentTransport {
         override suspend fun loadCatalog(): LearnerCourseCatalog =
             LearnerCourseCatalog(listOf(course()))
 

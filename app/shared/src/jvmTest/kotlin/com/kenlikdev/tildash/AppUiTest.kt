@@ -1,9 +1,8 @@
 package com.kenlikdev.tildash
 
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertExists
-import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.onNode
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -45,9 +44,9 @@ class AppUiTest {
             }
 
             waitForIdle()
-            onNodeWithText("Tildash Learning").assertExists()
-            onNodeWithText("Crimean Tatar basics").assertExists()
-            onNodeWithText("Greetings").assertExists()
+            onNodeWithText("Tildash Learning").assertIsDisplayed()
+            onNodeWithText("Crimean Tatar basics").assertIsDisplayed()
+            onNodeWithText("Greetings").assertIsDisplayed()
             onNodeWithText("Download").performClick()
 
             waitForIdle()
@@ -55,19 +54,19 @@ class AppUiTest {
             onNodeWithText("Open").performClick()
 
             waitForIdle()
-            onNodeWithText("Translate hello.").assertExists()
-            onNodeWithText("Your answer").assertExists()
-            onNodeWithText("Check answer").assertExists()
-            onNode(hasSetTextAction()).performTextInput("wrong")
+            onNodeWithText("Translate hello.").assertIsDisplayed()
+            onNodeWithText("Your answer").assertIsDisplayed()
+            onNodeWithText("Check answer").assertIsDisplayed()
+            onNodeWithTag("learner-answer-input").performTextInput("wrong")
             onNodeWithText("Check answer").performClick()
 
             waitForIdle()
-            onNodeWithText("Try again").assertExists()
-            onNode(hasSetTextAction()).performTextInput("merhaba")
+            onNodeWithText("Try again").assertIsDisplayed()
+            onNodeWithTag("learner-answer-input").performTextInput("merhaba")
             onNodeWithText("Check answer").performClick()
 
             waitForIdle()
-            onNodeWithText("Lesson complete.").assertExists()
+            onNodeWithText("Lesson complete.").assertIsDisplayed()
             kotlin.test.assertEquals(
                 AnswerOutcome.INCORRECT,
                 fixture.progressStore.loadProgress().attempts[0].outcome,
@@ -79,17 +78,17 @@ class AppUiTest {
 
             onNodeWithText("Back to lessons").performClick()
             waitForIdle()
-            onNodeWithText("Downloaded (1)").assertExists()
+            onNodeWithText("Downloaded (1)").assertIsDisplayed()
             onNodeWithText("Remove").performClick()
 
             waitForIdle()
-            onNodeWithText("Downloaded (0)").assertExists()
+            onNodeWithText("Downloaded (0)").assertIsDisplayed()
             onNodeWithText("Catalog").performClick()
             waitForIdle()
             onNodeWithText("Download").performClick()
 
             waitForIdle()
-            onNodeWithText("Downloaded (1)").assertExists()
+            onNodeWithText("Downloaded (1)").assertIsDisplayed()
 
             val restartedFixture = fixture.learnerApplication()
             setContent {
@@ -103,7 +102,7 @@ class AppUiTest {
             onNodeWithText("Downloaded (1)").performClick()
             onNodeWithText("Open").performClick()
             waitForIdle()
-            onNodeWithText("Lesson complete.").assertExists()
+            onNodeWithText("Lesson complete.").assertIsDisplayed()
         }
 
     private class Fixture {

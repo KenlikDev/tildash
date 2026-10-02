@@ -1,4 +1,3 @@
-
 package com.kenlikdev.tildash.storage
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
@@ -133,9 +132,9 @@ class SqlDelightLearningProgressStoreTest {
         val databaseFile = Files.createTempFile("tildash-learning-", ".db")
 
         try {
-            val first = attempt("attempt-b", Instant.parse("2026-09-28T09:00:00Z"))
-            val second = attempt("attempt-a", Instant.parse("2026-09-28T08:00:00Z"))
-            val third = attempt("attempt-c", Instant.parse("2026-09-28T09:00:00Z"))
+            val first = attempt(id = "attempt-b", occurredAt = Instant.parse("2026-09-28T09:00:00Z"))
+            val second = attempt(id = "attempt-a", occurredAt = Instant.parse("2026-09-28T08:00:00Z"))
+            val third = attempt(id = "attempt-c", occurredAt = Instant.parse("2026-09-28T09:00:00Z"))
 
             open(databaseFile.toString()).use { store ->
                 store.saveAttempt(first)
