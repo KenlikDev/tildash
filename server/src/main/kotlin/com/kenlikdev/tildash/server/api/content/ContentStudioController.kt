@@ -40,9 +40,7 @@ class ContentStudioController(
     @GetMapping("/{contentId}/exercises")
     @PreAuthorize("hasAnyRole('TEACHER', 'REVIEWER', 'ADMINISTRATOR')")
     @Operation(summary = "List draft lesson exercises")
-    fun listExercises(
-        @PathVariable contentId: String,
-    ): List<ContentExerciseResponse> = service.listExercises(contentId.toContentId())
+    fun listExercises(@PathVariable contentId: String): List<ContentExerciseResponse> = service.listExercises(contentId.toContentId())
 
     @PostMapping("/{contentId}/exercises")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMINISTRATOR')")
