@@ -90,11 +90,39 @@ class AppUiTest {
         rule.onNodeWithText("Open").performClick()
         rule.waitForIdle()
         rule.onNodeWithText("Translate hello.").assertTextEquals("Translate hello.")
+        rule.onNodeWithTag("learner-answer-input").performTextInput("wrong")
+        rule.onNodeWithText("Check answer").performClick()
+        rule.waitForIdle()
+
+        rule.onNodeWithText("Try again").assertTextEquals("Try again")
         rule.onNodeWithTag("learner-answer-input").performTextInput("merhaba")
         rule.onNodeWithText("Check answer").performClick()
         rule.waitForIdle()
 
         rule.onNodeWithText("Correct").assertTextEquals("Correct")
+        rule.onNodeWithText("Lesson complete.").assertTextEquals("Lesson complete.")
+
+        val restartedLearnerApplication =
+            LearnerLessonApplication(
+                downloadedLessonStore = store,
+                coordinator =
+                    LearnerLessonCoordinator(
+                        downloadedLessonStore = store,
+                        learningProgressStore = progressStore,
+                    ),
+                attemptIdGenerator = { "attempt-2" },
+            )
+
+        rule.setContent {
+            App(
+                learnerApplication = restartedLearnerApplication,
+                contentApplication = contentApplication,
+            )
+        }
+        rule.waitForIdle()
+        rule.onNodeWithText("Downloaded (1)").performClick()
+        rule.onNodeWithText("Open").performClick()
+        rule.waitForIdle()
         rule.onNodeWithText("Lesson complete.").assertTextEquals("Lesson complete.")
     }
 
