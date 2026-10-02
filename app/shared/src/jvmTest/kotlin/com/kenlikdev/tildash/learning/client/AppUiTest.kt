@@ -2,6 +2,7 @@ package com.kenlikdev.tildash.learning.client
 
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -89,7 +90,7 @@ class AppUiTest {
         rule.onNodeWithText("Open").performClick()
         rule.waitForIdle()
         rule.onNodeWithText("Translate hello.").assertTextEquals("Translate hello.")
-        rule.onNodeWithText("Your answer").performTextInput("merhaba")
+        rule.onNodeWithTag("learner-answer-input").performTextInput("merhaba")
         rule.onNodeWithText("Check answer").performClick()
         rule.waitForIdle()
 
