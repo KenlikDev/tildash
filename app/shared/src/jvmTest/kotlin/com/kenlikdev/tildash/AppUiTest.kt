@@ -113,6 +113,7 @@ class AppUiTest {
         private val fixedInstant = Instant.parse("2026-10-01T08:00:00Z")
         val store = FakeDownloadedLessonStore()
         val progressStore = FakeLearningProgressStore()
+        private var nextAttemptId = 0
 
         private val lesson =
             LearnerLessonSummary(
@@ -177,7 +178,7 @@ class AppUiTest {
                         learningProgressStore = progressStore,
                     ),
                 clock = fixedClock(),
-                attemptIdGenerator = { "attempt-1" },
+                attemptIdGenerator = { "attempt-" + (++nextAttemptId) },
             )
 
         private fun fixedClock() =
