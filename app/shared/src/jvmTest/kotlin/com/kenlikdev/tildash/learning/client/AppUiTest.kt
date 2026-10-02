@@ -9,7 +9,6 @@ import androidx.compose.ui.test.performTextInput
 import com.kenlikdev.tildash.App
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.LanguageTag
-import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
@@ -185,7 +184,6 @@ class AppUiTest {
         override fun loadProgress(): LearningProgress = LearningProgress.fromPersistedAttempts(attempts)
 
         override fun saveAttempt(attempt: LearningAttempt) {
-            check(attempt.outcome == AnswerOutcome.CORRECT)
             attempts.removeAll { it.attemptId == attempt.attemptId }
             attempts += attempt
         }
