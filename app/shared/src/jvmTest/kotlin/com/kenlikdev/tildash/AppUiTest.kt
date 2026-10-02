@@ -111,10 +111,10 @@ class AppUiTest {
                     learningProgressStore = progressStore,
                 ),
             clock = TestClock,
-            attemptIdGenerator = AttemptIdGenerator(),
+            attemptIdGenerator = { "ui-test-attempt-" + progressStore.loadProgress().attempts.size },
         )
 
-    private class FakeContentTransport : LearnerContentTransport {
+    private inner class FakeContentTransport : LearnerContentTransport {
         private val lesson =
             LearnerLessonSummary(
                 id = lessonId,
@@ -197,12 +197,6 @@ class AppUiTest {
         override fun acknowledgeAttempt(attemptId: String) = Unit
 
         override fun pendingSyncCount(): Long = 0
-    }
-
-    private class AttemptIdGenerator {
-        private var next = 0
-
-        operator fun invoke(): String = "ui-test-attempt-" + next++
     }
 
     private object TestClock : Clock {
