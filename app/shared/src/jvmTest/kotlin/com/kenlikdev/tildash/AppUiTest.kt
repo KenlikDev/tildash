@@ -14,8 +14,8 @@ import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
 import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningPlan
-import com.kenlikdev.tildash.learning.ManualInputExercise
 import com.kenlikdev.tildash.learning.LearningProgress
+import com.kenlikdev.tildash.learning.ManualInputExercise
 import com.kenlikdev.tildash.learning.client.LearnerContentApplication
 import com.kenlikdev.tildash.learning.client.LearnerContentTransport
 import com.kenlikdev.tildash.learning.client.LearnerLessonApplication
