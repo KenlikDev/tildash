@@ -39,10 +39,7 @@ class LearningCatalogController(
         ApiResponse(responseCode = "401", description = "Authentication required"),
         ApiResponse(responseCode = "403", description = "Learner role required"),
     )
-    fun catalog(): LearningCatalogResponse =
-        service
-            .catalog()
-            .toResponse()
+    fun catalog(): LearningCatalogResponse = service.catalog().toResponse()
 }
 
 private fun LearnerCourseCatalog.toResponse(): LearningCatalogResponse =
