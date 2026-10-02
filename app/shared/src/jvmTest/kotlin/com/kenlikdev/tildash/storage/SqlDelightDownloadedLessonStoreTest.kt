@@ -89,7 +89,7 @@ class SqlDelightDownloadedLessonStoreTest {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString(), createSchema = false).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 val courseLessons =
                     listOf(
                         lessonSummary(firstLessonId, "Lesson one", 1),
@@ -125,7 +125,7 @@ class SqlDelightDownloadedLessonStoreTest {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString(), createSchema = false).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.save(downloadedLesson(firstLessonId, "Old lesson", 1))
                 store.save(
                     downloadedLesson(
@@ -161,7 +161,7 @@ class SqlDelightDownloadedLessonStoreTest {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString(), createSchema = false).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.save(downloadedLesson(firstLessonId, "Lesson one", 1))
                 store.deleteLesson(firstLessonId)
 
@@ -191,6 +191,7 @@ class SqlDelightDownloadedLessonStoreTest {
         }
         return TestStore(driver, SqlDelightDownloadedLessonStore(driver))
     }
+
     private fun downloadedLesson(
         lessonId: ContentId,
         title: String,

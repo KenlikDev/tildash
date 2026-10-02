@@ -70,7 +70,7 @@ class SqlDelightLearningProgressStoreTest {
                     lessonId = secondLesson,
                 )
 
-            open(databaseFile.toString(), createSchema = false).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.saveAttempt(first)
                 store.saveAttempt(second)
 
@@ -92,7 +92,7 @@ class SqlDelightLearningProgressStoreTest {
         try {
             val attempt = attempt()
 
-            open(databaseFile.toString(), createSchema = false).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.saveAttempt(attempt)
                 store.saveAttempt(attempt)
 
@@ -112,7 +112,7 @@ class SqlDelightLearningProgressStoreTest {
             val stored = attempt()
             val conflicting = stored.copy(response = LearnerResponse.Text("wrong"))
 
-            open(databaseFile.toString(), createSchema = false).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.saveAttempt(stored)
 
                 assertFailsWith<AttemptIdConflict> {
@@ -136,7 +136,7 @@ class SqlDelightLearningProgressStoreTest {
             val second = attempt(id = "attempt-a", occurredAt = Instant.parse("2026-09-28T08:00:00Z"))
             val third = attempt(id = "attempt-c", occurredAt = Instant.parse("2026-09-28T09:00:00Z"))
 
-            open(databaseFile.toString(), createSchema = false).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.saveAttempt(first)
                 store.saveAttempt(second)
                 store.saveAttempt(third)
@@ -162,6 +162,7 @@ class SqlDelightLearningProgressStoreTest {
         }
         return TestStore(driver, SqlDelightLearningProgressStore(driver))
     }
+
     private fun attempt(
         id: String = "attempt-1",
         lessonId: ContentId? = ContentId("550e8400-e29b-41d4-a716-446655440000"),
