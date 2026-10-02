@@ -10,22 +10,22 @@
 8. Run broader applicable checks.
 9. For user-visible changes, launch the affected application and exercise the relevant UI journey when the available environment permits; use automated UI tests as complementary evidence.
 10. Re-read the applicable instruction files at the final-review checkpoint.
-10. Inspect the final diff.
-11. Switch the active role to `REVIEWER` and reread its role instructions before running the independent review.
-    Run an independent review for non-trivial changes.
+11. Inspect the final diff.
+12. Switch the active role to `REVIEWER` and reread its role instructions before running the independent review.
+13. Run an independent review for non-trivial changes.
 For a full repository review, additionally follow `03-processes/FULL_REPOSITORY_REVIEW.md` in full.
-12. Commit one coherent change.
-14. Push only the authorized task branch.
-15. Open a PR from the task branch to `ai/integration`.
-16. Merge into `ai/integration` only after all applicable checks pass.
-17. Re-verify the resulting `ai/integration` state after integration.
-18. Remove obsolete task branches only when they are no longer needed.
-19. Open the final PR from `ai/integration` to `develop`.
-20. Have the project owner synchronize the exact `ai/integration` PR head locally.
-21. Have the project owner run the applicable local verification and manually exercise the affected product behavior and acceptance path.
-22. Confirm that local acceptance is complete before considering the final PR mergeable for the owner.
-23. Merge into `develop` only after required GitHub checks and explicit human local acceptance.
-24. Never merge a task branch directly into `develop`.
+14. Commit one coherent change.
+15. Push only the authorized task branch.
+16. Open a PR from the task branch to `ai/integration`.
+17. Merge into `ai/integration` only after all applicable checks pass.
+18. Re-verify the resulting `ai/integration` state after integration.
+19. Remove obsolete task branches only when they are no longer needed.
+20. Open the final PR from `ai/integration` to `develop`.
+21. Have the project owner synchronize the exact `ai/integration` PR head locally.
+22. Have the project owner run the applicable local verification and manually exercise the affected product behavior and acceptance path.
+23. Confirm that local acceptance is complete before considering the final PR mergeable for the owner.
+24. Merge into `develop` only after required GitHub checks and explicit human local acceptance.
+25. Never merge a task branch directly into `develop`.
 
 ## Final promotion gate
 
