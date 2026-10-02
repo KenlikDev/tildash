@@ -111,6 +111,7 @@ kotlin {
         implementation(libs.ktor.client.mock)
         implementation(libs.compose.ui.test)
         implementation(compose.desktop.currentOs)
+        implementation(compose.desktop.uiTestJUnit4)
     }
     }
 }
