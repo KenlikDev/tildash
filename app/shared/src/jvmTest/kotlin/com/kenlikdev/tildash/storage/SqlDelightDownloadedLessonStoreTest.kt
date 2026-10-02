@@ -28,7 +28,7 @@ class SqlDelightDownloadedLessonStoreTest {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.save(
                     downloadedLesson(
                         firstLessonId,
@@ -61,7 +61,7 @@ class SqlDelightDownloadedLessonStoreTest {
                 assertEquals(downloadedAt, loaded?.downloadedAt)
             }
 
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = false).use { store ->
                 val loaded = store.loadLesson(firstLessonId)
 
                 assertEquals(firstLessonId, loaded?.lesson?.id)
@@ -89,7 +89,7 @@ class SqlDelightDownloadedLessonStoreTest {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = false).use { store ->
                 val courseLessons =
                     listOf(
                         lessonSummary(firstLessonId, "Lesson one", 1),
@@ -125,7 +125,7 @@ class SqlDelightDownloadedLessonStoreTest {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = false).use { store ->
                 store.save(downloadedLesson(firstLessonId, "Old lesson", 1))
                 store.save(
                     downloadedLesson(
@@ -161,7 +161,7 @@ class SqlDelightDownloadedLessonStoreTest {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = false).use { store ->
                 store.save(downloadedLesson(firstLessonId, "Lesson one", 1))
                 store.deleteLesson(firstLessonId)
 
@@ -174,7 +174,10 @@ class SqlDelightDownloadedLessonStoreTest {
         }
     }
 
-    private fun open(path: String): TestStore {
+    private fun open(
+        path: String,
+        createSchema: Boolean,
+    ): TestStore {
         val driver =
             JdbcSqliteDriver(
                 url = "jdbc:sqlite:" + path,
@@ -183,10 +186,11 @@ class SqlDelightDownloadedLessonStoreTest {
                         put("foreign_keys", "true")
                     },
             )
-        TildashDatabase.Schema.create(driver)
+        if (createSchema) {
+            TildashDatabase.Schema.create(driver)
+        }
         return TestStore(driver, SqlDelightDownloadedLessonStore(driver))
     }
-
     private fun downloadedLesson(
         lessonId: ContentId,
         title: String,
