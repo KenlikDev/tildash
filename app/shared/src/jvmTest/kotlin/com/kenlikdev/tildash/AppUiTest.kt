@@ -20,6 +20,7 @@ import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.ManualInputExercise
 import com.kenlikdev.tildash.learning.client.LearnerContentApplication
+import com.kenlikdev.tildash.learning.client.LearnerContentTransport
 import com.kenlikdev.tildash.learning.client.LearnerLessonApplication
 import com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator
 import com.kenlikdev.tildash.storage.DownloadedLesson
@@ -57,12 +58,24 @@ class AppUiTest {
             onNodeWithText("Translate hello.").assertExists()
             onNodeWithText("Your answer").assertExists()
             onNodeWithText("Check answer").assertExists()
+            onNode(hasSetTextAction()).performTextInput("wrong")
+            onNodeWithText("Check answer").performClick()
+
+            waitForIdle()
+            onNodeWithText("Try again").assertExists()
             onNode(hasSetTextAction()).performTextInput("merhaba")
             onNodeWithText("Check answer").performClick()
 
             waitForIdle()
             onNodeWithText("Lesson complete.").assertExists()
-            kotlin.test.assertEquals(AnswerOutcome.CORRECT, fixture.progressStore.loadProgress().attempts.single().outcome)
+            kotlin.test.assertEquals(
+                AnswerOutcome.INCORRECT,
+                fixture.progressStore.loadProgress().attempts[0].outcome,
+            )
+            kotlin.test.assertEquals(
+                AnswerOutcome.CORRECT,
+                fixture.progressStore.loadProgress().attempts[1].outcome,
+            )
 
             onNodeWithText("Back to lessons").performClick()
             waitForIdle()
@@ -139,7 +152,7 @@ class AppUiTest {
             )
 
         private val transport =
-            object : com.kenlikdev.tildash.learning.client.LearnerContentTransport {
+            object : LearnerContentTransport {
                 override suspend fun loadCatalog(): LearnerCourseCatalog = LearnerCourseCatalog(listOf(course))
 
                 override suspend fun loadLesson(lessonId: ContentId): LearnerLessonPackage {
