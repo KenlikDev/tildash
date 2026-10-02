@@ -6,15 +6,14 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.runComposeUiTest
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
-import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningPlan
-import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.ManualInputExercise
 import com.kenlikdev.tildash.learning.client.LearnerContentApplication
 import com.kenlikdev.tildash.learning.client.LearnerContentTransport
@@ -23,6 +22,11 @@ import com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator
 import com.kenlikdev.tildash.storage.DownloadedLesson
 import com.kenlikdev.tildash.storage.DownloadedLessonStore
 import com.kenlikdev.tildash.storage.LearningProgressStore
+import com.kenlikdev.tildash.storage.SqlDelightDownloadedLessonStore
+import com.kenlikdev.tildash.storage.SqlDelightLearningProgressStore
+import com.kenlikdev.tildash.storage.TildashDatabase
+import java.nio.file.Files
+import java.util.Properties
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -35,69 +39,105 @@ class AppUiTest {
     @Test
     fun learnerCanCompleteDownloadAnswerRestartRemoveAndRedownloadFlow() =
         runComposeUiTest {
-            val downloadedLessonStore = FakeDownloadedLessonStore()
-            val progressStore = FakeLearningProgressStore()
-            val learnerApplication = createLearnerApplication(downloadedLessonStore, progressStore)
-            val contentApplication =
-                LearnerContentApplication(
-                    transport = FakeContentTransport(),
-                    downloadedLessonStore = downloadedLessonStore,
-                    clock = TestClock,
-                )
+            val databaseFile = Files.createTempFile("tildash-ui-", ".db")
 
-            setContent {
-                App(
-                    learnerApplication = learnerApplication,
-                    contentApplication = contentApplication,
-                )
+            try {
+                openDatabase(databaseFile.toString(), createSchema = true).use { database ->
+                    val downloadedLessonStore = SqlDelightDownloadedLessonStore(database.driver)
+                    val progressStore = SqlDelightLearningProgressStore(database.driver)
+                    val learnerApplication = createLearnerApplication(downloadedLessonStore, progressStore)
+                    val contentApplication =
+                        LearnerContentApplication(
+                            transport = FakeContentTransport(),
+                            downloadedLessonStore = downloadedLessonStore,
+                            clock = TestClock,
+                        )
+
+                    setContent {
+                        App(
+                            learnerApplication = learnerApplication,
+                            contentApplication = contentApplication,
+                        )
+                    }
+                    waitForIdle()
+
+                    onNodeWithText("Crimean Tatar basics").assertExists()
+                    onNodeWithText("Greetings").assertExists()
+                    onNodeWithText("Download").performClick()
+                    waitForIdle()
+                    onNodeWithText("Downloaded (1)").assertExists()
+                    onNodeWithText("Open").performClick()
+                    waitForIdle()
+
+                    onNodeWithText("Translate hello.").assertExists()
+                    onNodeWithText("Check answer").assertExists()
+                    onNodeWithText(hasSetTextAction()).performTextInput("wrong")
+                    onNodeWithText("Check answer").performClick()
+                    waitForIdle()
+                    onNodeWithText("Try again").assertExists()
+
+                    onNodeWithText(hasSetTextAction()).performTextInput("merhaba")
+                    onNodeWithText("Check answer").performClick()
+                    waitForIdle()
+                    onNodeWithText("Lesson complete.").assertExists()
+                }
+
+                openDatabase(databaseFile.toString(), createSchema = false).use { database ->
+                    val downloadedLessonStore = SqlDelightDownloadedLessonStore(database.driver)
+                    val progressStore = SqlDelightLearningProgressStore(database.driver)
+                    val learnerApplication = createLearnerApplication(downloadedLessonStore, progressStore)
+                    val contentApplication =
+                        LearnerContentApplication(
+                            transport = FakeContentTransport(),
+                            downloadedLessonStore = downloadedLessonStore,
+                            clock = TestClock,
+                        )
+
+                    setContent {
+                        App(
+                            learnerApplication = learnerApplication,
+                            contentApplication = contentApplication,
+                        )
+                    }
+                    waitForIdle()
+
+                    onNodeWithText("Downloaded (1)").performClick()
+                    onNodeWithText("Open").performClick()
+                    waitForIdle()
+                    onNodeWithText("Lesson complete.").assertExists()
+
+                    onNodeWithText("Back to lessons").performClick()
+                    waitForIdle()
+                    onNodeWithText("Remove").performClick()
+                    waitForIdle()
+                    onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertExists()
+
+                    onNodeWithText("Catalog").performClick()
+                    waitForIdle()
+                    onNodeWithText("Download").performClick()
+                    waitForIdle()
+                    onNodeWithText("Downloaded (1)").assertExists()
+                }
+            } finally {
+                Files.deleteIfExists(databaseFile)
             }
-            waitForIdle()
-
-            onNodeWithText("Crimean Tatar basics").assertExists()
-            onNodeWithText("Greetings").assertExists()
-            onNodeWithText("Download").performClick()
-            waitForIdle()
-            onNodeWithText("Downloaded (1)").assertExists()
-            onNodeWithText("Open").performClick()
-            waitForIdle()
-
-            onNodeWithText("Translate hello.").assertExists()
-            onNodeWithText("Check answer").assertExists()
-            onNodeWithText(hasSetTextAction()).performTextInput("wrong")
-            onNodeWithText("Check answer").performClick()
-            waitForIdle()
-            onNodeWithText("Try again").assertExists()
-
-            onNodeWithText(hasSetTextAction()).performTextInput("merhaba")
-            onNodeWithText("Check answer").performClick()
-            waitForIdle()
-            onNodeWithText("Lesson complete.").assertExists()
-
-            val restartedLearnerApplication = createLearnerApplication(downloadedLessonStore, progressStore)
-            setContent {
-                App(
-                    learnerApplication = restartedLearnerApplication,
-                    contentApplication = contentApplication,
-                )
-            }
-            waitForIdle()
-            onNodeWithText("Downloaded (1)").performClick()
-            onNodeWithText("Open").performClick()
-            waitForIdle()
-            onNodeWithText("Lesson complete.").assertExists()
-
-            onNodeWithText("Back to lessons").performClick()
-            waitForIdle()
-            onNodeWithText("Remove").performClick()
-            waitForIdle()
-            onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertExists()
-
-            onNodeWithText("Catalog").performClick()
-            waitForIdle()
-            onNodeWithText("Download").performClick()
-            waitForIdle()
-            onNodeWithText("Downloaded (1)").assertExists()
         }
+
+    private fun openDatabase(
+        path: String,
+        createSchema: Boolean,
+    ): TestDatabase =
+        TestDatabase(
+            driver =
+                JdbcSqliteDriver(
+                    url = "jdbc:sqlite:" + path,
+                    properties =
+                        Properties().apply {
+                            put("foreign_keys", "true")
+                        },
+                ),
+            createSchema = createSchema,
+        )
 
     private fun createLearnerApplication(
         downloadedLessonStore: DownloadedLessonStore,
@@ -165,38 +205,17 @@ class AppUiTest {
             )
     }
 
-    private class FakeDownloadedLessonStore : DownloadedLessonStore {
-        private val lessons = linkedMapOf<ContentId, DownloadedLesson>()
-
-        override fun save(downloadedLesson: DownloadedLesson) {
-            lessons[downloadedLesson.lesson.id] = downloadedLesson
+    private class TestDatabase(
+        val driver: JdbcSqliteDriver,
+        createSchema: Boolean,
+    ) : AutoCloseable {
+        init {
+            if (createSchema) {
+                TildashDatabase.Schema.create(driver)
+            }
         }
 
-        override fun loadLesson(lessonId: ContentId): DownloadedLesson? = lessons[lessonId]
-
-        override fun listLessons(): List<DownloadedLesson> = lessons.values.toList()
-
-        override fun deleteLesson(lessonId: ContentId) {
-            lessons.remove(lessonId)
-        }
-
-        override fun countLessons(): Long = lessons.size.toLong()
-    }
-
-    private class FakeLearningProgressStore : LearningProgressStore {
-        private var progress = LearningProgress.empty()
-
-        override fun loadProgress(): LearningProgress = progress
-
-        override fun saveAttempt(attempt: LearningAttempt) {
-            progress = LearningProgress.fromPersistedAttempts(progress.attempts + attempt)
-        }
-
-        override fun loadPendingSyncAttempts(): List<LearningAttempt> = emptyList()
-
-        override fun acknowledgeAttempt(attemptId: String) = Unit
-
-        override fun pendingSyncCount(): Long = 0
+        override fun close() = driver.close()
     }
 
     private object TestClock : Clock {
