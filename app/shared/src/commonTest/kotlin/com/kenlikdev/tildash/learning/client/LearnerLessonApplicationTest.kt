@@ -52,7 +52,11 @@ class LearnerLessonApplicationTest {
         assertEquals(2, reopened.session.progress.attempts.size)
         assertEquals(
             listOf(AnswerOutcome.INCORRECT, AnswerOutcome.CORRECT),
-            reopened.session.progress.attempts.map { it.outcome },
+            reopened
+                .session
+                .progress
+                .attempts
+                .map { it.outcome },
         )
     }
 
@@ -134,8 +138,7 @@ class LearnerLessonApplicationTest {
     private class FakeLearningProgressStore : LearningProgressStore {
         val attempts = mutableListOf<LearningAttempt>()
 
-        override fun loadProgress() =
-            com.kenlikdev.tildash.learning.LearningProgress.fromPersistedAttempts(attempts)
+        override fun loadProgress() = com.kenlikdev.tildash.learning.LearningProgress.fromPersistedAttempts(attempts)
 
         override fun saveAttempt(attempt: LearningAttempt) {
             attempts += attempt
