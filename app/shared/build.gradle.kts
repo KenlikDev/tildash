@@ -107,11 +107,11 @@ kotlin {
             implementation(libs.ktor.client.js)
         }
         jvmTest.dependencies {
-        implementation(libs.sqldelight.jvm.driver)
-        implementation(libs.ktor.client.mock)
-        implementation(libs.compose.ui.test)
-        implementation(compose.desktop.currentOs)
-    }
+            implementation(libs.sqldelight.jvm.driver)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.compose.ui.test)
+            implementation(compose.desktop.currentOs)
+        }
     }
 }
 
