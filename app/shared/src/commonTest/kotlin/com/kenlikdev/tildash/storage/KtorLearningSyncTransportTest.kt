@@ -353,7 +353,7 @@ class KtorLearningSyncTransportTest {
                       "type": "urn:tildash:problem:sync",
                       "title": "Temporary failure",
                       "status": ${status.value},
-                      "detail": "${detail}",
+                      "detail": "$detail",
                       "instance": "/api/v1/learning/sync"
                     }
                     """.trimIndent()
