@@ -9,7 +9,6 @@ import com.kenlikdev.tildash.learning.LearnerLocalizedText
 import com.kenlikdev.tildash.learning.LearningExercise
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.ManualInputExercise
-import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -18,6 +17,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlin.time.Instant
 
 data class DownloadedLesson(
     val course: LearnerCourseSummary,
@@ -150,7 +150,7 @@ class SqlDelightDownloadedLessonStore(
         val lessonSummary =
             lessonSummaries.firstOrNull { it.id.value == lessonRow.lesson_id }
                 ?: error(
-                    "Downloaded lesson '${lessonId}' is missing from its persisted course snapshot.",
+                    "Downloaded lesson '$lessonId' is missing from its persisted course snapshot.",
                 )
 
         val exercises =
@@ -273,16 +273,20 @@ class SqlDelightDownloadedLessonStore(
                 id = ContentId(lesson.requiredText("id")),
                 title = lesson.requiredText("title"),
                 sourceLocale = LanguageTag(lesson.requiredText("sourceLocale")),
-                publishedVersion = lesson.requiredText("publishedVersion").toIntOrNull()
-                    ?: error("Downloaded lesson published version is not an integer."),
+                publishedVersion =
+                    lesson.requiredText("publishedVersion").toIntOrNull()
+                        ?: error("Downloaded lesson published version is not an integer."),
                 localizations =
-                    lesson["localizations"]?.jsonArray?.map { localizationElement ->
-                        val localization = localizationElement.jsonObject
+                    lesson["localizations"]
+                        ?.jsonArray
+                        ?.map { localizationElement ->
+                            val localization = localizationElement.jsonObject
                         LearnerLocalizedText(
                             locale = LanguageTag(localization.requiredText("locale")),
                             value = localization.requiredText("value"),
-                        )
-                    }.orEmpty(),
+                            )
+                        }
+                        .orEmpty(),
             )
         }
 
