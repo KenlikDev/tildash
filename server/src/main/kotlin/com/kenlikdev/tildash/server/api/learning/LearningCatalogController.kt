@@ -30,8 +30,7 @@ class LearningCatalogController(
     )
     fun lesson(
         @PathVariable lessonId: String,
-    ): LearningLessonPackageResponse =
-        service.lesson(ContentId(lessonId)).toResponse()
+    ): LearningLessonPackageResponse = service.lesson(ContentId(lessonId)).toResponse()
 
     @GetMapping("/catalog")
     @PreAuthorize("hasRole('LEARNER')")
