@@ -8,12 +8,10 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.LanguageTag
-import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
-import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.LearningProgress
@@ -25,12 +23,13 @@ import com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator
 import com.kenlikdev.tildash.storage.DownloadedLesson
 import com.kenlikdev.tildash.storage.DownloadedLessonStore
 import com.kenlikdev.tildash.storage.LearningProgressStore
-import kotlin.test.Test
+import org.junit.Rule
+import org.junit.Test
 import kotlin.time.Clock
 import kotlin.time.Instant
 
 class AppUiTest {
-    @get:org.junit.Rule
+    @get:Rule
     val rule = createComposeRule()
 
     @Test
