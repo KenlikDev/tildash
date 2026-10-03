@@ -138,7 +138,7 @@ class LearnerLessonApplicationTest {
     private class FakeLearningProgressStore : LearningProgressStore {
         val attempts = mutableListOf<LearningAttempt>()
 
-        override fun loadProgress() = com.kenlikdev.tildash.learning.LearningProgress.fromPersistedAttempts(attempts)
+        override fun loadProgress() = LearningProgress.fromPersistedAttempts(attempts)
 
         override fun saveAttempt(attempt: LearningAttempt) {
             attempts += attempt
