@@ -160,8 +160,7 @@ class LearnerApplicationUiTest {
         }
 
     private inner class FakeContentTransport : LearnerContentTransport {
-        override suspend fun loadCatalog(): LearnerCourseCatalog =
-            LearnerCourseCatalog(listOf(course()))
+        override suspend fun loadCatalog(): LearnerCourseCatalog = LearnerCourseCatalog(listOf(course()))
 
         override suspend fun loadLesson(lessonId: ContentId): LearnerLessonPackage =
             LearnerLessonPackage(
