@@ -25,6 +25,7 @@ jobs:
   develop-source-policy:
     name: Develop source policy
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Validate pull request source
         env:
@@ -43,6 +44,7 @@ jobs:
   linux-verification:
     name: Linux verification
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v6
@@ -83,6 +85,7 @@ jobs:
   android:
     name: Android build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v6
@@ -111,6 +114,7 @@ jobs:
   ios:
     name: iOS simulator tests
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v6
