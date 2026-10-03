@@ -69,11 +69,19 @@ class AppUiTest {
             onNodeWithText("Lesson complete.").assertIsDisplayed()
             kotlin.test.assertEquals(
                 AnswerOutcome.INCORRECT,
-                fixture.progressStore.loadProgress().attempts[0].outcome,
+                fixture
+                    .progressStore
+                    .loadProgress()
+                    .attempts[0]
+                    .outcome,
             )
             kotlin.test.assertEquals(
                 AnswerOutcome.CORRECT,
-                fixture.progressStore.loadProgress().attempts[1].outcome,
+                fixture
+                    .progressStore
+                    .loadProgress()
+                    .attempts[1]
+                    .outcome,
             )
 
             onNodeWithText("Back to lessons").performClick()
