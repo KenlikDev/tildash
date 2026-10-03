@@ -281,12 +281,11 @@ class SqlDelightDownloadedLessonStore(
                         ?.jsonArray
                         ?.map { localizationElement ->
                             val localization = localizationElement.jsonObject
-                        LearnerLocalizedText(
-                            locale = LanguageTag(localization.requiredText("locale")),
-                            value = localization.requiredText("value"),
+                            LearnerLocalizedText(
+                                locale = LanguageTag(localization.requiredText("locale")),
+                                value = localization.requiredText("value"),
                             )
-                        }
-                        .orEmpty(),
+                        }.orEmpty(),
             )
         }
 
