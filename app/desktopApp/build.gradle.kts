@@ -15,6 +15,9 @@ dependencies {
     implementation(libs.ktor.client.cio)
 
     implementation(libs.compose.ui.tooling.preview)
+
+    testImplementation(compose.desktop.uiTestJUnit4)
+    testImplementation(compose.desktop.currentOs)
 }
 
 compose.desktop {
