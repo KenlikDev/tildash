@@ -42,8 +42,7 @@ class ContentStudioController(
     @Operation(summary = "List draft lesson exercises")
     fun listExercises(
         @PathVariable contentId: String,
-    ): List<ContentExerciseResponse> =
-        service.listExercises(contentId.toContentId())
+    ): List<ContentExerciseResponse> = service.listExercises(contentId.toContentId())
 
     @PostMapping("/{contentId}/exercises")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMINISTRATOR')")
@@ -63,8 +62,7 @@ class ContentStudioController(
         @PathVariable contentId: String,
         @PathVariable exerciseId: String,
         @Valid @RequestBody request: UpdateExerciseRequest,
-    ): ContentExerciseResponse =
-        service.updateExercise(contentId.toContentId(), exerciseId, request)
+    ): ContentExerciseResponse = service.updateExercise(contentId.toContentId(), exerciseId, request)
 
     @DeleteMapping("/{contentId}/exercises/{exerciseId}")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMINISTRATOR')")
