@@ -60,7 +60,7 @@ jobs:
         run: ./gradlew clean test --no-configuration-cache
 
       - name: Run Desktop UI tests
-        run: ./gradlew :app:shared:jvmTest --no-configuration-cache
+        run: ./gradlew :app:desktopApp:test --tests 'com.kenlikdev.tildash.AppUiTest' --no-configuration-cache
 
       - name: Run KtLint
         run: ./gradlew ktlintCheck --no-configuration-cache
