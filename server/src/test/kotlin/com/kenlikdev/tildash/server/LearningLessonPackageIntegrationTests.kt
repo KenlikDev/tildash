@@ -135,8 +135,7 @@ class LearningLessonPackageIntegrationTests {
                 get("/api/v1/learning/lessons/$lessonId")
                     .with(user("learner").roles("LEARNER"))
                     .accept(MediaType.APPLICATION_PROBLEM_JSON),
-            )
-            .andExpect(status().isInternalServerError)
+            ).andExpect(status().isInternalServerError)
             .andExpect(jsonPath("$.type").value("urn:tildash:problem:learning-lesson-invalid"))
             .andExpect(jsonPath("$.title").value("Published learner lesson unavailable"))
             .andExpect(jsonPath("$.detail").value("The published learner lesson could not be loaded."))
