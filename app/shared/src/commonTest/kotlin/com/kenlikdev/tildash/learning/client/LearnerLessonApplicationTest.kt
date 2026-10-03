@@ -6,6 +6,7 @@ import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
 import com.kenlikdev.tildash.learning.LearningAttempt
+import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.ManualInputExercise
 import com.kenlikdev.tildash.storage.DownloadedLesson
