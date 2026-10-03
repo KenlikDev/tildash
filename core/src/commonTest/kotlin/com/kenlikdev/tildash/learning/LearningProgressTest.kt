@@ -43,6 +43,18 @@ class LearningProgressTest {
     }
 
     @Test
+    fun blankExpectedAnswerIsRejected() {
+        assertFailsWith<IllegalArgumentException> {
+            ManualInputExercise(
+                id = "exercise-blank-answer",
+                contentId = lessonId,
+                prompt = "Translate hello",
+                expectedAnswers = listOf(" "),
+            )
+        }
+    }
+
+    @Test
     fun answerNormalizationIsCaseAndWhitespaceInsensitive() {
         val exercise =
             manualExercise(

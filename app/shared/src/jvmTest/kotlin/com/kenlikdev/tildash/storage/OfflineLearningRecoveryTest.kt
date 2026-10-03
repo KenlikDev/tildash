@@ -35,6 +35,7 @@ class OfflineLearningRecoveryTest {
             val attempt =
                 LearningAttempt(
                     attemptId = "attempt-1",
+                    lessonId = lessonId,
                     exerciseId = "exercise-1",
                     response = LearnerResponse.Text("hello"),
                     outcome = AnswerOutcome.CORRECT,

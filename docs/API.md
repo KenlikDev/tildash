@@ -105,7 +105,7 @@ Every public endpoint should document:
 - request parameters/body;
 - successful response schemas;
 - validation/client errors;
-- authorization requirements once security is introduced.
+- authorization requirements.
 
 ## Compatibility
 
@@ -242,6 +242,66 @@ Malformed content requests use RFC 9457 Problem Details. Validation and workflow
 
 
 
+## Content exercises
+
+GET /api/v1/content/{contentId}/exercises
+
+Lists the current exercise definitions for a draft content node.
+
+Requires TEACHER, REVIEWER, or ADMINISTRATOR.
+
+POST /api/v1/content/{contentId}/exercises
+
+Creates a manual-input exercise on a DRAFT lesson.
+
+Requires TEACHER or ADMINISTRATOR.
+
+Request:
+
+    {
+      "id": "exercise-1",
+      "prompt": "Translate hello.",
+      "position": 0,
+      "expectedAnswers": ["merhaba"]
+    }
+
+PUT /api/v1/content/{contentId}/exercises/{exerciseId}
+
+Updates a manual-input exercise while the lesson is DRAFT.
+
+Requires TEACHER or ADMINISTRATOR.
+
+DELETE /api/v1/content/{contentId}/exercises/{exerciseId}
+
+Deletes a manual-input exercise while the lesson is DRAFT.
+
+Requires TEACHER or ADMINISTRATOR.
+
+A lesson cannot be submitted, approved, or published without at least one executable exercise. Exercise definitions are validated together with lesson content and copied into an immutable publication snapshot.
+
+## Published learner lesson package
+
+GET /api/v1/learning/lessons/{lessonId}
+
+Returns the immutable published package required for offline lesson execution.
+
+Requires the LEARNER application role.
+
+A successful response contains the published course and lesson summaries plus executable manual-input exercises. The package is read from the publication snapshot, not from mutable draft exercise definitions.
+
+## Local development authentication
+
+Production authentication remains bearer-token based. For local manual acceptance only, the server supports an explicitly opt-in development identity:
+
+    TILDASH_SECURITY_DEVELOPMENT_ENABLED=true
+
+With this setting enabled, a loopback client may authenticate by sending:
+
+    X-Tildash-Development-Role: learner
+
+or another known application role. An optional X-Tildash-Development-Subject header overrides the configured development subject.
+
+The development identity is disabled by default, ignores requests that already contain an Authorization header, and is restricted to local development client addresses. It is not a production authentication mechanism.
 ## Learning catalog
 
 GET /api/v1/learning/catalog
@@ -327,6 +387,6 @@ Successful responses contain two explicit ID sets:
 - `acknowledgedAttemptIds` — newly stored or already-identical attempts;
 - `conflictAttemptIds` — attempt IDs whose immutable payload differs from the stored record, or which are contradictory duplicates inside the same request batch.
 
-A conflicting attempt is never overwritten. Unknown or unsupported payloads are rejected as client errors using RFC 9457 Problem Details.
+Every submitted attempt ID appears exactly once across these two sets. A conflicting attempt is never overwritten. Unknown or unsupported payloads are rejected as client errors using RFC 9457 Problem Details.
 
 The server persists attempts under `(learner_subject, attempt_id)`. The immutable payload also stores `lesson_id`, so a reused `exercise_id` in another lesson never shares learner progress.

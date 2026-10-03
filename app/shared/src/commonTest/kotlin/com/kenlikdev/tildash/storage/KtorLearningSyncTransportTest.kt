@@ -348,13 +348,15 @@ class KtorLearningSyncTransportTest {
 
             statuses.forEach { (status, detail) ->
                 val problemDetails =
-                    buildString {
-                        append("""{"type":"urn:tildash:problem:sync","title":"Temporary failure","status=""")
-                        append(status.value)
-                        append(""","detail":"""")
-                        append(detail)
-                        append(""","instance":"/api/v1/learning/sync"}""")
+                    """
+                    {
+                      "type": "urn:tildash:problem:sync",
+                      "title": "Temporary failure",
+                      "status": ${status.value},
+                      "detail": "$detail",
+                      "instance": "/api/v1/learning/sync"
                     }
+                    """.trimIndent()
 
                 val client =
                     HttpClient(

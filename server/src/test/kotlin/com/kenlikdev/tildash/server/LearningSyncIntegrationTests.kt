@@ -79,6 +79,36 @@ class LearningSyncIntegrationTests {
     }
 
     @Test
+    fun identicalRetryWithNanosecondTimestampIsAcknowledged() {
+        val request =
+            requestJson(
+                attemptId = "attempt-high-precision-time",
+                occurredAt = "2026-09-28T09:00:00.123456789Z",
+            )
+
+        repeat(2) {
+            mockMvc
+                .perform(authenticatedSync("learner-a", request))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-high-precision-time"))
+                .andExpect(jsonPath("$.conflictAttemptIds").isEmpty)
+        }
+
+        assertEquals(
+            "2026-09-28 09:00:00.123456",
+            jdbcTemplate.queryForObject(
+                "select to_char(occurred_at at time zone 'UTC', " +
+                    "'YYYY-MM-DD HH24:MI:SS.US') " +
+                    "from tildash.learning_attempts " +
+                    "where learner_subject = ? and attempt_id = ?",
+                String::class.java,
+                "learner-a",
+                "attempt-high-precision-time",
+            ),
+        )
+    }
+
+    @Test
     fun sameAttemptIdAndExerciseIdAcrossLessonsIsReportedAsConflict() {
         mockMvc
             .perform(

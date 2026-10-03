@@ -25,6 +25,7 @@ jobs:
   develop-source-policy:
     name: Develop source policy
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Validate pull request source
         env:
@@ -43,6 +44,7 @@ jobs:
   linux-verification:
     name: Linux verification
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v6
@@ -58,6 +60,9 @@ jobs:
 
       - name: Run full test suite
         run: ./gradlew clean test --no-configuration-cache
+
+      - name: Run Desktop UI tests
+        run: ./gradlew :app:shared:jvmTest --no-configuration-cache
 
       - name: Run KtLint
         run: ./gradlew ktlintCheck --no-configuration-cache
@@ -80,6 +85,7 @@ jobs:
   android:
     name: Android build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v6
@@ -108,6 +114,7 @@ jobs:
   ios:
     name: iOS simulator tests
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v6

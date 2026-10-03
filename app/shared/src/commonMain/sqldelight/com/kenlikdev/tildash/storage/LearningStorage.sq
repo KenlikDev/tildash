@@ -87,7 +87,9 @@ CREATE TABLE downloaded_lesson (
     title TEXT NOT NULL,
     source_locale TEXT NOT NULL,
     published_version INTEGER NOT NULL,
-    position INTEGER NOT NULL
+    position INTEGER NOT NULL,
+    downloaded_at_epoch_millis INTEGER NOT NULL DEFAULT 0,
+    course_lessons_json TEXT NOT NULL DEFAULT '[]'
 );
 
 CREATE TABLE downloaded_exercise (
@@ -126,20 +128,10 @@ SELECT lesson_id,
        title,
        source_locale,
        published_version,
-       position
+       position,
+       downloaded_at_epoch_millis
 FROM downloaded_lesson
 ORDER BY course_id ASC, position ASC, lesson_id ASC;
-
-selectDownloadedLessonsForCourse:
-SELECT lesson_id,
-       course_id,
-       title,
-       source_locale,
-       published_version,
-       position
-FROM downloaded_lesson
-WHERE course_id = ?
-ORDER BY position ASC, lesson_id ASC;
 
 selectDownloadedLesson:
 SELECT lesson_id,
@@ -147,7 +139,9 @@ SELECT lesson_id,
        title,
        source_locale,
        published_version,
-       position
+       position,
+       downloaded_at_epoch_millis,
+       course_lessons_json
 FROM downloaded_lesson
 WHERE lesson_id = ?;
 
@@ -171,8 +165,8 @@ FROM downloaded_manual_answer
 WHERE lesson_id = ?
 ORDER BY exercise_id ASC, position ASC;
 
-upsertDownloadedCourse:
-INSERT OR REPLACE INTO downloaded_course(
+insertDownloadedCourse:
+INSERT INTO downloaded_course(
     course_id,
     title,
     source_locale,
@@ -180,6 +174,14 @@ INSERT OR REPLACE INTO downloaded_course(
     downloaded_at_epoch_millis
 )
 VALUES (?, ?, ?, ?, ?);
+
+updateDownloadedCourse:
+UPDATE downloaded_course
+SET title = ?,
+    source_locale = ?,
+    published_version = ?,
+    downloaded_at_epoch_millis = ?
+WHERE course_id = ?;
 
 deleteDownloadedLesson:
 DELETE FROM downloaded_lesson
@@ -201,9 +203,11 @@ INSERT INTO downloaded_lesson(
     title,
     source_locale,
     published_version,
-    position
+    position,
+    downloaded_at_epoch_millis,
+    course_lessons_json
 )
-VALUES (?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 insertDownloadedExercise:
 INSERT INTO downloaded_exercise(

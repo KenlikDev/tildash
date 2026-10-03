@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter
 import org.springframework.security.web.SecurityFilterChain
 
 @Configuration(proxyBeanMethods = false)
@@ -45,6 +46,13 @@ class SecurityConfiguration(
                 .authenticated()
                 .anyRequest()
                 .denyAll()
+        }
+
+        if (properties.development.enabled) {
+            http.addFilterBefore(
+                DevelopmentIdentityFilter(properties),
+                BearerTokenAuthenticationFilter::class.java,
+            )
         }
 
         http.httpBasic { it.disable() }

@@ -13,6 +13,7 @@ import com.kenlikdev.tildash.content.model.PersonReference
 import com.kenlikdev.tildash.content.model.Provenance
 import com.kenlikdev.tildash.content.model.SourceReference
 import com.kenlikdev.tildash.content.validation.ContentValidator
+import com.kenlikdev.tildash.content.validation.ExerciseDefinition
 import com.kenlikdev.tildash.content.validation.LessonValidationInput
 import com.kenlikdev.tildash.content.validation.ReviewResult
 import com.kenlikdev.tildash.content.workflow.ContentWorkflow
@@ -21,14 +22,17 @@ import com.kenlikdev.tildash.content.workflow.ContentWorkflowCommand
 import com.kenlikdev.tildash.content.workflow.ContentWorkflowViolation
 import com.kenlikdev.tildash.content.workflow.WorkflowActorRole
 import com.kenlikdev.tildash.server.api.content.AppendSourceRevisionRequest
+import com.kenlikdev.tildash.server.api.content.ContentExerciseResponse
 import com.kenlikdev.tildash.server.api.content.ContentMutationResponse
 import com.kenlikdev.tildash.server.api.content.ContentPreviewResponse
 import com.kenlikdev.tildash.server.api.content.CreateContentNodeRequest
+import com.kenlikdev.tildash.server.api.content.CreateExerciseRequest
 import com.kenlikdev.tildash.server.api.content.PayloadRequest
 import com.kenlikdev.tildash.server.api.content.PayloadType
 import com.kenlikdev.tildash.server.api.content.ProvenanceRequest
 import com.kenlikdev.tildash.server.api.content.ReviewDecisionResponse
 import com.kenlikdev.tildash.server.api.content.ReviewHistoryResponse
+import com.kenlikdev.tildash.server.api.content.UpdateExerciseRequest
 import com.kenlikdev.tildash.server.security.AuthenticatedIdentity
 import com.kenlikdev.tildash.server.security.CurrentIdentityProvider
 import com.kenlikdev.tildash.server.security.Role
@@ -49,6 +53,7 @@ class ContentValidationException(
 @Service
 class ContentStudioService(
     private val repository: ContentStudioRepository,
+    private val exerciseRepository: ContentExerciseRepository,
     private val currentIdentityProvider: CurrentIdentityProvider,
     private val validator: ContentValidator,
 ) {
@@ -223,6 +228,9 @@ class ContentStudioService(
                 publishedAt = now(),
             )
 
+        if (requireNode(contentId).node.kind == ContentKind.LESSON) {
+            exerciseRepository.snapshotPublishedLesson(contentId, version)
+        }
         return response.copy(version = version)
     }
 
@@ -241,6 +249,101 @@ class ContentStudioService(
             validate = false,
         )
     }
+
+    @Transactional(readOnly = true)
+    fun listExercises(contentId: ContentId): List<ContentExerciseResponse> {
+        val identity = currentIdentityProvider.current()
+        requireAuthorOrReviewer(identity)
+        val node = requireNode(contentId).node
+        requireLessonNode(node.kind)
+        return exerciseRepository.list(contentId).map(::toExerciseResponse)
+    }
+
+    @Transactional
+    fun createExercise(
+        contentId: ContentId,
+        request: CreateExerciseRequest,
+    ): ContentExerciseResponse {
+        val identity = currentIdentityProvider.current()
+        requireAuthor(identity)
+        val node = requireNode(contentId).node
+        requireLessonNode(node.kind)
+        requireDraft(node.state)
+        validateExerciseRequest(request.id, request.prompt, request.position, request.expectedAnswers)
+        if (exerciseRepository.list(contentId).any { it.id == request.id }) {
+            throw ContentWorkflowViolation(
+                "Exercise '" + request.id + "' already exists on content '" + contentId.value + "'.",
+            )
+        }
+        val definition = ExerciseDefinition(request.id, request.prompt, request.expectedAnswers)
+        exerciseRepository.insert(contentId, request.id, request.position, definition)
+        return toExerciseResponse(StoredExerciseDefinition(request.id, contentId, request.position, definition))
+    }
+
+    @Transactional
+    fun updateExercise(
+        contentId: ContentId,
+        exerciseId: String,
+        request: UpdateExerciseRequest,
+    ): ContentExerciseResponse {
+        val identity = currentIdentityProvider.current()
+        requireAuthor(identity)
+        val node = requireNode(contentId).node
+        requireLessonNode(node.kind)
+        requireDraft(node.state)
+        validateExerciseRequest(exerciseId, request.prompt, request.position, request.expectedAnswers)
+        val definition = ExerciseDefinition(exerciseId, request.prompt, request.expectedAnswers)
+        if (!exerciseRepository.update(contentId, exerciseId, request.position, definition)) {
+            throw ContentNotFoundException(contentId)
+        }
+        return toExerciseResponse(StoredExerciseDefinition(exerciseId, contentId, request.position, definition))
+    }
+
+    @Transactional
+    fun deleteExercise(
+        contentId: ContentId,
+        exerciseId: String,
+    ) {
+        val identity = currentIdentityProvider.current()
+        requireAuthor(identity)
+        val node = requireNode(contentId).node
+        requireLessonNode(node.kind)
+        requireDraft(node.state)
+        if (!exerciseRepository.delete(contentId, exerciseId)) {
+            throw ContentNotFoundException(contentId)
+        }
+    }
+
+    private fun requireLessonNode(kind: ContentKind) {
+        if (kind != ContentKind.LESSON) {
+            throw ContentWorkflowViolation("Exercises can only be managed for lesson nodes.")
+        }
+    }
+
+    private fun validateExerciseRequest(
+        exerciseId: String,
+        prompt: String,
+        position: Int,
+        expectedAnswers: List<String>,
+    ) {
+        require(exerciseId.isNotBlank()) { "Exercise ID must not be blank." }
+        require(prompt.isNotBlank()) { "Exercise prompt must not be blank." }
+        require(position >= 0) { "Exercise position must not be negative." }
+        require(expectedAnswers.isNotEmpty()) { "Exercise must define at least one expected answer." }
+        require(expectedAnswers.all { it.isNotBlank() }) { "Exercise expected answers must not be blank." }
+        require(expectedAnswers.map { it.trim().lowercase() }.distinct().size == expectedAnswers.size) {
+            "Exercise expected answers must be unique after normalization."
+        }
+    }
+
+    private fun toExerciseResponse(exercise: StoredExerciseDefinition): ContentExerciseResponse =
+        ContentExerciseResponse(
+            id = exercise.id,
+            contentId = exercise.contentId.value,
+            prompt = exercise.definition.prompt,
+            position = exercise.position,
+            expectedAnswers = exercise.definition.expectedAnswers,
+        )
 
     @Transactional(readOnly = true)
     fun reviewHistory(contentId: ContentId): List<ReviewHistoryResponse> {
@@ -270,13 +373,15 @@ class ContentStudioService(
         validate: Boolean,
     ): ContentMutationResponse {
         val stored = requireNode(contentId)
-        if (stored.node.kind != ContentKind.LESSON) {
-            throw ContentWorkflowViolation("Content workflow is only available for lesson nodes.")
+        if (stored.node.kind !in setOf(ContentKind.COURSE, ContentKind.LESSON)) {
+            throw ContentWorkflowViolation(
+                "Content workflow is only available for course and lesson nodes.",
+            )
         }
 
         val validation =
             if (validate) {
-                validateLesson(contentId)
+                validateForWorkflow(stored.node.kind, contentId)
             } else {
                 ReviewResult(emptyList())
             }
@@ -316,18 +421,39 @@ class ContentStudioService(
         )
     }
 
-    private fun validateLesson(contentId: ContentId): ReviewResult {
+    private fun validateForWorkflow(
+        kind: ContentKind,
+        contentId: ContentId,
+    ): ReviewResult {
         val input = repository.validationInput(contentId)
         if (input.nodes.isEmpty()) throw ContentNotFoundException(contentId)
-        val result =
-            validator.validateLesson(
-                LessonValidationInput(
-                    lessonId = contentId,
-                    nodes = input.nodes,
-                    sourceRevisions = input.sourceRevisions,
-                    localizationRevisions = input.localizations,
-                ),
+
+        val validationInput =
+            LessonValidationInput(
+                lessonId = contentId,
+                nodes = input.nodes,
+                sourceRevisions = input.sourceRevisions,
+                localizationRevisions = input.localizations,
+                exercisesByContentId = input.exercisesByContentId,
             )
+
+        val result =
+            when (kind) {
+                ContentKind.COURSE -> {
+                    validator.validateCourse(validationInput)
+                }
+
+                ContentKind.LESSON -> {
+                    validator.validateLesson(validationInput)
+                }
+
+                else -> {
+                    throw ContentWorkflowViolation(
+                        "Content workflow is only available for course and lesson nodes.",
+                    )
+                }
+            }
+
         if (!result.canSubmit) throw ContentValidationException(result)
         return result
     }

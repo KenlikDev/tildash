@@ -11,6 +11,7 @@ import com.kenlikdev.tildash.server.api.learning.LearningSyncRequest
 import com.kenlikdev.tildash.server.api.learning.LearningSyncResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.OffsetDateTime
 import kotlin.time.Instant
 
 @Service
@@ -66,6 +67,12 @@ private fun LearningAttemptRequest.toDomain(): LearningAttempt {
                 LearningOutcomeRequest.CORRECT -> AnswerOutcome.CORRECT
                 LearningOutcomeRequest.INCORRECT -> AnswerOutcome.INCORRECT
             },
-        occurredAt = Instant.fromEpochSeconds(occurredAt.toEpochSecond(), occurredAt.nano.toLong()),
+        occurredAt = occurredAt.toPostgresPrecision(),
     )
 }
+
+private fun OffsetDateTime.toPostgresPrecision(): Instant =
+    Instant.fromEpochSeconds(
+        toEpochSecond(),
+        (nano / 1_000L) * 1_000L,
+    )

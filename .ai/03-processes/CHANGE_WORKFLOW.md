@@ -1,34 +1,37 @@
 # Change Workflow
 
 1. Confirm the current branch and target branch.
-2. Read the relevant role, standards, and process instructions.
+2. Re-read `.ai/AI_BOOTSTRAP.md` and `.ai/AI_INSTRUCTIONS.md` at the start of the workflow, then read the relevant role, standards, and process instructions.
 3. Inspect the actual repository state.
 4. Define or verify specification and acceptance criteria.
 5. Write tests first for behavior where applicable.
 6. Implement the smallest coherent change.
 7. Run focused checks early.
 8. Run broader applicable checks.
-9. Inspect the final diff.
-10. Run an independent review for non-trivial changes.
+9. For user-visible changes, launch the affected application and exercise the relevant UI journey when the available environment permits; use automated UI tests as complementary evidence.
+10. Re-read the applicable instruction files at the final-review checkpoint.
+11. Inspect the final diff.
+12. Switch the active role to `REVIEWER` and reread its role instructions before running the independent review.
+13. Run an independent review for non-trivial changes.
 For a full repository review, additionally follow `03-processes/FULL_REPOSITORY_REVIEW.md` in full.
-11. Commit one coherent change.
-12. Push only the authorized task branch.
-13. Open a PR from the task branch to `ai/integration`.
-14. Merge into `ai/integration` only after all applicable checks pass.
-15. Re-verify the resulting `ai/integration` state after integration.
-16. Remove obsolete task branches only when they are no longer needed.
-17. Open the final PR from `ai/integration` to `develop`.
-18. Have the project owner synchronize the exact `ai/integration` PR head locally.
-19. Have the project owner run the applicable local verification and manually exercise the affected product behavior and acceptance path.
-20. Confirm that local acceptance is complete before considering the final PR mergeable for the owner.
-21. Merge into `develop` only after required GitHub checks and explicit human local acceptance.
-22. Never merge a task branch directly into `develop`.
+14. Commit one coherent change.
+15. Push only the authorized task branch.
+16. Open a PR from the task branch to `ai/integration`.
+17. Merge into `ai/integration` only after all applicable checks pass.
+18. Re-verify the resulting `ai/integration` state after integration.
+19. Remove obsolete task branches only when they are no longer needed.
+20. Open the final PR from `ai/integration` to `develop`.
+21. Have the project owner synchronize the exact `ai/integration` PR head locally.
+22. Have the project owner run the applicable local verification and manually exercise the affected product behavior and acceptance path.
+23. Confirm that local acceptance is complete before considering the final PR mergeable for the owner.
+24. Merge into `develop` only after required GitHub checks and explicit human local acceptance.
+25. Never merge a task branch directly into `develop`.
 
 ## Final promotion gate
 
 The final promotion sequence is:
 
-```text
+```
 ai/integration green
   -> final promotion PR
   -> owner syncs exact PR head locally
@@ -78,3 +81,7 @@ Delete a short-lived task branch only after its merge is confirmed and it is no 
 Never delete `ai/integration` during routine cleanup.
 
 Never delete a branch merely because the working tree is clean.
+
+## CI iteration discipline
+
+Group multiple known corrections into one coherent patch whenever practical. Do not create a commit solely to retrigger or refresh CI. Once a relevant check is running, avoid changing the branch unless new evidence identifies a concrete defect or missing verification; this prevents unnecessary CI cancellation and preserves useful evidence from the most recent complete run.

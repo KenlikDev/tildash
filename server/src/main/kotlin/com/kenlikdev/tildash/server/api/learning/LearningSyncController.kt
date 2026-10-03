@@ -28,6 +28,7 @@ class LearningSyncController(
         ApiResponse(responseCode = "200", description = "Synchronization completed"),
         ApiResponse(responseCode = "400", description = "Invalid synchronization request"),
         ApiResponse(responseCode = "401", description = "Authentication required"),
+        ApiResponse(responseCode = "403", description = "Learner role required"),
     )
     fun synchronize(
         @Valid @RequestBody request: LearningSyncRequest,

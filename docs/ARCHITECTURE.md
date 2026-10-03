@@ -120,7 +120,7 @@ The canonical model is implemented in `core` and the first relational schema is 
 
 Source content and localization are separate revision streams. Provenance is first-class and carried by source revisions. Published versions reference immutable history so they can be reconstructed later.
 
-The state vocabulary is draft, submitted, under review, approved, published, and archived. The state vocabulary is implemented now; transition workflow behavior remains future application work covered by ADR-0006.
+The state vocabulary is draft, submitted, under review, approved, published, and archived. The content-studio workflow implementing these transitions, deterministic validation, reviewer feedback, and immutable publication history is implemented now and is governed by ADR-0006.
 
 Detailed domain rules are documented in `docs/CONTENT.md`; deterministic validation rules are documented in `docs/CONTENT_VALIDATION.md`; durable content boundaries are recorded in ADR-0005 and deterministic validation in ADR-0008.
 

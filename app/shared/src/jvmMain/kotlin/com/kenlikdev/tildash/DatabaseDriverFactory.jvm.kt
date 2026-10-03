@@ -17,8 +17,11 @@ fun createTildashDatabaseDriver(): SqlDriver {
 
     val databasePath = dataDirectory.resolve("tildash.db")
     return JdbcSqliteDriver(
-        "jdbc:sqlite:$databasePath",
-        Properties(),
-        TildashDatabase.Schema,
+        url = "jdbc:sqlite:$databasePath",
+        properties =
+            Properties().apply {
+                put("foreign_keys", "true")
+            },
+        schema = TildashDatabase.Schema,
     )
 }

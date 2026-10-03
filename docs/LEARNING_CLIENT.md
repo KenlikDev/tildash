@@ -4,7 +4,7 @@
 
 This document defines the application composition boundary between shared learning rules and client persistence/presentation.
 
-The current implementation uses `LearnerLessonApplication` and `LearnerLessonCoordinator` in `app/shared`.
+The current implementation uses `LearnerLessonApplication` and `LearnerLessonCoordinator` in `app/shared`. The Desktop host also composes the published learner HTTP API into the download path.
 
 ## Flow
 
@@ -86,3 +86,29 @@ Platform composition is responsible only for genuine platform storage concerns. 
 ## Testing
 
 Common tests verify application-level lesson listing/opening and deterministic injection of attempt metadata, while existing coordinator and storage tests continue to verify learning and durability semantics.
+## Online-to-offline learner flow
+
+The Desktop composition uses the published learner API as the source of content:
+
+    Published learner catalog
+            |
+            v
+    LearnerContentTransport
+            |
+            v
+    LearnerContentApplication.downloadLesson
+            |
+            v
+    DownloadedLessonStore
+            |
+            v
+    LearnerLessonApplication
+            |
+            v
+    LessonSession
+
+The client exposes Catalog, Downloaded, and Lesson states.
+
+Download writes the complete published lesson package to local SQLDelight storage. Remove deletes that local package. Open reads the package from local storage and therefore does not require a network connection after download.
+
+The Desktop application defaults to http://127.0.0.1:8080. TILDASH_API_URL overrides the URL. TILDASH_ACCESS_TOKEN supplies a real bearer token when an identity provider is configured. TILDASH_DEVELOPMENT_ROLE defaults to learner for the explicit local-development server mode.
