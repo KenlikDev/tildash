@@ -55,7 +55,7 @@ LICENSED and PERMISSION_GRANTED require a license reference.
 
 IN_COPYRIGHT without a license or permission reference is a warning while content is still DRAFT or SUBMITTED, but blocks review for later states.
 
-RESTRICTED content cannot be published.
+RESTRICTED content cannot be published or included in a published course/lesson snapshot. When validating a target that is still DRAFT or SUBMITTED, a restricted descendant is reported as a warning so submission may proceed, but `canPublish` remains false. During review, approval, or publication of the target, the same descendant is a blocking error even when the descendant node itself is still in DRAFT.
 
 The validator does not infer ownership or legal permission from free-form text. It only evaluates the explicit content contract.
 

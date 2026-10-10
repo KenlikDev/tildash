@@ -33,7 +33,7 @@ The result exposes an explicit outcome:
 - PASS_WITH_WARNINGS — no errors, but warnings exist;
 - FAIL — at least one error exists.
 
-Warnings are therefore never silently represented as a clean pass. Submission is allowed only when no errors remain. Publication is allowed only for a clean PASS.
+Warnings are therefore never silently represented as a clean pass. Submission is allowed only when no errors remain. Publication is allowed only for a clean PASS. Restricted descendants are considered in the lifecycle of the validated target: a draft/submitted target may report a warning, but review/approval/publication must fail until the restricted content is removed or its rights status is corrected, even if the descendant node itself remains in DRAFT.
 
 The deterministic rule set covers:
 
@@ -41,7 +41,7 @@ The deterministic rule set covers:
 - source revision presence and uniqueness;
 - localization lineage to an existing source revision;
 - provenance and copyright/license consistency;
-- restricted-content publication checks;
+- restricted-content publication checks across the complete lesson/course subtree, independent of whether a descendant node has itself reached PUBLISHED;
 - payload compatibility with the content kind;
 - media URI and media-type syntax;
 - exercise placement, identity, prompts, answers, and option consistency.
