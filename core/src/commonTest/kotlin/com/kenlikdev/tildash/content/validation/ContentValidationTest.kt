@@ -239,6 +239,30 @@ class ContentValidationTest {
     }
 
     @Test
+    fun restrictedDescendantBlocksPublicationBeforeItsOwnNodeIsPublished() {
+        val revisions =
+            validInput().sourceRevisions.map { revision ->
+                if (revision.contentId == mediaId) {
+                    revision.copy(
+                        provenance =
+                            revision.provenance.copy(
+                                copyrightStatus = CopyrightStatus.RESTRICTED,
+                            ),
+                    )
+                } else {
+                    revision
+                }
+            }
+
+        val result = validator.validateLesson(validInput(sourceRevisions = revisions))
+
+        assertEquals(ReviewOutcome.PASS_WITH_WARNINGS, result.outcome)
+        assertTrue(result.canSubmit)
+        assertFalse(result.canPublish)
+        assertHasCode(result, ValidationCode.RESTRICTED_CONTENT_PUBLISHED)
+    }
+
+    @Test
     fun payloadKindMustMatchContentKind() {
         val revisions =
             validInput().sourceRevisions.map { revision ->
