@@ -3,6 +3,7 @@ package com.kenlikdev.tildash.server.learning
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearningCatalogProjector
+import com.kenlikdev.tildash.learning.LearningExercise
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.ManualInputExercise
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
@@ -25,6 +26,45 @@ class PublishedLearningLessonRepository(
     private val jdbc: NamedParameterJdbcTemplate,
     private val objectMapper: ObjectMapper,
 ) {
+    fun exercises(lessonId: ContentId, publishedVersion: Int): List<LearningExercise>? {
+        val versionId =
+            jdbc.query(
+                """
+                select id
+                from tildash.content_published_versions
+                where content_node_id = :lessonId
+                  and version_no = :publishedVersion
+                """.trimIndent(),
+                MapSqlParameterSource()
+                    .addValue("lessonId", UUID.fromString(lessonId.value))
+                    .addValue("publishedVersion", publishedVersion),
+            ) { rs, _ -> rs.getObject("id", UUID::class.java) }
+                .firstOrNull() ?: return null
+
+        return jdbc.query(
+            """
+            select exercise_id, content_node_id, exercise_type, prompt, expected_answers
+            from tildash.content_published_exercises
+            where published_version_id = :versionId
+            order by position, exercise_id
+            """.trimIndent(),
+            MapSqlParameterSource("versionId", versionId),
+        ) { rs, _ ->
+            val type = rs.getString("exercise_type")
+            if (type != "MANUAL_INPUT") {
+                throw PublishedLearningLessonInvalidException()
+            }
+            ManualInputExercise(
+                id = rs.getString("exercise_id"),
+                contentId = ContentId(rs.getObject("content_node_id", UUID::class.java).toString()),
+                prompt = rs.getString("prompt"),
+                expectedAnswers = buildList {
+                    objectMapper.readTree(rs.getString("expected_answers")).forEach { add(it.asText()) }
+                },
+            )
+        }
+    }
+
     fun load(lessonId: ContentId): LearnerLessonPackage {
         val publishedCatalog = catalogRepository.load()
         val catalog =
@@ -94,6 +134,7 @@ class PublishedLearningLessonRepository(
                 LearningPlan(
                     lessonId = lessonId,
                     exercises = exercises,
+                    publishedVersion = lesson.publishedVersion,
                 ),
         )
     }

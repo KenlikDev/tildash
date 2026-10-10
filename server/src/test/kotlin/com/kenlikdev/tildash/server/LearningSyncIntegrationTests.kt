@@ -87,6 +87,16 @@ class LearningSyncIntegrationTests {
 
     @Test
     fun serverReevaluatesClientReportedOutcomeAgainstPublishedExercise() {
+        val lessonId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
+        val versionTwoId = publish(lessonId, 2, "Lesson version two")
+        insertPublishedExercise(
+            publishedVersionId = versionTwoId,
+            contentNodeId = lessonId,
+            exerciseId = "exercise-1",
+            prompt = "Translate hello.",
+            expectedAnswers = """["world"]""",
+        )
+
         mockMvc
             .perform(
                 authenticatedSync(
@@ -113,8 +123,36 @@ class LearningSyncIntegrationTests {
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-falsely-reported-incorrect"))
 
+        mockMvc
+            .perform(
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        attemptId = "attempt-v2-world",
+                        outcome = "INCORRECT",
+                        responseValue = "world",
+                        publishedVersion = 2,
+                    ),
+                ),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        attemptId = "attempt-v2-hello",
+                        outcome = "CORRECT",
+                        responseValue = "hello",
+                        publishedVersion = 2,
+                    ),
+                ),
+            ).andExpect(status().isOk)
+
         assertEquals("INCORRECT", findOutcome("learner-a", "attempt-falsely-reported-correct"))
         assertEquals("CORRECT", findOutcome("learner-a", "attempt-falsely-reported-incorrect"))
+        assertEquals("CORRECT", findOutcome("learner-a", "attempt-v2-world"))
+        assertEquals("INCORRECT", findOutcome("learner-a", "attempt-v2-hello"))
     }
 
     @Test
@@ -467,6 +505,7 @@ class LearningSyncIntegrationTests {
         deviceId: String = "device-a",
         lessonId: String = "550e8400-e29b-41d4-a716-446655440000",
         responseValue: String = "hello",
+        publishedVersion: Int = 1,
     ): String =
         """
         {
@@ -475,6 +514,7 @@ class LearningSyncIntegrationTests {
             {
               "attemptId": "PLACEHOLDER_ATTEMPT",
               "lessonId": "PLACEHOLDER_LESSON",
+              "publishedVersion": PLACEHOLDER_PUBLISHED_VERSION,
               "exerciseId": "exercise-1",
               "response": {"type": "TEXT", "value": "hello"},
               "outcome": "PLACEHOLDER_OUTCOME",
@@ -486,6 +526,7 @@ class LearningSyncIntegrationTests {
             .replace("PLACEHOLDER_DEVICE", deviceId)
             .replace("PLACEHOLDER_ATTEMPT", attemptId)
             .replace("PLACEHOLDER_LESSON", lessonId)
+            .replace("PLACEHOLDER_PUBLISHED_VERSION", publishedVersion.toString())
             .replace("PLACEHOLDER_OUTCOME", outcome)
             .replace("PLACEHOLDER_OCCURRED_AT", occurredAt)
             .replace("PLACEHOLDER_RESPONSE", responseValue)
