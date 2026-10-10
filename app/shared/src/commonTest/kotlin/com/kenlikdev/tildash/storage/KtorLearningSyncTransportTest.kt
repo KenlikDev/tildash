@@ -28,6 +28,7 @@ class KtorLearningSyncTransportTest {
         LearningAttempt(
             attemptId = "attempt-1",
             lessonId = ContentId("550e8400-e29b-41d4-a716-446655440000"),
+            publishedVersion = 1,
             exerciseId = "exercise-1",
             response = LearnerResponse.Text("hello"),
             outcome = AnswerOutcome.CORRECT,
@@ -94,6 +95,7 @@ class KtorLearningSyncTransportTest {
                 val body = request.body as TextContent
                 assertTrue(body.text.contains("deviceId\":\"device-1"))
                 assertTrue(body.text.contains("attemptId\":\"attempt-1"))
+                assertTrue(body.text.contains("publishedVersion\":1"))
                 assertTrue(body.text.contains("exerciseId\":\"exercise-1"))
                 assertTrue(body.text.contains("type\":\"TEXT"))
                 assertTrue(body.text.contains("outcome\":\"CORRECT"))

@@ -48,6 +48,7 @@ VALUES (?);
 selectAllAttempts:
 SELECT attempt_id,
        lesson_id,
+       published_version,
        exercise_id,
        response_type,
        response_value,

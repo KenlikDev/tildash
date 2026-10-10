@@ -209,6 +209,11 @@ class KtorLearningSyncTransport(
                     "Learning attempt '" + attempt.attemptId + "' is missing lesson scope.",
                 )
             }
+            if (attempt.publishedVersion == null || attempt.publishedVersion <= 0) {
+                throw LearningSyncValidationFailure(
+                    "Learning attempt '" + attempt.attemptId + "' is missing a valid published lesson version.",
+                )
+            }
         }
     }
 
@@ -229,6 +234,7 @@ class KtorLearningSyncTransport(
         buildJsonObject {
             put("attemptId", JsonPrimitive(attempt.attemptId))
             put("lessonId", JsonPrimitive(attempt.lessonId?.value ?: error("Learning attempt is missing lesson scope.")))
+            put("publishedVersion", JsonPrimitive(attempt.publishedVersion ?: error("Learning attempt is missing a published lesson version.")))
             put("exerciseId", JsonPrimitive(attempt.exerciseId))
             put(
                 "response",
