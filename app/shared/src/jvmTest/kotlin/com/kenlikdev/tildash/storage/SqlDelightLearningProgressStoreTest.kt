@@ -54,6 +54,36 @@ class SqlDelightLearningProgressStoreTest {
     }
 
     @Test
+    fun migrationRemovesUnversionedAttemptsFromOutboxButPreservesHistory() {
+        val databaseFile = Files.createTempFile("tildash-learning-migration-", ".db")
+        val legacyAttempt = attempt(id = "legacy-attempt").copy(publishedVersion = null)
+
+        try {
+            val driver = JdbcSqliteDriver("jdbc:sqlite:$databaseFile")
+            TildashDatabase.Schema.create(driver)
+            val store = SqlDelightLearningProgressStore(driver)
+            store.saveAttempt(legacyAttempt)
+
+            driver.execute(null, "PRAGMA user_version = 4", 0)
+            TildashDatabase.Schema.migrate(driver, 4L, 5L)
+
+            val migratedStore = SqlDelightLearningProgressStore(driver)
+            assertEquals(listOf(legacyAttempt), migratedStore.loadProgress().attempts)
+            assertTrue(migratedStore.loadPendingSyncAttempts().isEmpty())
+            assertEquals(0L, migratedStore.pendingSyncCount())
+
+            val newAttempt = attempt(id = "new-versioned-attempt")
+            migratedStore.saveAttempt(newAttempt)
+
+            assertEquals(listOf(newAttempt), migratedStore.loadPendingSyncAttempts())
+            assertEquals(listOf(legacyAttempt, newAttempt), migratedStore.loadProgress().attempts)
+            driver.close()
+        } finally {
+            Files.deleteIfExists(databaseFile)
+        }
+    }
+
+    @Test
     fun sameExerciseIdInDifferentLessonsRemainsScoped() {
         val databaseFile = Files.createTempFile("tildash-learning-", ".db")
         val firstLesson = ContentId("550e8400-e29b-41d4-a716-446655440000")

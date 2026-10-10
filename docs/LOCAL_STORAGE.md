@@ -60,7 +60,7 @@ Persisting a new attempt and enqueueing it for synchronization happen in one dat
 
 Acknowledging an attempt is a separate transaction that only removes its outbox entry.
 
-Loading progress is deterministic and ordered by occurrence timestamp and attempt ID, matching the canonical ordering defined in the learning core. Legacy rows created before lesson scoping or published-version tracking may have a null lesson ID or version and are retained as history, but are not eligible for the new authenticated sync transport until an explicit recovery workflow establishes their original scope safely.
+Loading progress is deterministic and ordered by occurrence timestamp and attempt ID, matching the canonical ordering defined in the learning core. Legacy rows created before lesson scoping or published-version tracking may have a null lesson ID or version and are retained as history. Local migration 5 removes unversioned legacy rows from the sync outbox without deleting their history, so they cannot block newly recorded, versioned attempts. They remain ineligible for authenticated synchronization until an explicit recovery workflow establishes their original scope safely.
 
 ## Database technology
 

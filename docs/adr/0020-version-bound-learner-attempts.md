@@ -46,6 +46,7 @@ Positive:
 Trade-offs:
 
 - local and server migrations preserve old rows with a null published version;
+- local migration 5 removes unversioned legacy rows from the outbox without deleting immutable attempt history, so they cannot block new versioned sync batches;
 - those legacy attempts cannot enter the version-bound sync path until a recovery workflow establishes their original version;
 - the current client still keeps locally computed progress; user-visible reconciliation with server-authoritative outcomes remains follow-up work.
 
