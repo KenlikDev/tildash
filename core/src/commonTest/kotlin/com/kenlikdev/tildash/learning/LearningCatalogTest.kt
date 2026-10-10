@@ -52,6 +52,45 @@ class LearningCatalogTest {
     }
 
     @Test
+    fun archivedCourseAndItsPublishedLessonsAreExcludedFromLearnerCatalog() {
+        val catalog =
+            LearningCatalogProjector.project(
+                nodes =
+                    listOf(
+                        node(courseA, ContentKind.COURSE, null, 0, state = ContentState.ARCHIVED),
+                        node(lessonA1, ContentKind.LESSON, courseA, 0),
+                    ),
+                publishedVersions =
+                    listOf(
+                        version(courseA, 1, "Archived course"),
+                        version(lessonA1, 1, "Previously published lesson"),
+                    ),
+            )
+
+        assertEquals(emptyList(), catalog.courses)
+    }
+
+    @Test
+    fun archivedLessonIsExcludedWithoutHidingItsPublishedCourse() {
+        val catalog =
+            LearningCatalogProjector.project(
+                nodes =
+                    listOf(
+                        node(courseA, ContentKind.COURSE, null, 0),
+                        node(lessonA1, ContentKind.LESSON, courseA, 0, state = ContentState.ARCHIVED),
+                    ),
+                publishedVersions =
+                    listOf(
+                        version(courseA, 1, "Course A"),
+                        version(lessonA1, 1, "Archived lesson"),
+                    ),
+            )
+
+        assertEquals(courseA, catalog.courses.single().id)
+        assertEquals(emptyList(), catalog.courses.single().lessons)
+    }
+
+    @Test
     fun latestPublishedVersionWins() {
         val node = node(courseA, ContentKind.COURSE, null, 0)
         val versions =
@@ -223,12 +262,13 @@ class LearningCatalogTest {
         kind: ContentKind,
         parentId: ContentId?,
         position: Int,
+        state: ContentState = ContentState.PUBLISHED,
     ) = ContentNode(
         id = id,
         kind = kind,
         parentId = parentId,
         sourceLocale = LanguageTag("crh"),
-        state = ContentState.PUBLISHED,
+        state = state,
         position = position,
     )
 
