@@ -209,7 +209,8 @@ class KtorLearningSyncTransport(
                     "Learning attempt '" + attempt.attemptId + "' is missing lesson scope.",
                 )
             }
-            if (attempt.publishedVersion == null || attempt.publishedVersion <= 0) {
+            val publishedVersion = attempt.publishedVersion
+            if (publishedVersion == null || publishedVersion <= 0) {
                 throw LearningSyncValidationFailure(
                     "Learning attempt '" + attempt.attemptId + "' is missing a valid published lesson version.",
                 )

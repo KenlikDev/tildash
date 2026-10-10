@@ -111,6 +111,7 @@ private fun LearningAttemptRequest.toDomain(): LearningAttempt {
     if (response.type != LearningResponseType.TEXT) {
         throw LearningSyncInvalidRequestException()
     }
+    val databasePrecisionOccurredAt = occurredAt.withNano((occurredAt.nano / 1_000) * 1_000)
 
     return LearningAttempt(
         attemptId = attemptId,
@@ -122,7 +123,11 @@ private fun LearningAttemptRequest.toDomain(): LearningAttempt {
                 LearningOutcomeRequest.CORRECT -> AnswerOutcome.CORRECT
                 LearningOutcomeRequest.INCORRECT -> AnswerOutcome.INCORRECT
             },
-        occurredAt = Instant.fromEpochSeconds(occurredAt.toEpochSecond(), occurredAt.nano.toLong()),
+        occurredAt =
+            Instant.fromEpochSeconds(
+                databasePrecisionOccurredAt.toEpochSecond(),
+                databasePrecisionOccurredAt.nano.toLong(),
+            ),
         publishedVersion = publishedVersion,
     )
 }

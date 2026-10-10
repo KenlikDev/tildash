@@ -482,14 +482,16 @@ class LearningSyncIntegrationTests {
             {
               "attemptId": "attempt-duplicate",
               "lessonId": "550e8400-e29b-41d4-a716-446655440000",
+              "publishedVersion": 1,
               "exerciseId": "exercise-1",
-              "response": {"type": "TEXT", "value": "PLACEHOLDER_RESPONSE"},
+              "response": {"type": "TEXT", "value": "hello"},
               "outcome": "CORRECT",
               "occurredAt": "2026-09-28T09:00:00Z"
             },
             {
               "attemptId": "attempt-duplicate",
               "lessonId": "550e8400-e29b-41d4-a716-446655440000",
+              "publishedVersion": 1,
               "exerciseId": "exercise-1",
               "response": {"type": "TEXT", "value": "wrong"},
               "outcome": "INCORRECT",
@@ -517,7 +519,7 @@ class LearningSyncIntegrationTests {
               "lessonId": "PLACEHOLDER_LESSON",
               "publishedVersion": PLACEHOLDER_PUBLISHED_VERSION,
               "exerciseId": "exercise-1",
-              "response": {"type": "TEXT", "value": "hello"},
+              "response": {"type": "TEXT", "value": "PLACEHOLDER_RESPONSE"},
               "outcome": "PLACEHOLDER_OUTCOME",
               "occurredAt": "PLACEHOLDER_OCCURRED_AT"
             }
