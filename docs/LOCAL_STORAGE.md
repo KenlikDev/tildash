@@ -52,7 +52,7 @@ The outbox stores only the canonical attempt ID because the complete immutable a
 
 A successful remote acknowledgement removes the outbox row but never deletes the attempt history.
 
-Conflicting reuse of an attempt ID is rejected with the existing AttemptIdConflict contract when any immutable field differs, including lesson ID, and does not overwrite the stored attempt or its outbox state.
+Conflicting reuse of an attempt ID is rejected with the existing AttemptIdConflict contract when any immutable field differs, including lesson ID or published version, and does not overwrite the stored attempt or its outbox state.
 
 ## Transactions
 

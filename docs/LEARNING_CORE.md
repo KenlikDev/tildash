@@ -48,11 +48,11 @@ A LearningAttempt contains attemptId, lessonId, publishedVersion, exerciseId, re
 
 Attempt IDs are immutable idempotency keys across the synchronization boundary.
 
-Repeating an identical attempt ID with the same lesson ID, exercise ID, response, and timestamp is a no-op.
+Repeating an identical attempt ID with the same lesson ID, published version, exercise ID, response, and timestamp is a no-op.
 
 Reusing an existing attempt ID with any different immutable payload, including lesson ID or published version, is rejected as AttemptIdConflict.
 
-Lesson completion, review state, and mistake counts are scoped to the lesson ID as well as the exercise ID so an exercise reused in another lesson cannot inherit progress.
+Lesson completion and session sequencing require matching lesson ID, published version, and exercise ID. Review state and mistake counts accept the same version scope. An exercise reused in another lesson or published version cannot inherit progress from an earlier context.
 
 Attempts are canonically ordered by occurrence time and then attempt ID. This makes concurrent equal-time submissions deterministic and allows late-arriving attempts to be folded without replacing prior history.
 
