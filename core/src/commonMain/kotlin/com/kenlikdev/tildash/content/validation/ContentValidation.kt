@@ -222,7 +222,7 @@ class ContentValidator {
 
             validateTreeCycles(input.nodes, issues)
             validateSiblingPositions(input.nodes, issues)
-            validateSourceRevisions(input, issues, nodesById)
+            validateSourceRevisions(input, issues, nodesById, target.state)
             validateLocalizations(input, issues, nodeIdSet, nodesById)
             if (requireExercises) {
                 validateExercises(input, issues, nodeIdSet, target.id)
@@ -295,6 +295,7 @@ class ContentValidator {
         input: LessonValidationInput,
         issues: MutableList<ValidationIssue>,
         nodesById: Map<ContentId, List<ContentNode>>,
+        validationTargetState: ContentState,
     ) {
         val revisionsByContent = input.sourceRevisions.groupBy { it.contentId }
 
@@ -318,6 +319,7 @@ class ContentValidator {
                 contentNode,
                 revisions.maxByOrNull { it.revision } ?: return@forEach,
                 issues,
+                validationTargetState,
             )
         }
 
@@ -341,6 +343,7 @@ class ContentValidator {
         node: ContentNode,
         revision: SourceContentRevision,
         issues: MutableList<ValidationIssue>,
+        validationTargetState: ContentState,
     ) {
         val provenance = revision.provenance
         when (provenance.copyrightStatus) {
@@ -396,14 +399,23 @@ class ContentValidator {
             }
 
             CopyrightStatus.RESTRICTED -> {
-                if (node.state == ContentState.PUBLISHED) {
-                    issues +=
+                val publicationInProgress =
+                    validationTargetState !in setOf(ContentState.DRAFT, ContentState.SUBMITTED)
+                val issue =
+                    if (node.state == ContentState.PUBLISHED || publicationInProgress) {
                         validationError(
                             ValidationCode.RESTRICTED_CONTENT_PUBLISHED,
-                            "Restricted content '${node.id.value}' cannot be published.",
+                            "Restricted content '${node.id.value}' cannot be included in a published lesson or course.",
                             "nodes[${node.id.value}].state",
                         )
-                }
+                    } else {
+                        validationWarning(
+                            ValidationCode.RESTRICTED_CONTENT_PUBLISHED,
+                            "Restricted content '${node.id.value}' must be removed before the lesson or course can be published.",
+                            "nodes[${node.id.value}].state",
+                        )
+                    }
+                issues += issue
             }
 
             CopyrightStatus.PUBLIC_DOMAIN -> {}
