@@ -178,6 +178,7 @@ class LearnerApplicationUiTest {
                                     expectedAnswers = listOf("merhaba"),
                                 ),
                             ),
+                        publishedVersion = lesson().publishedVersion,
                     ),
             )
 

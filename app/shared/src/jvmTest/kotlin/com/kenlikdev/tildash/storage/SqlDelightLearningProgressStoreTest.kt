@@ -23,6 +23,7 @@ class SqlDelightLearningProgressStoreTest {
                 LearningAttempt(
                     attemptId = "attempt-1",
                     lessonId = ContentId("550e8400-e29b-41d4-a716-446655440000"),
+                    publishedVersion = 1,
                     exerciseId = "exercise-1",
                     response = LearnerResponse.Text("hello"),
                     outcome = AnswerOutcome.CORRECT,
@@ -170,6 +171,7 @@ class SqlDelightLearningProgressStoreTest {
     ) = LearningAttempt(
         attemptId = id,
         lessonId = lessonId,
+        publishedVersion = 1,
         exerciseId = "exercise-1",
         response = LearnerResponse.Text("hello"),
         outcome = AnswerOutcome.CORRECT,

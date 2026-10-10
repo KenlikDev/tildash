@@ -142,6 +142,37 @@ class KtorLearningSyncTransportTest {
         }
 
     @Test
+    fun missingPublishedVersionFailsBeforeNetworkRequest() =
+        runTest {
+            var requests = 0
+            val client =
+                HttpClient(
+                    MockEngine {
+                        requests += 1
+                        respond("""{}""")
+                    },
+                )
+
+            try {
+                val transport =
+                    KtorLearningSyncTransport(
+                        client = client,
+                        baseUrl = "https://example.test",
+                        accessTokenProvider = AccessTokenProvider { "token" },
+                    )
+
+                assertFailsWith<LearningSyncValidationFailure> {
+                    transport.synchronize(
+                        batch.copy(attempts = listOf(attempt.copy(publishedVersion = null))),
+                    )
+                }
+                assertEquals(0, requests)
+            } finally {
+                client.close()
+            }
+        }
+
+    @Test
     fun missingTokenFailsBeforeNetworkRequest() =
         runTest {
             var requests = 0

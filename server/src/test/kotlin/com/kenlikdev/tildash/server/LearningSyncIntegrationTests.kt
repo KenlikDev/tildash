@@ -33,6 +33,7 @@ class LearningSyncIntegrationTests {
 
     @BeforeEach
     fun createPublishedLessonFixture() {
+        jdbcTemplate.execute("TRUNCATE tildash.learning_attempts")
         jdbcTemplate.execute("TRUNCATE tildash.content_nodes CASCADE")
         val courseId = UUID.fromString("550e8400-e29b-41d4-a716-446655440099")
         val lessonId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
