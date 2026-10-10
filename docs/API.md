@@ -341,7 +341,7 @@ Successful response:
 
 The response contains only explicit learner-facing DTOs. It does not expose persistence records, provenance objects, Spring types, JDBC types, or database-specific identifiers.
 
-The server loads the published snapshots required by the shared LearningCatalogProjector. The projector selects the highest published version per content ID, rejects ambiguous duplicate versions and malformed hierarchy, and applies deterministic course/lesson ordering.
+The server loads the published snapshots required by the shared LearningCatalogProjector. The projector selects the highest published version per content ID, exposes only nodes whose current state is `PUBLISHED`, excludes archived lessons and lessons belonging to archived courses, rejects ambiguous duplicate versions and malformed active hierarchy, and applies deterministic course/lesson ordering.
 
 An empty published catalog returns:
 

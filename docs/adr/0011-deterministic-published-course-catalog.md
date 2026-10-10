@@ -17,7 +17,8 @@ The projector:
 - selects the latest unique PublishedContentVersion for each content ID;
 - rejects ambiguous duplicate versions;
 - rejects published snapshots with missing content nodes;
-- projects only published COURSE and LESSON nodes in a COURSE -> LESSON hierarchy;
+- projects only COURSE and LESSON nodes whose current state is `PUBLISHED` in a COURSE -> LESSON hierarchy;
+- excludes archived lessons and hides lessons whose parent course is archived, while preserving immutable published snapshots;
 - orders courses and lessons by position and stable content ID;
 - maps source and localization text into immutable learner read models;
 - rejects unsupported non-text title payloads explicitly.
@@ -48,7 +49,8 @@ Positive consequences:
 
 - one deterministic catalog projection for all clients;
 - no persistence coupling in learner browsing logic;
-- published snapshots remain the source of learner-visible content;
+- published snapshots remain the source of learner-visible content, subject to the current publication state;
+- archiving content removes it from the learner-facing catalog without mutating historical snapshots;
 - malformed publication references fail explicitly;
 - later HTTP and UI adapters can consume stable read models.
 
