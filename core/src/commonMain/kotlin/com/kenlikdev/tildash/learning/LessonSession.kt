@@ -25,6 +25,7 @@ data class LessonSession(
             plan.exercises.firstOrNull { exercise ->
                 progress.attempts.none {
                     it.lessonId == plan.lessonId &&
+                        it.publishedVersion == plan.publishedVersion &&
                         it.exerciseId == exercise.id &&
                         it.outcome == AnswerOutcome.CORRECT
                 }

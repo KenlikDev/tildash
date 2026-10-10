@@ -166,6 +166,25 @@ class LearningProgressTest {
     }
 
     @Test
+    fun attemptsFromEarlierPublishedVersionDoNotCompleteNewerPlan() {
+        val submission =
+            LearningEngine.submit(
+                progress = LearningProgress.empty(),
+                exercise = firstExercise,
+                lessonId = lessonId,
+                attemptId = "attempt-version-one",
+                response = LearnerResponse.Text("hello"),
+                occurredAt = occurredAt,
+                publishedVersion = 1,
+            )
+
+        val newerPlan = LearningPlan(lessonId, listOf(firstExercise), publishedVersion = 2)
+
+        assertFalse(submission.progress.isLessonComplete(newerPlan))
+        assertEquals(0, submission.progress.mistakeCount(firstExercise.id, lessonId, publishedVersion = 2))
+    }
+
+    @Test
     fun repeatedAttemptIdIsIdempotent() {
         val first =
             LearningEngine.submit(

@@ -233,10 +233,15 @@ data class LearningProgress private constructor(
     fun reviewState(
         exerciseId: String,
         lessonId: ContentId,
+        publishedVersion: Int? = null,
     ): ReviewState {
         val exerciseAttempts =
             attempts
-                .filter { it.exerciseId == exerciseId && it.lessonId == lessonId }
+                .filter {
+                    it.exerciseId == exerciseId &&
+                        it.lessonId == lessonId &&
+                        it.publishedVersion == publishedVersion
+                }
                 .sortedWith(attemptComparator)
 
         require(exerciseAttempts.isNotEmpty()) {
@@ -253,10 +258,12 @@ data class LearningProgress private constructor(
     fun mistakeCount(
         exerciseId: String,
         lessonId: ContentId,
+        publishedVersion: Int? = null,
     ): Int =
         attempts.count {
             it.exerciseId == exerciseId &&
                 it.lessonId == lessonId &&
+                it.publishedVersion == publishedVersion &&
                 it.outcome == AnswerOutcome.INCORRECT
         }
 
@@ -264,6 +271,7 @@ data class LearningProgress private constructor(
         plan.exercises.all { exercise ->
             attempts.any {
                 it.lessonId == plan.lessonId &&
+                    it.publishedVersion == plan.publishedVersion &&
                     it.exerciseId == exercise.id &&
                     it.outcome == AnswerOutcome.CORRECT
             }
@@ -278,6 +286,7 @@ data class LearningProgress private constructor(
         for (attempt in attempts.sortedWith(attemptComparator)) {
             if (
                 attempt.lessonId == plan.lessonId &&
+                attempt.publishedVersion == plan.publishedVersion &&
                 attempt.outcome == AnswerOutcome.CORRECT &&
                 attempt.exerciseId in requiredIds
             ) {
