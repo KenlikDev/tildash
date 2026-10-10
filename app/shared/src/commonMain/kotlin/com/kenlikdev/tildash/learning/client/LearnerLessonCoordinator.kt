@@ -27,10 +27,14 @@ class LearnerLessonCoordinator(
     fun open(lessonId: ContentId): LearnerLessonState? {
         val downloadedLesson = downloadedLessonStore.loadLesson(lessonId) ?: return null
         val progress = learningProgressStore.loadProgress()
+        val plan =
+            downloadedLesson.plan.copy(
+                publishedVersion = downloadedLesson.plan.publishedVersion ?: downloadedLesson.lesson.publishedVersion,
+            )
 
         return LearnerLessonState(
             lesson = downloadedLesson,
-            session = LessonSession.start(downloadedLesson.plan, progress),
+            session = LessonSession.start(plan, progress),
         )
     }
 
@@ -62,6 +66,7 @@ class LearnerLessonCoordinator(
                 response = response,
                 outcome = submission.evaluation.outcome,
                 occurredAt = occurredAt,
+                publishedVersion = state.session.plan.publishedVersion,
             ),
         )
 

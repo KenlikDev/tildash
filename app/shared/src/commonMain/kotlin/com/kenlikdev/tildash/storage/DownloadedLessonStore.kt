@@ -32,6 +32,9 @@ data class DownloadedLesson(
         require(plan.lessonId == lesson.id) {
             "Learning plan lesson ID must match the downloaded lesson."
         }
+        require(plan.publishedVersion == null || plan.publishedVersion == lesson.publishedVersion) {
+            "Learning plan published version must match the downloaded lesson."
+        }
     }
 }
 
@@ -199,6 +202,7 @@ class SqlDelightDownloadedLessonStore(
                 LearningPlan(
                     lessonId = lessonSummary.id,
                     exercises = exercises,
+                    publishedVersion = lessonRow.published_version.toInt(),
                 ),
             downloadedAt = Instant.fromEpochMilliseconds(lessonRow.downloaded_at_epoch_millis),
         )
