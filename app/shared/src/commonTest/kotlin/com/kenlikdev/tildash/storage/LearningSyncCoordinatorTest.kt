@@ -71,6 +71,42 @@ class LearningSyncCoordinatorTest {
         }
 
     @Test
+    fun moreThanOneHundredPendingAttemptsAreSentInBoundedBatches() =
+        runTest {
+            val attempts =
+                (1..101).map { index ->
+                    attempt(
+                        id = "attempt-" + index.toString().padStart(3, '0'),
+                        timestamp = "2026-09-28T08:00:00Z",
+                    )
+                }
+            val store = FakeStore(*attempts.toTypedArray())
+            val receivedBatchSizes = mutableListOf<Int>()
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
+                        receivedBatchSizes += batch.attempts.size
+                        return LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = batch.attempts.map { it.attemptId },
+                        )
+                    }
+                }
+
+            val report =
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                ).synchronize("device-a")
+
+            assertEquals(listOf(100, 1), receivedBatchSizes)
+            assertEquals(101, report.submittedAttemptIds.size)
+            assertEquals(101, report.acknowledgedAttemptIds.size)
+            assertEquals(emptyList(), report.conflictAttemptIds)
+            assertEquals(emptyList(), store.pendingIds())
+        }
+
+    @Test
     fun partialAcknowledgementLeavesConflictsInOutbox() =
         runTest {
             val store = FakeStore(first, second)

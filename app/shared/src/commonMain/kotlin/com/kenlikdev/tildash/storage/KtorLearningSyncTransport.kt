@@ -203,6 +203,11 @@ class KtorLearningSyncTransport(
             ?.toIntOrNull()
 
     private fun validateBatch(batch: LearningProgressSyncBatch) {
+        if (batch.attempts.size > MAX_LEARNING_SYNC_BATCH_SIZE) {
+            throw LearningSyncValidationFailure(
+                "A learning sync batch cannot exceed $MAX_LEARNING_SYNC_BATCH_SIZE attempts.",
+            )
+        }
         batch.attempts.forEach { attempt ->
             if (attempt.lessonId == null) {
                 throw LearningSyncValidationFailure(

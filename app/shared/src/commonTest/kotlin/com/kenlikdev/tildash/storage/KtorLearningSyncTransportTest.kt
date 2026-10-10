@@ -106,6 +106,42 @@ class KtorLearningSyncTransportTest {
         }
 
     @Test
+    fun oversizedBatchFailsBeforeNetworkRequest() =
+        runTest {
+            var requests = 0
+            val client =
+                HttpClient(
+                    MockEngine {
+                        requests += 1
+                        respond("""{}""")
+                    },
+                )
+
+            try {
+                val transport =
+                    KtorLearningSyncTransport(
+                        client = client,
+                        baseUrl = "https://example.test",
+                        accessTokenProvider = AccessTokenProvider { "token" },
+                    )
+                val oversizedBatch =
+                    batch.copy(
+                        attempts =
+                            (1..101).map { index ->
+                                attempt.copy(attemptId = "attempt-" + index.toString().padStart(3, '0'))
+                            },
+                    )
+
+                assertFailsWith<LearningSyncValidationFailure> {
+                    transport.synchronize(oversizedBatch)
+                }
+                assertEquals(0, requests)
+            } finally {
+                client.close()
+            }
+        }
+
+    @Test
     fun unscopedAttemptFailsBeforeNetworkRequest() =
         runTest {
             var requests = 0

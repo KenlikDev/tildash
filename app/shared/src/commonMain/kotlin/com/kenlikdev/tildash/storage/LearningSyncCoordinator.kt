@@ -2,6 +2,8 @@ package com.kenlikdev.tildash.storage
 
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
 
+internal const val MAX_LEARNING_SYNC_BATCH_SIZE = 100
+
 data class LearningSyncRetryPolicy(
     val maxAttempts: Int = 3,
     val initialDelayMillis: Long = 1_000,
@@ -71,7 +73,14 @@ class LearningSyncCoordinator(
     private val retryPolicy: LearningSyncRetryPolicy = LearningSyncRetryPolicy(),
     private val delayBeforeRetry: suspend (Long) -> Unit,
     private val observer: LearningSyncObserver = LearningSyncObserver { },
+    private val maxBatchSize: Int = MAX_LEARNING_SYNC_BATCH_SIZE,
 ) {
+    init {
+        require(maxBatchSize in 1..MAX_LEARNING_SYNC_BATCH_SIZE) {
+            "maxBatchSize must be between 1 and $MAX_LEARNING_SYNC_BATCH_SIZE."
+        }
+    }
+
     suspend fun synchronize(deviceId: String): LearningSyncReport {
         require(deviceId.isNotBlank()) {
             "Sync device ID must not be blank."
@@ -92,66 +101,83 @@ class LearningSyncCoordinator(
             return report
         }
 
-        val batch =
-            LearningProgressSyncBatch(
-                deviceId = deviceId,
-                attempts = pendingAttempts,
-            )
+        val acknowledgedIds = mutableSetOf<String>()
+        val conflictIds = mutableSetOf<String>()
+        var totalRetryCount = 0
 
-        var attemptNumber = 1
-        var retryCount = 0
-
-        while (true) {
-            try {
-                val report = synchronizeOnce(batch, retryCount)
-                observer.onStateChanged(
-                    if (report.hasConflicts) {
-                        LearningSyncState.Conflicted(report)
-                    } else {
-                        LearningSyncState.Succeeded(report)
-                    },
+        for (attempts in pendingAttempts.chunked(maxBatchSize)) {
+            val batch =
+                LearningProgressSyncBatch(
+                    deviceId = deviceId,
+                    attempts = attempts,
                 )
-                return report
-            } catch (failure: TransientLearningSyncFailure) {
-                if (attemptNumber >= retryPolicy.maxAttempts) {
+            var attemptNumber = 1
+            var batchRetryCount = 0
+
+            while (true) {
+                try {
+                    val batchReport = synchronizeOnce(batch, batchRetryCount)
+                    acknowledgedIds += batchReport.acknowledgedAttemptIds
+                    conflictIds += batchReport.conflictAttemptIds
+                    break
+                } catch (failure: TransientLearningSyncFailure) {
+                    if (attemptNumber >= retryPolicy.maxAttempts) {
+                        observer.onStateChanged(
+                            LearningSyncState.Failed(
+                                message = failure.message ?: "Learning synchronization failed.",
+                                retryable = true,
+                                details = failure.details,
+                            ),
+                        )
+                        throw failure
+                    }
+
+                    batchRetryCount += 1
+                    totalRetryCount += 1
+                    val delay = retryPolicy.delayBeforeRetry(batchRetryCount)
+                    observer.onStateChanged(
+                        LearningSyncState.Retrying(
+                            retryCount = totalRetryCount,
+                            delayMillis = delay,
+                            pendingCount = store.pendingSyncCount(),
+                        ),
+                    )
+                    delayBeforeRetry(delay)
+                    attemptNumber += 1
+                } catch (failure: Exception) {
                     observer.onStateChanged(
                         LearningSyncState.Failed(
                             message = failure.message ?: "Learning synchronization failed.",
-                            retryable = true,
-                            details = failure.details,
+                            retryable = false,
+                            details =
+                                when (failure) {
+                                    is AuthenticationRequiredLearningSyncFailure -> failure.details
+                                    is AuthorizationDeniedLearningSyncFailure -> failure.details
+                                    is LearningSyncProtocolFailure -> failure.details
+                                    else -> null
+                                },
                         ),
                     )
                     throw failure
                 }
-
-                retryCount += 1
-                val delay = retryPolicy.delayBeforeRetry(retryCount)
-                observer.onStateChanged(
-                    LearningSyncState.Retrying(
-                        retryCount = retryCount,
-                        delayMillis = delay,
-                        pendingCount = pendingAttempts.size.toLong(),
-                    ),
-                )
-                delayBeforeRetry(delay)
-                attemptNumber += 1
-            } catch (failure: Exception) {
-                observer.onStateChanged(
-                    LearningSyncState.Failed(
-                        message = failure.message ?: "Learning synchronization failed.",
-                        retryable = false,
-                        details =
-                            when (failure) {
-                                is AuthenticationRequiredLearningSyncFailure -> failure.details
-                                is AuthorizationDeniedLearningSyncFailure -> failure.details
-                                is LearningSyncProtocolFailure -> failure.details
-                                else -> null
-                            },
-                    ),
-                )
-                throw failure
             }
         }
+
+        val report =
+            LearningSyncReport(
+                submittedAttemptIds = pendingAttempts.map { it.attemptId }.distinct().sorted(),
+                acknowledgedAttemptIds = acknowledgedIds.toList().sorted(),
+                conflictAttemptIds = conflictIds.toList().sorted(),
+                retryCount = totalRetryCount,
+            )
+        observer.onStateChanged(
+            if (report.hasConflicts) {
+                LearningSyncState.Conflicted(report)
+            } else {
+                LearningSyncState.Succeeded(report)
+            },
+        )
+        return report
     }
 
     private suspend fun synchronizeOnce(
