@@ -42,8 +42,12 @@ data class ManualInputExercise(
 data class LearningPlan(
     val lessonId: ContentId,
     val exercises: List<LearningExercise>,
+    val publishedVersion: Int? = null,
 ) {
     init {
+        require(publishedVersion == null || publishedVersion > 0) {
+            "Published lesson version must be positive when provided."
+        }
         require(exercises.isNotEmpty()) {
             "Learning plan must contain at least one exercise."
         }
@@ -138,8 +142,12 @@ data class LearningAttempt(
     val response: LearnerResponse,
     val outcome: AnswerOutcome,
     val occurredAt: Instant,
+    val publishedVersion: Int? = null,
 ) {
     init {
+        require(publishedVersion == null || publishedVersion > 0) {
+            "Published lesson version must be positive when provided."
+        }
         require(attemptId.isNotBlank()) {
             "Attempt ID must not be blank."
         }
@@ -297,6 +305,7 @@ object LearningEngine {
         attemptId: String,
         response: LearnerResponse,
         occurredAt: Instant,
+        publishedVersion: Int? = null,
     ): LearningSubmission {
         require(attemptId.isNotBlank()) {
             "Attempt ID must not be blank."
@@ -308,7 +317,8 @@ object LearningEngine {
                 existing.lessonId != lessonId ||
                 existing.exerciseId != exercise.id ||
                 existing.response != response ||
-                existing.occurredAt != occurredAt
+                existing.occurredAt != occurredAt ||
+                existing.publishedVersion != publishedVersion
             ) {
                 throw AttemptIdConflict(attemptId)
             }
@@ -328,6 +338,7 @@ object LearningEngine {
                 response = response,
                 outcome = evaluation.outcome,
                 occurredAt = occurredAt,
+                publishedVersion = publishedVersion,
             )
 
         val canonicalAttempts =

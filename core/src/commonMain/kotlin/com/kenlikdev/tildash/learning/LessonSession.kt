@@ -55,6 +55,7 @@ data class LessonSession(
                 attemptId = attemptId,
                 response = response,
                 occurredAt = occurredAt,
+                publishedVersion = plan.publishedVersion,
             )
 
         return LessonSessionSubmission(
