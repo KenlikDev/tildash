@@ -56,12 +56,12 @@ class ContentStudioExceptionHandler {
         )
 
     @ExceptionHandler(IllegalArgumentException::class)
-    fun handleInvalidRequest(exception: IllegalArgumentException): ResponseEntity<ProblemDetail> =
+    fun handleInvalidRequest(): ResponseEntity<ProblemDetail> =
         problem(
             status = HttpStatus.BAD_REQUEST,
             type = "urn:tildash:problem:invalid-content-request",
             title = "Invalid content request",
-            detail = exception.message ?: "The content request is invalid.",
+            detail = "The content request is invalid.",
         )
 
     private fun problem(

@@ -103,11 +103,13 @@ class LearningSyncService(
     )
 }
 
+class LearningSyncInvalidRequestException : RuntimeException()
+
 private class LearningSyncAttemptRejected : RuntimeException()
 
 private fun LearningAttemptRequest.toDomain(): LearningAttempt {
-    check(response.type == LearningResponseType.TEXT) {
-        "Unsupported learning response type: " + response.type + "."
+    if (response.type != LearningResponseType.TEXT) {
+        throw LearningSyncInvalidRequestException()
     }
 
     return LearningAttempt(
