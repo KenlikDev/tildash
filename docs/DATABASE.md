@@ -30,7 +30,7 @@ No domain repository interface is introduced by this foundation because no persi
 
 Schema changes are managed by Flyway. Production migrations live under `server/src/main/resources/db/migration/` and use the `V<VERSION>__<DESCRIPTION>.sql` convention.
 
-The first migration is `V1__create_application_schema.sql`, which creates the application-owned `tildash` schema. Content tables are introduced by V2/V3, learner-attempt persistence is introduced by V4, and V5 adds lesson scope to learner attempts.
+The first migration is `V1__create_application_schema.sql`, which creates the application-owned `tildash` schema. Content tables are introduced by V2/V3, learner-attempt persistence is introduced by V4, V5 adds lesson scope, V6 adds editable and immutable published exercise definitions, and V7 adds the published lesson version used to evaluate each learner attempt.
 
 Flyway validation is enabled and Flyway clean is disabled.
 
@@ -116,9 +116,9 @@ The canonical content model is documented in `docs/CONTENT.md`.
 
 ## Learner-attempt identity
 
-The learner-attempt table keeps `(learner_subject, attempt_id)` as the idempotency key and stores `lesson_id` as part of the immutable payload. The lesson scope prevents the same `exercise_id` from sharing progress across lessons.
+The learner-attempt table keeps `(learner_subject, attempt_id)` as the idempotency key and stores `lesson_id` and `published_version` as part of the immutable payload. The lesson/version scope prevents the same `exercise_id` from sharing progress across lessons or across published revisions of a lesson.
 
-V5 adds `lesson_id` as a nullable column so existing attempt history can migrate without destructive backfill assumptions. New authenticated API requests require a lesson ID. Legacy rows with a null lesson ID are retained as historical data and are not emitted by the new client sync transport.
+V5 adds `lesson_id` and V7 adds `published_version` as nullable columns so existing attempt history can migrate without destructive backfill assumptions. New authenticated API requests require both values. The server resolves the exercise from the exact immutable published version, recomputes the outcome from the submitted response, and stores the server-derived outcome rather than trusting the client-provided outcome. Legacy rows with missing lesson scope or published version are retained as historical data but are not eligible for authenticated synchronization until an explicit recovery workflow can establish their original context safely.
 
 ## Migration safety
 
