@@ -20,7 +20,7 @@ Use a client storage boundary with two durable responsibilities:
 
 Downloaded lesson packages contain the minimum executable contract needed to recreate a LearningPlan for the currently supported ManualInputExercise type.
 
-Downloaded content is versioned by published lesson/course metadata and may be replaced atomically when a newer package is downloaded.
+Downloaded content is versioned by published lesson/course metadata and may be replaced atomically when a newer package is downloaded. Each attempt records the lesson version used; progress from an older version does not mark the corresponding exercise complete in a newer plan.
 
 LearningSyncCoordinator remains responsible for deterministic batching, retry policy, acknowledgement, and conflict preservation.
 
@@ -76,6 +76,7 @@ Positive:
 
 - downloaded lessons survive application restart;
 - lesson sessions can resume from durable progress without network access;
+- version-aware session selection prevents an earlier version's correct answer from silently completing a newer lesson version;
 - local progress remains append-oriented and retry-safe;
 - transport and storage can evolve independently;
 - presentation receives explicit synchronization state without owning sync semantics.
@@ -83,6 +84,7 @@ Positive:
 Trade-offs:
 
 - the current downloaded exercise persistence supports manual-input exercises only;
+- pre-version-tracking attempts may remain unversioned and cannot be sent through authenticated sync until explicitly recovered;
 - platform encrypted-at-rest implementation remains a platform composition requirement;
 - background scheduling and visible retry/conflict UX remain outside this infrastructure slice.
 

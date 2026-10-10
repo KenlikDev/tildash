@@ -11,7 +11,7 @@ Network transport and local persistence are intentionally not part of this slice
 
 ## Decision
 
-Synchronization operates on immutable LearningAttempt values.
+Synchronization operates on immutable LearningAttempt values. Versioned learner attempts include the published lesson version used for the response; that field is part of the immutable payload and conflict comparison.
 
 A sync batch contains a non-blank device identifier and zero or more attempts.
 
@@ -19,7 +19,7 @@ When merging a batch into local progress:
 
 - an unseen attempt ID is accepted exactly once;
 - an identical attempt already present locally is acknowledged as an idempotent duplicate;
-- an attempt ID carrying different data is a conflict and is never overwritten;
+- an attempt ID carrying different data, including lesson ID or published lesson version, is a conflict and is never overwritten;
 - duplicate identical entries inside the same batch collapse to one event;
 - conflicting entries for one ID inside the same batch remain an explicit conflict;
 - accepted attempts are merged with existing attempts using the canonical `(occurredAt, attemptId)` ordering already defined by ADR-0009.
@@ -61,7 +61,8 @@ Positive consequences:
 Trade-offs:
 
 - conflicts need an explicit higher-level resolution workflow;
-- transport must preserve attempt IDs and complete attempt payloads;
+- transport must preserve attempt IDs and complete attempt payloads, including published lesson version;
+- the authenticated server sync boundary re-evaluates responses against that exact published version and persists a server-derived outcome (ADR-0020).
 - sender outboxes need to retain attempts until their IDs are acknowledged.
 
 ## Verification

@@ -19,6 +19,7 @@ The coordinator:
 - builds a `LearningProgressSyncBatch` with the caller-provided device ID;
 - submits the batch through provider-neutral `LearningSyncTransport`;
 - acknowledges only attempt IDs explicitly returned as accepted;
+- submits the exact published lesson version carried by each attempt so the server can derive the authoritative outcome for that historical snapshot;
 - leaves conflict IDs in the outbox;
 - rejects acknowledgements for unknown attempt IDs;
 - rejects responses that both acknowledge and conflict the same attempt;

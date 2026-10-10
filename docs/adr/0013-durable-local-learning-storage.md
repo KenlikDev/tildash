@@ -15,18 +15,20 @@ Use SQLDelight-backed SQLite storage in `app/shared`.
 
 The persisted model is:
 
-- `learning_attempt` — immutable learner attempts;
+- `learning_attempt` — immutable learner attempts, including lesson scope and the published version when known;
 - `learning_sync_outbox` — attempt IDs awaiting acknowledgement.
 
 New attempt persistence and outbox insertion are one transaction.
 
 An existing attempt ID with identical immutable data is idempotent.
 
-An existing attempt ID with different data raises the existing `AttemptIdConflict` contract.
+An existing attempt ID with different data, including a different published version, raises the existing `AttemptIdConflict` contract.
 
 Remote acknowledgement removes only the outbox entry. Learning history remains durable.
 
 The store reconstructs `LearningProgress` through the public `fromPersistedAttempts` factory, preserving deterministic canonical ordering without coupling storage to synchronization logic.
+
+A forward migration adds a nullable `published_version` for compatibility with existing local rows. The migration does not infer historical versions. The authenticated sync transport refuses to submit unversioned attempts; an explicit recovery flow is needed before those rows can synchronize.
 
 Platform-specific SQLDelight drivers are injected by client composition. This slice covers Android, iOS/Native, and JVM driver wiring; Web/Wasm driver integration is deferred.
 
