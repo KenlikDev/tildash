@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.server
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -16,6 +17,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import java.sql.Timestamp
+import java.time.Instant
+import java.util.UUID
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -26,6 +30,24 @@ class LearningSyncIntegrationTests {
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    @BeforeEach
+    fun createPublishedLessonFixture() {
+        jdbcTemplate.execute("TRUNCATE tildash.content_nodes CASCADE")
+        val courseId = UUID.fromString("550e8400-e29b-41d4-a716-446655440099")
+        val lessonId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
+        insertNode(courseId, "COURSE", null, 0)
+        insertNode(lessonId, "LESSON", courseId, 0)
+        publish(courseId, 1, "Course")
+        val lessonVersionId = publish(lessonId, 1, "Lesson")
+        insertPublishedExercise(
+            publishedVersionId = lessonVersionId,
+            contentNodeId = lessonId,
+            exerciseId = "exercise-1",
+            prompt = "Translate hello.",
+            expectedAnswers = """["hello"]""",
+        )
+    }
 
     @Test
     fun syncRequiresAuthentication() {
@@ -61,6 +83,38 @@ class LearningSyncIntegrationTests {
             .andExpect(jsonPath("$.conflictAttemptIds").isEmpty)
 
         assertEquals(1, countAttempts("learner-a", "attempt-new"))
+    }
+
+    @Test
+    fun serverReevaluatesClientReportedOutcomeAgainstPublishedExercise() {
+        mockMvc
+            .perform(
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        attemptId = "attempt-falsely-reported-correct",
+                        outcome = "CORRECT",
+                        responseValue = "wrong",
+                    ),
+                ),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-falsely-reported-correct"))
+
+        mockMvc
+            .perform(
+                authenticatedSync(
+                    "learner-a",
+                    requestJson(
+                        attemptId = "attempt-falsely-reported-incorrect",
+                        outcome = "INCORRECT",
+                        responseValue = "hello",
+                    ),
+                ),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.acknowledgedAttemptIds[0]").value("attempt-falsely-reported-incorrect"))
+
+        assertEquals("INCORRECT", findOutcome("learner-a", "attempt-falsely-reported-correct"))
+        assertEquals("CORRECT", findOutcome("learner-a", "attempt-falsely-reported-incorrect"))
     }
 
     @Test
@@ -254,6 +308,103 @@ class LearningSyncIntegrationTests {
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
     }
 
+    private fun insertNode(
+        id: UUID,
+        kind: String,
+        parentId: UUID?,
+        position: Int,
+    ) {
+        jdbcTemplate.update(
+            """
+            insert into tildash.content_nodes (
+                id, kind, parent_id, source_locale, state, position
+            )
+            values (?::uuid, ?, ?::uuid, ?, 'PUBLISHED', ?)
+            """.trimIndent(),
+            id,
+            kind,
+            parentId,
+            "crh",
+            position,
+        )
+    }
+
+    private fun publish(
+        contentId: UUID,
+        version: Int,
+        title: String,
+    ): UUID {
+        val provenanceId = UUID.randomUUID()
+        val sourceRevisionId = UUID.randomUUID()
+        val publishedVersionId = UUID.randomUUID()
+        val now = Timestamp.from(Instant.parse("2026-10-01T08:00:00Z"))
+
+        jdbcTemplate.update(
+            """
+            insert into tildash.content_provenance (
+                id, source_title, copyright_status
+            )
+            values (?::uuid, ?, 'PUBLIC_DOMAIN')
+            """.trimIndent(),
+            provenanceId,
+            "Learning sync test source",
+        )
+        jdbcTemplate.update(
+            """
+            insert into tildash.content_source_revisions (
+                id, content_node_id, revision_no, payload, provenance_id, created_by, created_at
+            )
+            values (?::uuid, ?::uuid, ?, cast(? as jsonb), ?::uuid, ?, ?)
+            """.trimIndent(),
+            sourceRevisionId,
+            contentId,
+            version,
+            """{"value":"$title"}""",
+            provenanceId,
+            "integration-test",
+            now,
+        )
+        jdbcTemplate.update(
+            """
+            insert into tildash.content_published_versions (
+                id, content_node_id, version_no, source_revision_id, provenance_id, published_by, published_at
+            )
+            values (?::uuid, ?::uuid, ?, ?::uuid, ?::uuid, ?, ?)
+            """.trimIndent(),
+            publishedVersionId,
+            contentId,
+            version,
+            sourceRevisionId,
+            provenanceId,
+            "integration-reviewer",
+            now,
+        )
+        return publishedVersionId
+    }
+
+    private fun insertPublishedExercise(
+        publishedVersionId: UUID,
+        contentNodeId: UUID,
+        exerciseId: String,
+        prompt: String,
+        expectedAnswers: String,
+    ) {
+        jdbcTemplate.update(
+            """
+            insert into tildash.content_published_exercises (
+                published_version_id, content_node_id, exercise_id, position,
+                exercise_type, prompt, expected_answers
+            )
+            values (?::uuid, ?::uuid, ?, 0, 'MANUAL_INPUT', ?, cast(? as jsonb))
+            """.trimIndent(),
+            publishedVersionId,
+            contentNodeId,
+            exerciseId,
+            prompt,
+            expectedAnswers,
+        )
+    }
+
     private fun authenticatedSync(
         subject: String,
         request: String,
@@ -293,7 +444,7 @@ class LearningSyncIntegrationTests {
               "attemptId": "attempt-duplicate",
               "lessonId": "550e8400-e29b-41d4-a716-446655440000",
               "exerciseId": "exercise-1",
-              "response": {"type": "TEXT", "value": "hello"},
+              "response": {"type": "TEXT", "value": "PLACEHOLDER_RESPONSE"},
               "outcome": "CORRECT",
               "occurredAt": "2026-09-28T09:00:00Z"
             },
@@ -315,6 +466,7 @@ class LearningSyncIntegrationTests {
         occurredAt: String = "2026-09-28T09:00:00Z",
         deviceId: String = "device-a",
         lessonId: String = "550e8400-e29b-41d4-a716-446655440000",
+        responseValue: String = "hello",
     ): String =
         """
         {
@@ -336,4 +488,5 @@ class LearningSyncIntegrationTests {
             .replace("PLACEHOLDER_LESSON", lessonId)
             .replace("PLACEHOLDER_OUTCOME", outcome)
             .replace("PLACEHOLDER_OCCURRED_AT", occurredAt)
+            .replace("PLACEHOLDER_RESPONSE", responseValue)
 }
