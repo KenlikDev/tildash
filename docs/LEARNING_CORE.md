@@ -44,13 +44,13 @@ The dedicated contract is documented in `docs/LEARNING_SESSION.md` and ADR-0010.
 
 ## Attempts
 
-A LearningAttempt contains attemptId, lessonId, exerciseId, response, outcome, and occurredAt. The logical exercise identity is scoped by `(lessonId, exerciseId)`. New client-generated attempts always carry the lesson ID; legacy persisted attempts may have a null lesson ID and are not eligible for lesson-scoped progress.
+A LearningAttempt contains attemptId, lessonId, publishedVersion, exerciseId, response, outcome, and occurredAt. The `publishedVersion` binds an attempt to the exact immutable lesson snapshot the learner used, so later publications do not change historical evaluation. The logical exercise identity is scoped by `(lessonId, publishedVersion, exerciseId)`. New client-generated attempts carry both lesson ID and published version; legacy persisted attempts may lack either value and are not eligible for authenticated synchronization until explicitly recovered.
 
 Attempt IDs are immutable idempotency keys across the synchronization boundary.
 
 Repeating an identical attempt ID with the same lesson ID, exercise ID, response, and timestamp is a no-op.
 
-Reusing an existing attempt ID with any different immutable payload, including lesson ID, is rejected as AttemptIdConflict.
+Reusing an existing attempt ID with any different immutable payload, including lesson ID or published version, is rejected as AttemptIdConflict.
 
 Lesson completion, review state, and mistake counts are scoped to the lesson ID as well as the exercise ID so an exercise reused in another lesson cannot inherit progress.
 

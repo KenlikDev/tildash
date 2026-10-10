@@ -17,11 +17,11 @@ The storage implementation is client-side infrastructure. The domain model remai
 
 ## Persistence model
 
-Each immutable LearningAttempt is stored as one row. New attempts include the lesson ID so the same exercise ID can be reused safely across different lessons without sharing progress.
+Each immutable LearningAttempt is stored as one row. New attempts include the lesson ID and published lesson version so the same exercise ID can be reused safely across lessons and content revisions without sharing progress or changing how an offline answer is evaluated.
 
 The current response contract supports the existing `LearnerResponse.Text` variant with an explicit response type discriminator. The discriminator is intentionally persisted so future response variants can be introduced without changing the idempotency key.
 
-Attempt timestamps are stored as epoch milliseconds and reconstructed as kotlin.time.Instant.
+Attempt timestamps are stored as epoch milliseconds and reconstructed as kotlin.time.Instant. The nullable `published_version` column preserves pre-version-tracking rows without guessing which snapshot the learner used. New client attempts require a positive published version before they can be sent to the authenticated sync endpoint.
 
 ## Downloaded learning content
 
@@ -60,7 +60,7 @@ Persisting a new attempt and enqueueing it for synchronization happen in one dat
 
 Acknowledging an attempt is a separate transaction that only removes its outbox entry.
 
-Loading progress is deterministic and ordered by occurrence timestamp and attempt ID, matching the canonical ordering defined in the learning core. Legacy rows created before lesson scoping may have a null lesson ID and are retained as history but are not eligible for the new authenticated sync transport.
+Loading progress is deterministic and ordered by occurrence timestamp and attempt ID, matching the canonical ordering defined in the learning core. Legacy rows created before lesson scoping or published-version tracking may have a null lesson ID or version and are retained as history, but are not eligible for the new authenticated sync transport until an explicit recovery workflow establishes their original scope safely.
 
 ## Database technology
 

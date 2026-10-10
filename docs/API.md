@@ -368,6 +368,7 @@ Request:
     {
       "attemptId": "attempt-1",
       "lessonId": "550e8400-e29b-41d4-a716-446655440000",
+      "publishedVersion": 1,
       "exerciseId": "exercise-1",
       "response": {
         "type": "TEXT",
@@ -380,7 +381,9 @@ Request:
 }
 ```
 
-The endpoint requires the LEARNER application role. An authenticated user without LEARNER is forbidden from using the learner synchronization endpoint. The authenticated identity subject, not device ID, scopes the server-side attempt record. `lessonId` identifies the lesson containing the exercise and is part of immutable payload conflict comparison.
+The endpoint requires the LEARNER application role. An authenticated user without LEARNER is forbidden from using the learner synchronization endpoint. The authenticated identity subject, not device ID, scopes the server-side attempt record. `lessonId` and `publishedVersion` identify the exact published lesson snapshot used for the attempt and are part of immutable payload conflict comparison.
+
+The `outcome` field is retained in the current request shape for compatibility but is untrusted. The server recalculates the outcome by evaluating the submitted text against the exercise in the specified immutable published version. It stores the server-derived result rather than the client-reported value. An unknown lesson version or exercise is reported as a conflict and is not persisted.
 
 Successful responses contain two explicit ID sets:
 
@@ -389,4 +392,4 @@ Successful responses contain two explicit ID sets:
 
 Every submitted attempt ID appears exactly once across these two sets. A conflicting attempt is never overwritten. Unknown or unsupported payloads are rejected as client errors using RFC 9457 Problem Details.
 
-The server persists attempts under `(learner_subject, attempt_id)`. The immutable payload also stores `lesson_id`, so a reused `exercise_id` in another lesson never shares learner progress.
+The server persists attempts under `(learner_subject, attempt_id)`. The immutable payload also stores `lesson_id` and `published_version`, so a reused `exercise_id` in another lesson or published version never shares attempt identity.
