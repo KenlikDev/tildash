@@ -33,6 +33,7 @@ class SqlDelightLearningProgressStore(
                 toLearningAttempt(
                     attemptId = row.attempt_id,
                     lessonId = row.lesson_id?.let(::ContentId),
+                    publishedVersion = row.published_version?.toInt(),
                     exerciseId = row.exercise_id,
                     responseType = row.response_type,
                     responseValue = row.response_value,
@@ -50,6 +51,7 @@ class SqlDelightLearningProgressStore(
                     toLearningAttempt(
                         attemptId = existing.attempt_id,
                         lessonId = existing.lesson_id?.let(::ContentId),
+                        publishedVersion = existing.published_version?.toInt(),
                         exerciseId = existing.exercise_id,
                         responseType = existing.response_type,
                         responseValue = existing.response_value,
@@ -67,6 +69,7 @@ class SqlDelightLearningProgressStore(
             queries.insertAttempt(
                 attempt_id = row.attemptId,
                 lesson_id = row.lessonId?.value,
+                published_version = row.publishedVersion?.toLong(),
                 exercise_id = row.exerciseId,
                 response_type = row.responseType,
                 response_value = row.responseValue,
@@ -82,6 +85,7 @@ class SqlDelightLearningProgressStore(
             toLearningAttempt(
                 attemptId = row.attempt_id,
                 lessonId = row.lesson_id?.let(::ContentId),
+                publishedVersion = row.published_version?.toInt(),
                 exerciseId = row.exercise_id,
                 responseType = row.response_type,
                 responseValue = row.response_value,
@@ -101,6 +105,7 @@ class SqlDelightLearningProgressStore(
     private data class AttemptRow(
         val attemptId: String,
         val lessonId: ContentId?,
+        val publishedVersion: Int?,
         val exerciseId: String,
         val responseType: String,
         val responseValue: String,
@@ -117,6 +122,7 @@ class SqlDelightLearningProgressStore(
         return AttemptRow(
             attemptId = attempt.attemptId,
             lessonId = attempt.lessonId,
+            publishedVersion = attempt.publishedVersion,
             exerciseId = attempt.exerciseId,
             responseType = response.type,
             responseValue = response.value,
@@ -128,6 +134,7 @@ class SqlDelightLearningProgressStore(
     private fun toLearningAttempt(
         attemptId: String,
         lessonId: ContentId?,
+        publishedVersion: Int?,
         exerciseId: String,
         responseType: String,
         responseValue: String,
@@ -137,6 +144,7 @@ class SqlDelightLearningProgressStore(
         LearningAttempt(
             attemptId = attemptId,
             lessonId = lessonId,
+            publishedVersion = publishedVersion,
             exerciseId = exerciseId,
             response =
                 when (responseType) {
