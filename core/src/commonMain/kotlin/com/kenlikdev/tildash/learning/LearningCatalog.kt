@@ -4,6 +4,7 @@ import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.ContentKind
 import com.kenlikdev.tildash.content.model.ContentNode
 import com.kenlikdev.tildash.content.model.ContentPayload
+import com.kenlikdev.tildash.content.model.ContentState
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.content.model.PublishedContentVersion
 
@@ -47,12 +48,16 @@ object LearningCatalogProjector {
 
         val publishedCourseIds =
             latestPublishedVersions.keys
-                .filter { id -> nodesById.getValue(id).kind == ContentKind.COURSE }
-                .toSet()
+                .filter { id ->
+                    val node = nodesById.getValue(id)
+                    node.kind == ContentKind.COURSE && node.state == ContentState.PUBLISHED
+                }.toSet()
         val publishedLessonIds =
-            latestPublishedVersions.keys
-                .filter { id -> nodesById.getValue(id).kind == ContentKind.LESSON }
-                .toSet()
+            visiblePublishedLessons(
+                nodesById = nodesById,
+                publishedContentIds = latestPublishedVersions.keys,
+                publishedCourseIds = publishedCourseIds,
+            )
 
         validatePublishedHierarchy(
             nodesById = nodesById,
@@ -174,6 +179,45 @@ object LearningCatalogProjector {
                 )
             }
     }
+
+    private fun visiblePublishedLessons(
+        nodesById: Map<ContentId, ContentNode>,
+        publishedContentIds: Set<ContentId>,
+        publishedCourseIds: Set<ContentId>,
+    ): Set<ContentId> =
+        publishedContentIds
+            .filter { lessonId ->
+                val node = nodesById.getValue(lessonId)
+                node.kind == ContentKind.LESSON && node.state == ContentState.PUBLISHED
+            }.mapNotNull { lessonId ->
+                val node = nodesById.getValue(lessonId)
+                val parentId =
+                    node.parentId
+                        ?: throw LearningCatalogProjectionViolation(
+                            "Published lesson '" + lessonId.value + "' has an invalid lesson hierarchy.",
+                        )
+                val parent =
+                    nodesById[parentId]
+                        ?: throw LearningCatalogProjectionViolation(
+                            "Published lesson '" + lessonId.value + "' references a missing parent course.",
+                        )
+
+                if (parent.kind != ContentKind.COURSE) {
+                    throw LearningCatalogProjectionViolation(
+                        "Published lesson '" + lessonId.value + "' must belong to a course.",
+                    )
+                }
+
+                when {
+                    parent.state == ContentState.ARCHIVED -> null
+                    parentId in publishedCourseIds -> lessonId
+                    else -> {
+                        throw LearningCatalogProjectionViolation(
+                            "Published lesson '" + lessonId.value + "' must belong to a published course.",
+                        )
+                    }
+                }
+            }.toSet()
 
     private fun validatePublishedHierarchy(
         nodesById: Map<ContentId, ContentNode>,
