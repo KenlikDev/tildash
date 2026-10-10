@@ -19,12 +19,15 @@ The server:
 - requires the LEARNER application role for the synchronization endpoint;
 - scopes persistence to the authenticated identity subject;
 - treats deviceId as sender metadata only;
-- accepts the current shared LearnerResponse.Text representation and CORRECT / INCORRECT outcomes;
-- persists attempts in PostgreSQL table tildash.learning_attempts;
+- accepts the shared LearnerResponse.Text representation and the exact published lesson version the learner attempted;
+- resolves the exercise from that immutable published version and recomputes the outcome on the server;
+- treats the request's CORRECT / INCORRECT value as untrusted compatibility data, never as the persisted authority;
+- persists the server-derived outcome and published version in PostgreSQL table tildash.learning_attempts;
 - uses (learner_subject, attempt_id) as the idempotency key;
 - acknowledges a new attempt after insertion;
 - acknowledges a repeat only when every immutable payload field matches the stored row;
-- reports a conflict when the same scoped attempt ID carries different immutable data;
+- reports a conflict when the same scoped attempt ID carries different canonical immutable data;
+- reports a conflict when the published version or exercise cannot be resolved, without persisting the rejected attempt;
 - rejects contradictory duplicate attempt IDs within one request batch before persistence;
 - never overwrites stored attempt history;
 - enforces database-level immutability through a PostgreSQL trigger;
@@ -81,6 +84,8 @@ Integration tests exercise:
 - first delivery and persistence;
 - identical retry idempotency;
 - conflicting retry preservation;
+- server-side outcome re-evaluation when the client lies about correctness;
+- use of the exact historical published lesson version after a newer version exists;
 - per-learner attempt isolation;
 - contradictory duplicate IDs within one batch;
 - invalid request Problem Details;

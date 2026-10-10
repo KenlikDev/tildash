@@ -13,7 +13,7 @@ core/src/commonMain/kotlin/com/kenlikdev/tildash/learning/LearningProgressSync.k
 A LearningProgressSyncBatch contains:
 
 - `deviceId` — non-blank sender/device metadata;
-- `attempts` — immutable LearningAttempt values.
+- `attempts` — immutable LearningAttempt values including the published lesson version used for each attempt.
 
 Attempt IDs remain the idempotency keys. Device IDs do not change attempt identity. New attempts also carry the lesson ID that scopes the exercise identity.
 
@@ -57,9 +57,10 @@ A conflict means the same canonical attempt ID has different immutable event dat
 Examples include a changed:
 
 - lesson ID;
+- published lesson version;
 - exercise ID;
 - response;
-- outcome;
+- server-derived outcome;
 - occurrence timestamp.
 
 Conflict handling is deliberately explicit. This slice does not invent a business rule that chooses a replacement event.
@@ -114,7 +115,11 @@ The authenticated server endpoint is `POST /api/v1/learning/sync`.
 
 The server accepts immutable attempts with an explicit `lessonId`, scopes persistence by the authenticated learner subject, acknowledges new or identical attempts, and reports payload conflicts without overwriting stored history. The device ID remains metadata and does not affect idempotency.
 
-The current synchronization contract accepts the client's `CORRECT` / `INCORRECT` outcome as part of the immutable payload; the server does not yet independently rescore the submitted text response against the published exercise. This is an explicit integrity limitation tracked by issue #78 and must not be treated as a server-authoritative scoring boundary.
+Each attempt includes `publishedVersion`, identifying the exact immutable lesson snapshot used by the learner. The server resolves the exercise from that version and recomputes the outcome from the submitted text using the shared deterministic evaluator before idempotency comparison and persistence. The client's `CORRECT` / `INCORRECT` field is retained for the current API contract but is untrusted and is never used as the authoritative stored outcome.
+
+Using an explicit version prevents a later publication from changing the interpretation of an offline attempt made against an older snapshot. Attempts referring to an unknown lesson version or exercise are reported as conflicts and are not persisted.
+
+Existing local attempts created before version tracking may have no published version. The migration deliberately does not guess a version from the currently downloaded lesson because that could assign a false outcome to historical work. Such records require explicit recovery before they can be synchronized; the application still needs a user-visible recovery path.
 
 The endpoint uses the API-wide RFC 9457 Problem Details contract for invalid requests and authentication failures.
 
