@@ -7,6 +7,7 @@ import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.startCoroutine
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -239,6 +240,31 @@ class LearningSyncCoordinatorTest {
             }
 
             assertEquals(1, calls)
+            assertEquals(listOf("attempt-b"), store.pendingIds())
+        }
+
+    @Test
+    fun coroutineCancellationIsPropagatedWithoutReportingFailure() =
+        runTest {
+            val store = FakeStore(first)
+            val states = mutableListOf<LearningSyncState>()
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
+                        throw CancellationException("cancelled")
+                    }
+                }
+
+            assertFailsWith<CancellationException> {
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                    observer = LearningSyncObserver { states += it },
+                ).synchronize("device-a")
+            }
+
+            assertEquals(listOf(LearningSyncState.Running(1)), states)
             assertEquals(listOf("attempt-b"), store.pendingIds())
         }
 

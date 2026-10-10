@@ -16,11 +16,13 @@ Introduce `LearningSyncCoordinator` in the client storage boundary.
 The coordinator:
 
 - reads pending attempts from `LearningProgressStore`;
+- splits the deterministic outbox order into batches of at most 100 attempts, matching the server request limit;
 - builds a `LearningProgressSyncBatch` with the caller-provided device ID;
 - submits the batch through provider-neutral `LearningSyncTransport`;
 - acknowledges only attempt IDs explicitly returned as accepted;
 - submits the exact published lesson version carried by each attempt so the server can derive the authoritative outcome for that historical snapshot;
-- leaves conflict IDs in the outbox;
+- leaves conflict IDs in the outbox while continuing with later batches;
+- aggregates the results of all completed batches into one report;
 - rejects acknowledgements for unknown attempt IDs;
 - rejects responses that both acknowledge and conflict the same attempt;
 - retries only `TransientLearningSyncFailure`;
@@ -67,4 +69,4 @@ Trade-offs:
 
 ## Verification
 
-Common tests cover empty outboxes, deterministic submission order, partial acknowledgement, conflicts, transient retry delays, retry exhaustion, non-transient failures, and invalid transport responses.
+Common tests cover empty outboxes, deterministic submission order, batches over the HTTP limit, partial acknowledgement, conflicts, transient retry delays, retry exhaustion, cancellation propagation, non-transient failures, and invalid transport responses.

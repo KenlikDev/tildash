@@ -1,6 +1,7 @@
 package com.kenlikdev.tildash.storage
 
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
+import kotlin.coroutines.cancellation.CancellationException
 
 internal const val MAX_LEARNING_SYNC_BATCH_SIZE = 100
 
@@ -144,6 +145,8 @@ class LearningSyncCoordinator(
                     )
                     delayBeforeRetry(delay)
                     attemptNumber += 1
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
                 } catch (failure: Exception) {
                     observer.onStateChanged(
                         LearningSyncState.Failed(

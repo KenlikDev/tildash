@@ -40,6 +40,8 @@ Conflict IDs are not acknowledged as successfully delivered.
 
 A successful transport response must classify every submitted attempt ID exactly once: an ID appears in either `acknowledgedAttemptIds` or `conflictAttemptIds`, never both. A response that omits a submitted ID is a protocol failure.
 
+The server caps each HTTP request at 100 attempts. The client coordinator divides the durable outbox into deterministic batches of at most 100 and processes each batch independently. Retry exhaustion in a batch preserves that batch's unacknowledged attempts; a conflict batch does not prevent later batches from being submitted. The final report aggregates submitted, acknowledged, conflicted, and retried attempts across the completed synchronization run.
+
 `canAcknowledgeBatch` is false whenever any conflict exists.
 
 The sender should keep unacknowledged/conflicted attempts in its durable outbox until a higher-level conflict workflow resolves them.
