@@ -128,6 +128,9 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      - name: Build native iOS application
+        run: xcodebuild -project app/iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO build
+
       - name: Run iOS simulator tests
         run: ./gradlew :app:shared:iosSimulatorArm64Test --no-configuration-cache
 
