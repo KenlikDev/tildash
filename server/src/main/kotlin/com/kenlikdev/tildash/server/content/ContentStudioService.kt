@@ -213,6 +213,22 @@ class ContentStudioService(
     fun publish(contentId: ContentId): ContentMutationResponse {
         val identity = currentIdentityProvider.current()
         requireReviewer(identity)
+        val node = requireNode(contentId).node
+
+        if (node.kind == ContentKind.LESSON) {
+            val parentId =
+                node.parentId
+                    ?: throw ContentWorkflowViolation(
+                        "A lesson can only be published after its parent course is published.",
+                    )
+            val parent = requireNode(parentId).node
+            if (parent.kind != ContentKind.COURSE || parent.state != ContentState.PUBLISHED) {
+                throw ContentWorkflowViolation(
+                    "A lesson can only be published after its parent course is published.",
+                )
+            }
+        }
+
         val response =
             transition(
                 contentId = contentId,
@@ -228,7 +244,7 @@ class ContentStudioService(
                 publishedAt = now(),
             )
 
-        if (requireNode(contentId).node.kind == ContentKind.LESSON) {
+        if (node.kind == ContentKind.LESSON) {
             exerciseRepository.snapshotPublishedLesson(contentId, version)
         }
         return response.copy(version = version)

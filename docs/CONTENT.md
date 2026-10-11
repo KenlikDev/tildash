@@ -170,6 +170,8 @@ The backend implements a deterministic lesson authoring and review workflow. Tea
 
 Submission, approval, and publication re-run deterministic validation. Published and archived content cannot be edited through the authoring workflow.
 
+A lesson may only be published after its parent course is in `PUBLISHED` state. This keeps published learner content consistent with the catalog projection.
+
 The workflow history is stored as immutable database events. The durable workflow decision is recorded in ADR-0006 and the HTTP contract is documented in docs/API.md.
 
 ## Deferred work
