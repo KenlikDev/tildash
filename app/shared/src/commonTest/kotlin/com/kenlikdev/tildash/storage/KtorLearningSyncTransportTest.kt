@@ -88,11 +88,11 @@ class KtorLearningSyncTransportTest {
                     "Bearer token-123",
                     request.headers[HttpHeaders.Authorization],
                 )
+                val body = request.body as TextContent
                 assertEquals(
                     ContentType.Application.Json.toString(),
-                    request.headers[HttpHeaders.ContentType],
+                    body.contentType.toString(),
                 )
-                val body = request.body as TextContent
                 assertTrue(body.text.contains("deviceId\":\"device-1"))
                 assertTrue(body.text.contains("attemptId\":\"attempt-1"))
                 assertTrue(body.text.contains("publishedVersion\":1"))
