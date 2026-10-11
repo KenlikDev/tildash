@@ -64,8 +64,9 @@ private fun LearnerCourseCatalog.toResponse(): LearningCatalogResponse =
                                         LearningLocalizedTextResponse(
                                             locale = localization.locale.value,
                                             value = localization.value,
-                                            variant = localization.variant?.name
-                                                ?: error("Learner localization is missing its variant."),
+                                            variant =
+                                                localization.variant?.name
+                                                    ?: error("Learner localization is missing its variant."),
                                         )
                                     },
                             )
@@ -94,8 +95,9 @@ private fun LearnerLessonPackage.toResponse(): LearningLessonPackageResponse =
                                     LearningLocalizedTextResponse(
                                         locale = localization.locale.value,
                                         value = localization.value,
-                                        variant = localization.variant?.name
-                                            ?: error("Learner localization is missing its variant."),
+                                        variant =
+                                            localization.variant?.name
+                                                ?: error("Learner localization is missing its variant."),
                                     )
                                 },
                         )
@@ -112,8 +114,9 @@ private fun LearnerLessonPackage.toResponse(): LearningLessonPackageResponse =
                         LearningLocalizedTextResponse(
                             locale = localization.locale.value,
                             value = localization.value,
-                            variant = localization.variant?.name
-                                ?: error("Learner localization is missing its variant."),
+                            variant =
+                                localization.variant?.name
+                                    ?: error("Learner localization is missing its variant."),
                         )
                     },
             ),

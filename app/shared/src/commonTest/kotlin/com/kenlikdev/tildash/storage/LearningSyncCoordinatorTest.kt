@@ -250,9 +250,8 @@ class LearningSyncCoordinatorTest {
             val states = mutableListOf<LearningSyncState>()
             val transport =
                 object : LearningSyncTransport {
-                    override suspend fun synchronize(
-                        batch: LearningProgressSyncBatch,
-                    ): LearningSyncTransportResult = throw CancellationException("cancelled")
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult =
+                        throw CancellationException("cancelled")
                 }
 
             assertFailsWith<CancellationException> {

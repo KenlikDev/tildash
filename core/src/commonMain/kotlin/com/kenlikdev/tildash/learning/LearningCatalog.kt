@@ -211,8 +211,14 @@ object LearningCatalogProjector {
                 }
 
                 when {
-                    parent.state == ContentState.ARCHIVED -> null
-                    parentId in publishedCourseIds -> lessonId
+                    parent.state == ContentState.ARCHIVED -> {
+                        null
+                    }
+
+                    parentId in publishedCourseIds -> {
+                        lessonId
+                    }
+
                     else -> {
                         throw LearningCatalogProjectionViolation(
                             "Published lesson '" + lessonId.value + "' must belong to a published course.",
