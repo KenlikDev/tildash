@@ -129,6 +129,7 @@ class ContentStudioIntegrationTests {
                     .with(user("teacher").roles("TEACHER")),
             ).andExpect(status().isOk)
 
+        publishCourse(courseId)
         publishLesson(lessonId)
 
         mockMvc
@@ -233,9 +234,58 @@ class ContentStudioIntegrationTests {
     }
 
     @Test
+    fun lessonCannotBePublishedBeforeItsParentCourse() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/submit")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/review/start")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/review/approve")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/publish")
+                    .with(user("reviewer").roles("REVIEWER"))
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON),
+            ).andExpect(status().isConflict)
+            .andExpect(jsonPath("$.type").value("urn:tildash:problem:content-workflow-conflict"))
+
+        mockMvc
+            .perform(
+                get("/api/v1/content/$lessonId/preview")
+                    .with(user("reviewer").roles("REVIEWER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("APPROVED"))
+
+        mockMvc
+            .perform(
+                get("/api/v1/learning/catalog")
+                    .with(user("learner").roles("LEARNER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.courses.length()").value(0))
+    }
+
+    @Test
     fun teacherCanCreatePreviewSubmitAndReviewerCanPublishLesson() {
         val courseId = createNode("COURSE", null, "Course")
         val lessonId = createNode("LESSON", courseId, "Lesson")
+        publishCourse(courseId)
 
         mockMvc
             .perform(
@@ -378,6 +428,7 @@ class ContentStudioIntegrationTests {
     fun publishedExercisesAreImmutableAtDatabaseBoundary() {
         val courseId = createNode("COURSE", null, "Course")
         val lessonId = createNode("LESSON", courseId, "Lesson")
+        publishCourse(courseId)
         publishLesson(lessonId)
 
         val publishedVersionId =
@@ -422,6 +473,7 @@ class ContentStudioIntegrationTests {
     fun publishedNodeAndWorkflowHistoryAreImmutableAtDatabaseBoundary() {
         val courseId = createNode("COURSE", null, "Course")
         val lessonId = createNode("LESSON", courseId, "Lesson")
+        publishCourse(courseId)
         publishLesson(lessonId)
 
         assertFailsWith<DataAccessException> {
@@ -455,6 +507,7 @@ class ContentStudioIntegrationTests {
         val courseId = createNode("COURSE", null, "Course")
         val lessonId = createNode("LESSON", courseId, "Lesson")
         val exampleId = createNode("EXAMPLE", lessonId, "Example")
+        publishCourse(courseId)
         publishLesson(lessonId)
 
         val publishedVersionId =
@@ -512,6 +565,7 @@ class ContentStudioIntegrationTests {
             ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.revision").value(2))
 
+        publishCourse(courseId)
         publishLesson(lessonId)
 
         mockMvc
