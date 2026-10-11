@@ -167,6 +167,12 @@ class LearningCatalogTest {
                             payload = ContentPayload.Text("Урок A1"),
                         ),
                         PublishedLocalization(
+                            locale = LanguageTag("ru"),
+                            variant = ContentVariantType.COLLOQUIAL,
+                            revision = 1,
+                            payload = ContentPayload.Text("Привет"),
+                        ),
+                        PublishedLocalization(
                             locale = LanguageTag("crh"),
                             variant = ContentVariantType.LITERARY,
                             revision = 1,
@@ -194,8 +200,16 @@ class LearningCatalogTest {
         val localizedValues = localizations.map { it.value }
 
         assertEquals(
-            listOf("A ders A1", "Урок A1"),
+            listOf("A ders A1", "Привет", "Урок A1"),
             localizedValues,
+        )
+        assertEquals(
+            listOf(
+                ContentVariantType.LITERARY,
+                ContentVariantType.COLLOQUIAL,
+                ContentVariantType.LITERARY,
+            ),
+            localizations.map { it.variant },
         )
     }
 
