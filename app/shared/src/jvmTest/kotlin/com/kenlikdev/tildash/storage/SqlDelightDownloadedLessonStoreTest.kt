@@ -121,6 +121,52 @@ class SqlDelightDownloadedLessonStoreTest {
     }
 
     @Test
+    fun rehydratedLessonKeepsAnswersScopedToEachExercise() {
+        val databaseFile = Files.createTempFile("tildash-offline-", ".db")
+
+        try {
+            open(databaseFile.toString(), createSchema = true).use { store ->
+                store.save(
+                    downloadedLesson(
+                        firstLessonId,
+                        "Lesson one",
+                        1,
+                        exercises =
+                            listOf(
+                                ManualInputExercise(
+                                    id = "exercise-1",
+                                    contentId = contentId,
+                                    prompt = "First exercise",
+                                    expectedAnswers = listOf("first", "first alternative"),
+                                ),
+                                ManualInputExercise(
+                                    id = "exercise-2",
+                                    contentId = contentId,
+                                    prompt = "Second exercise",
+                                    expectedAnswers = listOf("second"),
+                                ),
+                            ),
+                    ),
+                )
+
+                val loadedExercises =
+                    store.loadLesson(firstLessonId)
+                        ?.plan
+                        ?.exercises
+                        ?.map { it as ManualInputExercise }
+
+                assertEquals(
+                    listOf("first", "first alternative"),
+                    loadedExercises?.get(0)?.expectedAnswers,
+                )
+                assertEquals(listOf("second"), loadedExercises?.get(1)?.expectedAnswers)
+            }
+        } finally {
+            Files.deleteIfExists(databaseFile)
+        }
+    }
+
+    @Test
     fun replacingDownloadedLessonIsAtomicAndReplacesExercises() {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
