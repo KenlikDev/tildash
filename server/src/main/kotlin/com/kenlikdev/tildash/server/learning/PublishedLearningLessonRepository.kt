@@ -26,19 +26,23 @@ class PublishedLearningLessonRepository(
     private val jdbc: NamedParameterJdbcTemplate,
     private val objectMapper: ObjectMapper,
 ) {
-    fun exercises(lessonId: ContentId, publishedVersion: Int): List<LearningExercise>? {
+    fun exercises(
+        lessonId: ContentId,
+        publishedVersion: Int,
+    ): List<LearningExercise>? {
         val versionId =
-            jdbc.query(
-                """
-                select id
-                from tildash.content_published_versions
-                where content_node_id = :lessonId
-                  and version_no = :publishedVersion
-                """.trimIndent(),
-                MapSqlParameterSource()
-                    .addValue("lessonId", UUID.fromString(lessonId.value))
-                    .addValue("publishedVersion", publishedVersion),
-            ) { rs, _ -> rs.getObject("id", UUID::class.java) }
+            jdbc
+                .query(
+                    """
+                    select id
+                    from tildash.content_published_versions
+                    where content_node_id = :lessonId
+                      and version_no = :publishedVersion
+                    """.trimIndent(),
+                    MapSqlParameterSource()
+                        .addValue("lessonId", UUID.fromString(lessonId.value))
+                        .addValue("publishedVersion", publishedVersion),
+                ) { rs, _ -> rs.getObject("id", UUID::class.java) }
                 .firstOrNull() ?: return null
 
         return jdbc.query(
@@ -58,9 +62,12 @@ class PublishedLearningLessonRepository(
                 id = rs.getString("exercise_id"),
                 contentId = ContentId(rs.getObject("content_node_id", UUID::class.java).toString()),
                 prompt = rs.getString("prompt"),
-                expectedAnswers = buildList {
-                    objectMapper.readTree(rs.getString("expected_answers")).forEach { add(it.asText()) }
-                },
+                expectedAnswers =
+                    buildList {
+                        objectMapper
+                            .readTree(rs.getString("expected_answers"))
+                            .forEach { add(it.asText()) }
+                    },
             )
         }
     }
