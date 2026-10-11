@@ -2,8 +2,8 @@ package com.kenlikdev.tildash.storage
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.kenlikdev.tildash.content.model.ContentId
-import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.content.model.ContentVariantType
+import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
 import com.kenlikdev.tildash.learning.LearnerLocalizedText

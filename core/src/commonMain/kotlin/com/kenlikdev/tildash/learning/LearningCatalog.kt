@@ -2,10 +2,10 @@ package com.kenlikdev.tildash.learning
 
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.ContentKind
-import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.content.model.ContentNode
 import com.kenlikdev.tildash.content.model.ContentPayload
 import com.kenlikdev.tildash.content.model.ContentState
+import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.content.model.PublishedContentVersion
 
