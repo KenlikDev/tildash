@@ -59,6 +59,7 @@ private fun LearnerLessonContent(
         state.session.progress.attempts
             .asSequence()
             .filter { it.lessonId == state.session.plan.lessonId }
+            .filter { it.publishedVersion == state.session.plan.publishedVersion }
             .filter { it.outcome == AnswerOutcome.CORRECT }
             .map { it.exerciseId }
             .toSet()
