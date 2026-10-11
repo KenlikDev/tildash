@@ -42,11 +42,19 @@ class LearningLessonPackageIntegrationTests {
         insertNode(exerciseContentId, "EXAMPLE", lessonId, 0)
 
         publish(courseId, 1, "Course")
-        val lessonVersionId = publish(lessonId, 1, "Lesson")
+        val firstLessonVersionId = publish(lessonId, 1, "Lesson version one")
         insertPublishedExercise(
-            publishedVersionId = lessonVersionId,
+            publishedVersionId = firstLessonVersionId,
             contentNodeId = lessonId,
-            exerciseId = "exercise-1",
+            exerciseId = "exercise-v1",
+            prompt = "Old prompt",
+            expectedAnswers = """["eski"]""",
+        )
+        val currentLessonVersionId = publish(lessonId, 2, "Lesson version two")
+        insertPublishedExercise(
+            publishedVersionId = currentLessonVersionId,
+            contentNodeId = lessonId,
+            exerciseId = "exercise-v2",
             prompt = "Translate hello.",
             expectedAnswers = """["merhaba"]""",
         )
@@ -59,9 +67,9 @@ class LearningLessonPackageIntegrationTests {
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.course.id").value(courseId.toString()))
             .andExpect(jsonPath("$.lesson.id").value(lessonId.toString()))
-            .andExpect(jsonPath("$.lesson.publishedVersion").value(1))
+            .andExpect(jsonPath("$.lesson.publishedVersion").value(2))
             .andExpect(jsonPath("$.exercises.length()").value(1))
-            .andExpect(jsonPath("$.exercises[0].id").value("exercise-1"))
+            .andExpect(jsonPath("$.exercises[0].id").value("exercise-v2"))
             .andExpect(jsonPath("$.exercises[0].type").value("MANUAL_INPUT"))
             .andExpect(jsonPath("$.exercises[0].prompt").value("Translate hello."))
             .andExpect(jsonPath("$.exercises[0].expectedAnswers[0]").value("merhaba"))
@@ -85,7 +93,9 @@ class LearningLessonPackageIntegrationTests {
                     .with(user("learner").roles("LEARNER"))
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.lesson.publishedVersion").value(2))
             .andExpect(jsonPath("$.exercises.length()").value(1))
+            .andExpect(jsonPath("$.exercises[0].id").value("exercise-v2"))
             .andExpect(jsonPath("$.exercises[0].prompt").value("Translate hello."))
     }
 

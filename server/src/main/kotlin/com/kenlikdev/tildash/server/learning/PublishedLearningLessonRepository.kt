@@ -92,10 +92,11 @@ class PublishedLearningLessonRepository(
                 select id
                 from tildash.content_published_versions
                 where content_node_id = :lessonId
-                order by version_no desc
-                limit 1
+                  and version_no = :publishedVersion
                 """.trimIndent(),
-                MapSqlParameterSource("lessonId", UUID.fromString(lessonId.value)),
+                MapSqlParameterSource()
+                    .addValue("lessonId", UUID.fromString(lessonId.value))
+                    .addValue("publishedVersion", lesson.publishedVersion),
                 UUID::class.java,
             ) ?: throw PublishedLearningLessonNotFoundException(lessonId)
 
