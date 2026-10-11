@@ -433,8 +433,63 @@ class ContentStudioIntegrationTests {
 
         assertFailsWith<DataAccessException> {
             jdbcTemplate.update(
+                """
+                update tildash.content_nodes
+                set state = 'ARCHIVED', position = 9
+                where id = ?::uuid
+                """.trimIndent(),
+                lessonId,
+            )
+        }
+
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
                 "delete from tildash.content_workflow_events where content_node_id = ?::uuid",
                 lessonId,
+            )
+        }
+    }
+
+    @Test
+    fun publishedExerciseMustBelongToItsPublishedVersionNode() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+        val exampleId = createNode("EXAMPLE", lessonId, "Example")
+        publishLesson(lessonId)
+
+        val publishedVersionId =
+            jdbcTemplate.queryForObject(
+                """
+                select pv.id::text
+                from tildash.content_published_versions pv
+                where pv.content_node_id = ?::uuid
+                order by pv.version_no desc
+                limit 1
+                """.trimIndent(),
+                String::class.java,
+                lessonId,
+            )
+        assertNotNull(publishedVersionId)
+
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
+                """
+                insert into tildash.content_published_exercises (
+                    published_version_id,
+                    content_node_id,
+                    exercise_id,
+                    position,
+                    exercise_type,
+                    prompt,
+                    expected_answers
+                )
+                values (?::uuid, ?::uuid, ?, 1, 'MANUAL_INPUT', ?, cast(? as jsonb))
+                """.trimIndent(),
+                publishedVersionId,
+                exampleId,
+                "mis-scoped-exercise",
+                "Translate hello.",
+                """["merhaba"]""",
             )
         }
     }
