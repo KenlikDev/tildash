@@ -252,7 +252,10 @@ private fun CatalogContent(
                                 }
 
                                 else -> {
-                                    Button(onClick = { onDownload(lesson.id) }) {
+                                    Button(
+                                        onClick = { onDownload(lesson.id) },
+                                        enabled = downloadingLessonId == null,
+                                    ) {
                                         Text("Download")
                                     }
                                 }
