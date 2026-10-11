@@ -264,7 +264,7 @@ class LearningSyncCoordinatorTest {
                 ).synchronize("device-a")
             }
 
-            assertEquals(listOf(LearningSyncState.Running(1)), states)
+            assertEquals(listOf<LearningSyncState>(LearningSyncState.Running(1L)), states)
             assertEquals(listOf("attempt-b"), store.pendingIds())
         }
 
