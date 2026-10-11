@@ -15,6 +15,7 @@ import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
 import com.kenlikdev.tildash.learning.LearningAttempt
+import com.kenlikdev.tildash.learning.LearnerResponse
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.ManualInputExercise
@@ -113,13 +114,50 @@ class AppUiTest {
             onNodeWithText("Lesson complete.").assertIsDisplayed()
         }
 
-    private class Fixture {
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun earlierPublishedAttemptDoesNotInflateCurrentVersionProgress() =
+        runComposeUiTest {
+            val priorAttempt =
+                LearningAttempt(
+                    attemptId = "attempt-v1-correct",
+                    lessonId = ContentId("550e8400-e29b-41d4-a716-446655440000"),
+                    publishedVersion = 1,
+                    exerciseId = "exercise-1",
+                    response = LearnerResponse.Text("merhaba"),
+                    outcome = AnswerOutcome.CORRECT,
+                    occurredAt = Instant.parse("2026-09-30T07:00:00Z"),
+                )
+            val fixture = Fixture(currentPublishedVersion = 2, initialAttempts = listOf(priorAttempt))
+
+            setContent {
+                App(
+                    learnerApplication = fixture.learnerApplication(),
+                    contentApplication = fixture.contentApplication(),
+                )
+            }
+
+            waitForIdle()
+            onNodeWithText("Download").performClick()
+            waitForIdle()
+            onNodeWithText("Downloaded (1)").performClick()
+            onNodeWithText("Open").performClick()
+            waitForIdle()
+
+            onNodeWithText("0 / 1").assertIsDisplayed()
+            onNodeWithText("In progress").assertIsDisplayed()
+        }
+
+    private class Fixture(
+        private val currentPublishedVersion: Int = 1,
+        initialAttempts: List<LearningAttempt> = emptyList(),
+    ) {
         val lessonId = ContentId("550e8400-e29b-41d4-a716-446655440000")
         private val courseId = ContentId("550e8400-e29b-41d4-a716-446655440001")
         private val exerciseId = "exercise-1"
         private val fixedInstant = Instant.parse("2026-10-01T08:00:00Z")
         val store = FakeDownloadedLessonStore()
-        val progressStore = FakeLearningProgressStore()
+        val progressStore = FakeLearningProgressStore(initialAttempts)
         private var nextAttemptId = 0
 
         private val lesson =
@@ -127,7 +165,7 @@ class AppUiTest {
                 id = lessonId,
                 title = "Greetings",
                 sourceLocale = LanguageTag("crh"),
-                publishedVersion = 1,
+                publishedVersion = currentPublishedVersion,
                 localizations = emptyList(),
             )
 
@@ -136,7 +174,7 @@ class AppUiTest {
                 id = courseId,
                 title = "Crimean Tatar basics",
                 sourceLocale = LanguageTag("crh"),
-                publishedVersion = 1,
+                publishedVersion = currentPublishedVersion,
                 lessons = listOf(lesson),
             )
 
@@ -156,6 +194,7 @@ class AppUiTest {
                                     expectedAnswers = listOf("merhaba"),
                                 ),
                             ),
+                        publishedVersion = currentPublishedVersion,
                     ),
             )
 
@@ -212,8 +251,8 @@ class AppUiTest {
         override fun countLessons(): Long = lessons.size.toLong()
     }
 
-    private class FakeLearningProgressStore : LearningProgressStore {
-        private var progress = LearningProgress.empty()
+    private class FakeLearningProgressStore(initialAttempts: List<LearningAttempt> = emptyList()) : LearningProgressStore {
+        private var progress = LearningProgress.fromPersistedAttempts(initialAttempts)
 
         override fun loadProgress(): LearningProgress = progress
 
