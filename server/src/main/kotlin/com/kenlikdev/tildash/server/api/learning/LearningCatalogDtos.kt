@@ -23,6 +23,7 @@ data class LearningLessonResponse(
 data class LearningLocalizedTextResponse(
     val locale: String,
     val value: String,
+    val variant: String,
 )
 
 data class LearningLessonPackageResponse(

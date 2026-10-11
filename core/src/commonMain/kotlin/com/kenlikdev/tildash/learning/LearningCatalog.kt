@@ -2,6 +2,7 @@ package com.kenlikdev.tildash.learning
 
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.content.model.ContentNode
 import com.kenlikdev.tildash.content.model.ContentPayload
 import com.kenlikdev.tildash.content.model.ContentState
@@ -11,6 +12,7 @@ import com.kenlikdev.tildash.content.model.PublishedContentVersion
 data class LearnerLocalizedText(
     val locale: LanguageTag,
     val value: String,
+    val variant: ContentVariantType? = null,
 )
 
 data class LearnerLessonSummary(
@@ -279,11 +281,13 @@ object LearningCatalogProjector {
                 LearnerLocalizedText(
                     locale = localization.locale,
                     value = textPayload(localization.payload),
+                    variant = localization.variant,
                 )
             }
 
         return projected.sortedWith(
             compareBy<LearnerLocalizedText> { it.locale.value }
+                .thenBy { it.variant?.name.orEmpty() }
                 .thenBy { it.value },
         )
     }

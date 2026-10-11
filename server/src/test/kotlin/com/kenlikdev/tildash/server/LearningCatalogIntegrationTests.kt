@@ -71,6 +71,7 @@ class LearningCatalogIntegrationTests {
             .andExpect(jsonPath("$.courses[0].lessons[0].publishedVersion").value(2))
             .andExpect(jsonPath("$.courses[0].lessons[0].localizations[0].locale").value("ru"))
             .andExpect(jsonPath("$.courses[0].lessons[0].localizations[0].value").value("Урок A"))
+            .andExpect(jsonPath("$.courses[0].lessons[0].localizations[0].variant").value("LITERARY"))
             .andExpect(jsonPath("$.courses[0].lessons[1].id").value(lessonB.toString()))
             .andExpect(jsonPath("$.courses[0].lessons[1].title").value("Lesson B"))
     }

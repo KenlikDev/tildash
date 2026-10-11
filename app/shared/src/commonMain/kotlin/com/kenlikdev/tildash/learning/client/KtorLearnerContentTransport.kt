@@ -1,6 +1,7 @@
 package com.kenlikdev.tildash.learning.client
 
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
@@ -19,6 +20,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
@@ -149,6 +151,13 @@ class KtorLearnerContentTransport(
                         LearnerLocalizedText(
                             locale = LanguageTag(it.requiredString("locale")),
                             value = it.requiredString("value"),
+                            variant =
+                                it["variant"]
+                                    ?.takeUnless { variant -> variant == JsonNull }
+                                    ?.jsonPrimitive
+                                    ?.content
+                                    ?.takeIf(String::isNotBlank)
+                                    ?.let(ContentVariantType::valueOf),
                         )
                     }
                 },

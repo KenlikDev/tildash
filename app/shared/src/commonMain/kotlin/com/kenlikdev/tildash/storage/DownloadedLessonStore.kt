@@ -2,6 +2,7 @@ package com.kenlikdev.tildash.storage
 
 import app.cash.sqldelight.db.SqlDriver
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
@@ -11,6 +12,7 @@ import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.ManualInputExercise
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
@@ -264,6 +266,9 @@ class SqlDelightDownloadedLessonStore(
                                         buildJsonObject {
                                             put("locale", JsonPrimitive(localization.locale.value))
                                             put("value", JsonPrimitive(localization.value))
+                                            localization.variant?.let { variant ->
+                                                put("variant", JsonPrimitive(variant.name))
+                                            }
                                         },
                                     )
                                 }
@@ -292,6 +297,13 @@ class SqlDelightDownloadedLessonStore(
                             LearnerLocalizedText(
                                 locale = LanguageTag(localization.requiredText("locale")),
                                 value = localization.requiredText("value"),
+                                variant =
+                                    localization["variant"]
+                                        ?.takeUnless { variant -> variant == JsonNull }
+                                        ?.jsonPrimitive
+                                        ?.content
+                                        ?.takeIf(String::isNotBlank)
+                                        ?.let(ContentVariantType::valueOf),
                             )
                         }.orEmpty(),
             )

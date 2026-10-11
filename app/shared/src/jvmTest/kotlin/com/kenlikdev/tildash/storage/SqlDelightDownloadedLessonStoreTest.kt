@@ -3,6 +3,7 @@ package com.kenlikdev.tildash.storage
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.kenlikdev.tildash.content.model.ContentId
 import com.kenlikdev.tildash.content.model.LanguageTag
+import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
 import com.kenlikdev.tildash.learning.LearnerLocalizedText
@@ -43,8 +44,9 @@ class SqlDelightDownloadedLessonStoreTest {
                                     localizations =
                                         listOf(
                                             LearnerLocalizedText(
-                                                LanguageTag("ru"),
-                                                "Урок один",
+                                                locale = LanguageTag("ru"),
+                                                value = "Урок один",
+                                                variant = ContentVariantType.LITERARY,
                                             ),
                                         ),
                                 ),
@@ -73,6 +75,10 @@ class SqlDelightDownloadedLessonStoreTest {
                 assertEquals(
                     listOf("Урок один"),
                     loaded?.lesson?.localizations?.map { it.value },
+                )
+                assertEquals(
+                    ContentVariantType.LITERARY,
+                    loaded?.lesson?.localizations?.single()?.variant,
                 )
                 val exercise = loaded?.plan?.exercises?.single() as ManualInputExercise
                 assertEquals("Translate hello", exercise.prompt)

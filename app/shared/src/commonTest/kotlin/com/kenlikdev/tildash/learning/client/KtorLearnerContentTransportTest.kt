@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.learning.client
 
+import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.storage.AccessTokenProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -43,7 +44,8 @@ class KtorLearnerContentTransportTest {
                                           "sourceLocale": "crh",
                                           "publishedVersion": 2,
                                           "localizations": [
-                                            {"locale": "ru", "value": "Приветствия"}
+                                            {"locale": "ru", "variant": "COLLOQUIAL", "value": "Привет"},
+                                            {"locale": "ru", "variant": "LITERARY", "value": "Приветствия"}
                                           ]
                                         }
                                       ]
@@ -83,14 +85,22 @@ class KtorLearnerContentTransportTest {
                         .title,
                 )
                 assertEquals(
-                    "Приветствия",
+                    listOf("Привет", "Приветствия"),
                     catalog.courses
                         .single()
                         .lessons
                         .single()
                         .localizations
+                        .map { it.value },
+                )
+                assertEquals(
+                    listOf(ContentVariantType.COLLOQUIAL, ContentVariantType.LITERARY),
+                    catalog.courses
                         .single()
-                        .value,
+                        .lessons
+                        .single()
+                        .localizations
+                        .map { it.variant },
                 )
                 assertEquals(HttpMethod.Get, request.method)
                 assertEquals(
