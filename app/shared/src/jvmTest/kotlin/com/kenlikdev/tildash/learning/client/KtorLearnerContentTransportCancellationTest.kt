@@ -27,6 +27,7 @@ class KtorLearnerContentTransportCancellationTest {
                 }
 
             assertIs<CancellationException>(failure)
+            Unit
         } finally {
             client.close()
         }
