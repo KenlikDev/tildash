@@ -156,13 +156,17 @@ class SqlDelightDownloadedLessonStore(
                     "Downloaded lesson '$lessonId' is missing from its persisted course snapshot.",
                 )
 
+        val answersByExercise =
+            queries
+                .selectDownloadedManualAnswers(lessonRow.lesson_id)
+                .executeAsList()
+                .groupBy { it.exercise_id }
+
         val exercises =
             queries.selectDownloadedExercises(lessonRow.lesson_id).executeAsList().map { row ->
                 val answers =
-                    queries
-                        .selectDownloadedManualAnswers(row.lesson_id)
-                        .executeAsList()
-                        .filter { it.exercise_id == row.exercise_id }
+                    answersByExercise[row.exercise_id]
+                        .orEmpty()
                         .sortedBy { it.position }
                         .map { it.answer }
 
