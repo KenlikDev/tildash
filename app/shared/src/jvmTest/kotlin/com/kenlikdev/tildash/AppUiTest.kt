@@ -14,8 +14,8 @@ import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
-import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearnerResponse
+import com.kenlikdev.tildash.learning.LearningAttempt
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.ManualInputExercise
@@ -251,7 +251,9 @@ class AppUiTest {
         override fun countLessons(): Long = lessons.size.toLong()
     }
 
-    private class FakeLearningProgressStore(initialAttempts: List<LearningAttempt> = emptyList()) : LearningProgressStore {
+    private class FakeLearningProgressStore(
+        initialAttempts: List<LearningAttempt> = emptyList(),
+    ) : LearningProgressStore {
         private var progress = LearningProgress.fromPersistedAttempts(initialAttempts)
 
         override fun loadProgress(): LearningProgress = progress

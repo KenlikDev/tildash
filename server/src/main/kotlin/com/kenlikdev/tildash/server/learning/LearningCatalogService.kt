@@ -17,7 +17,10 @@ class LearningCatalogService(
     fun lesson(lessonId: ContentId): LearnerLessonPackage = lessonRepository.load(lessonId)
 
     @Transactional(readOnly = true)
-    fun publishedExercises(lessonId: ContentId, publishedVersion: Int): List<LearningExercise>? =
+    fun publishedExercises(
+        lessonId: ContentId,
+        publishedVersion: Int,
+    ): List<LearningExercise>? =
         lessonRepository.exercises(lessonId, publishedVersion)
 
     @Transactional(readOnly = true)

@@ -76,10 +76,13 @@ class SqlDelightDownloadedLessonStoreTest {
                     listOf("Урок один"),
                     loaded?.lesson?.localizations?.map { it.value },
                 )
-                assertEquals(
-                    ContentVariantType.LITERARY,
-                    loaded?.lesson?.localizations?.single()?.variant,
-                )
+                val restoredVariant =
+                    loaded
+                        ?.lesson
+                        ?.localizations
+                        ?.single()
+                        ?.variant
+                assertEquals(ContentVariantType.LITERARY, restoredVariant)
                 val exercise = loaded?.plan?.exercises?.single() as ManualInputExercise
                 assertEquals("Translate hello", exercise.prompt)
                 assertEquals(listOf("hello"), exercise.expectedAnswers)
