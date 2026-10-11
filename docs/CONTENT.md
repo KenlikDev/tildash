@@ -112,7 +112,7 @@ Issue #12 defines the state model. The server-side review transition rules are i
 - the publishing actor;
 - the publication timestamp.
 
-The PostgreSQL schema additionally makes provenance, source revisions, localization revisions, and published snapshots append-only by rejecting update/delete mutations through database triggers.
+The PostgreSQL schema additionally makes provenance, source revisions, localization revisions, published snapshots, and published exercise snapshots append-only by rejecting update/delete mutations through database triggers. A composite foreign key binds each published exercise to the content node owned by its published version, and the content-node guard permits a published node to be archived only when its immutable identity and structure fields are unchanged.
 
 Consequently a published version references immutable history and can be reconstructed later without depending on the current editable state.
 

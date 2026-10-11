@@ -30,7 +30,7 @@ No domain repository interface is introduced by this foundation because no persi
 
 Schema changes are managed by Flyway. Production migrations live under `server/src/main/resources/db/migration/` and use the `V<VERSION>__<DESCRIPTION>.sql` convention.
 
-The first migration is `V1__create_application_schema.sql`, which creates the application-owned `tildash` schema. Content tables are introduced by V2/V3, learner-attempt persistence is introduced by V4, V5 adds lesson scope, V6 adds editable and immutable published exercise definitions, and V7 adds the published lesson version used to evaluate each learner attempt.
+The first migration is `V1__create_application_schema.sql`, which creates the application-owned `tildash` schema. Content tables are introduced by V2/V3, learner-attempt persistence is introduced by V4, V5 adds lesson scope, V6 adds editable and immutable published exercise definitions, and V7 adds the published lesson version used to evaluate each learner attempt. V8 enforces that each published exercise belongs to the same content node as its published version. V9 restricts archival of a published node to the state and timestamp change; its immutable identity and structure fields must remain unchanged.
 
 Flyway validation is enabled and Flyway clean is disabled.
 
