@@ -64,8 +64,8 @@ class SqlDelightLearningProgressStoreTest {
             val store = SqlDelightLearningProgressStore(driver)
             store.saveAttempt(legacyAttempt)
 
-            driver.execute(null, "PRAGMA user_version = 4", 0)
-            TildashDatabase.Schema.migrate(driver, 4L, 5L)
+            driver.execute(null, "PRAGMA user_version = 5", 0)
+            TildashDatabase.Schema.migrate(driver, 5L, 6L)
 
             val migratedStore = SqlDelightLearningProgressStore(driver)
             assertEquals(listOf(legacyAttempt), migratedStore.loadProgress().attempts)
