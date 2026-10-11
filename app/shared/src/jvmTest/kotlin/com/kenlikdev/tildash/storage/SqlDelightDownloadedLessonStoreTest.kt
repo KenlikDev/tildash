@@ -158,7 +158,10 @@ class SqlDelightDownloadedLessonStoreTest {
                     ),
                 )
 
-                val loadedExercises = store.loadLesson(firstLessonId)?.plan?.exercises?.map { it as ManualInputExercise }
+                val loadedExercises =
+                    store.loadLesson(firstLessonId)?.plan
+                        ?.exercises
+                        ?.map { it as ManualInputExercise }
 
                 assertEquals(
                     listOf("first", "first alternative"),
