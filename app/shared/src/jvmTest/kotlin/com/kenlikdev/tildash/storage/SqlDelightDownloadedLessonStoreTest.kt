@@ -159,7 +159,9 @@ class SqlDelightDownloadedLessonStoreTest {
                 )
 
                 val loadedExercises =
-                    store.loadLesson(firstLessonId)?.plan
+                    store
+                        .loadLesson(firstLessonId)
+                        ?.plan
                         ?.exercises
                         ?.map { it as ManualInputExercise }
 

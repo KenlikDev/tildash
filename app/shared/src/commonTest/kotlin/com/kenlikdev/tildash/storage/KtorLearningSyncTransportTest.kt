@@ -244,7 +244,16 @@ class KtorLearningSyncTransportTest {
                 HttpClient(
                     MockEngine {
                         respond(
-                            content = """{"type":"urn:tildash:problem:unauthorized","title":"Unauthorized","status":401,"detail":"Token expired","instance":"/api/v1/learning/sync"}""",
+                            content =
+                                """
+                                {
+                                  "type": "urn:tildash:problem:unauthorized",
+                                  "title": "Unauthorized",
+                                  "status": 401,
+                                  "detail": "Token expired",
+                                  "instance": "/api/v1/learning/sync"
+                                }
+                                """.trimIndent(),
                             status = HttpStatusCode.Unauthorized,
                             headers =
                                 io.ktor.http.headersOf(
