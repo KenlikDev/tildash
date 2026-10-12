@@ -1,4 +1,4 @@
-# Use loopback only: this script sends local development-role headers.
+﻿# Use loopback only: this script sends local development-role headers.
 $BaseUrl = "http://127.0.0.1:8080"
 $environmentNames = @(
     "TILDASH_DATABASE_NAME",
