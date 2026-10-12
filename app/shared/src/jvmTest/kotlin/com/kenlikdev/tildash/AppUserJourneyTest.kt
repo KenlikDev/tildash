@@ -105,27 +105,27 @@ class AppUserJourneyTest {
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Merhaba")
             onNodeWithText("Check answer").performScrollTo().performClick()
-            onNodeWithText("1 / 6").assertIsDisplayed()
+            onNodeWithText("1 / 6").performScrollTo().assertIsDisplayed()
             onNodeWithText("Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие.").performScrollTo().assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Aleyküm selâm")
             onNodeWithText("Check answer").performScrollTo().performClick()
-            onNodeWithText("2 / 6").assertIsDisplayed()
+            onNodeWithText("2 / 6").performScrollTo().assertIsDisplayed()
             onNodeWithText("Вы встретили друга. Напишите короткое неформальное приветствие.").performScrollTo().assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm")
             onNodeWithText("Check answer").performScrollTo().performClick()
-            onNodeWithText("3 / 6").assertIsDisplayed()
+            onNodeWithText("3 / 6").performScrollTo().assertIsDisplayed()
             onNodeWithText("По-русски объясните, чем является «Aleyküm selâm!» в разговоре.").performScrollTo().assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Ответ на традиционное приветствие")
             onNodeWithText("Check answer").performScrollTo().performClick()
-            onNodeWithText("4 / 6").assertIsDisplayed()
+            onNodeWithText("4 / 6").performScrollTo().assertIsDisplayed()
             onNodeWithText("Что выражает традиционное «Selâm aleyküm!» в отличие от короткого «Selâm!»?").performScrollTo().assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Уважительное приветствие")
             onNodeWithText("Check answer").performScrollTo().performClick()
-            onNodeWithText("5 / 6").assertIsDisplayed()
+            onNodeWithText("5 / 6").performScrollTo().assertIsDisplayed()
             onNodeWithText("Составьте короткий вежливый диалог приветствия и ответа, разделив реплики символом /.").performScrollTo().assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm aleyküm! / Aleyküm selâm!")
