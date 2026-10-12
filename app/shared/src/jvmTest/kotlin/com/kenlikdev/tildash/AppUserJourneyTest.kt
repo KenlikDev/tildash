@@ -92,7 +92,7 @@ class AppUserJourneyTest {
             onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").performScrollTo().assertIsDisplayed()
 
             // Verify remove and re-download before completing the lesson; progress survives package removal.
-            onNodeWithText("Back to lessons").performScrollTo().performClick()
+            onNodeWithText("Back to lessons").performClick()
             onNodeWithText("Remove").performScrollTo().performClick()
             onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
 
@@ -133,7 +133,7 @@ class AppUserJourneyTest {
             onNodeWithText("Completed").performScrollTo().assertIsDisplayed()
             onNodeWithText("Lesson complete.").performScrollTo().assertIsDisplayed()
 
-            onNodeWithText("Back to lessons").performScrollTo().performClick()
+            onNodeWithText("Back to lessons").performClick()
             onNodeWithText("Remove").performScrollTo().performClick()
             onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
             assertEquals(7, progressStore.savedAttempts.size)
