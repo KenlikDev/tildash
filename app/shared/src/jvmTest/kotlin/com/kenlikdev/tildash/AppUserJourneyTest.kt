@@ -79,14 +79,16 @@ class AppUserJourneyTest {
             onNodeWithText("Downloaded (1)").performClick()
             onNodeWithText("Open").performClick()
 
-            onNodeWithText("Read the phrase before practising.").assertIsDisplayed()
+            onNodeWithText("Цель урока:", substring = true).assertIsDisplayed()
             onNodeWithText("Merhaba!").assertIsDisplayed()
-            onNodeWithText("Привет").assertIsDisplayed()
-            onNodeWithText("A: Merhaba! / B: Selâm!").assertIsDisplayed()
-            onNodeWithText("Translate hello into Crimean Tatar.").assertIsDisplayed()
+            onNodeWithText("Привет! / Здравствуйте!").assertIsDisplayed()
+            onNodeWithText("Вежливый вариант:", substring = true).assertIsDisplayed()
+            onNodeWithText("Неформальный вариант:", substring = true).assertIsDisplayed()
+            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").assertIsDisplayed()
             onNodeWithTag("learner-answer-input").performTextInput("wrong")
             onNodeWithText("Check answer").performClick()
             onNodeWithText("Try again").assertIsDisplayed()
+            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").assertIsDisplayed()
 
             // Verify remove and re-download before completing the lesson; progress survives package removal.
             onNodeWithText("Back to lessons").performClick()
@@ -98,19 +100,34 @@ class AppUserJourneyTest {
             onNodeWithText("Open").assertIsDisplayed()
             onNodeWithText("Downloaded (1)").performClick()
             onNodeWithText("Open").performClick()
-            onNodeWithText("Translate hello into Crimean Tatar.").assertIsDisplayed()
+            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performTextInput("merhaba")
+            onNodeWithTag("learner-answer-input").performTextInput("Merhaba")
             onNodeWithText("Check answer").performClick()
-            onNodeWithText("1 / 3").assertIsDisplayed()
-            onNodeWithText("Translate good morning into Crimean Tatar.").assertIsDisplayed()
+            onNodeWithText("1 / 6").assertIsDisplayed()
+            onNodeWithText("Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие.").assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performTextInput("Sabahlar hayır")
+            onNodeWithTag("learner-answer-input").performTextInput("Aleyküm selâm")
             onNodeWithText("Check answer").performClick()
-            onNodeWithText("2 / 3").assertIsDisplayed()
-            onNodeWithText("Ask how things are in Crimean Tatar.").assertIsDisplayed()
+            onNodeWithText("2 / 6").assertIsDisplayed()
+            onNodeWithText("Вы встретили друга. Напишите короткое неформальное приветствие.").assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performTextInput("İşler nasıl?")
+            onNodeWithTag("learner-answer-input").performTextInput("Selâm")
+            onNodeWithText("Check answer").performClick()
+            onNodeWithText("3 / 6").assertIsDisplayed()
+            onNodeWithText("Какое приветствие обычно предшествует ответу «Aleyküm selâm!»?").assertIsDisplayed()
+
+            onNodeWithTag("learner-answer-input").performTextInput("Selâm aleyküm")
+            onNodeWithText("Check answer").performClick()
+            onNodeWithText("4 / 6").assertIsDisplayed()
+            onNodeWithText("Дополните диалог: A: Selâm aleyküm! B: ...").assertIsDisplayed()
+
+            onNodeWithTag("learner-answer-input").performTextInput("Aleyküm selâm")
+            onNodeWithText("Check answer").performClick()
+            onNodeWithText("5 / 6").assertIsDisplayed()
+            onNodeWithText("Вы знакомитесь со старшим человеком. Напишите традиционное уважительное приветствие.").assertIsDisplayed()
+
+            onNodeWithTag("learner-answer-input").performTextInput("Selâm aleyküm")
             onNodeWithText("Check answer").performClick()
             onNodeWithText("Completed").assertIsDisplayed()
             onNodeWithText("Lesson complete.").assertIsDisplayed()
@@ -118,10 +135,13 @@ class AppUserJourneyTest {
             onNodeWithText("Back to lessons").performClick()
             onNodeWithText("Remove").performClick()
             onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
-            assertEquals(4, progressStore.savedAttempts.size)
+            assertEquals(7, progressStore.savedAttempts.size)
             assertEquals(
                 listOf(
                     AnswerOutcome.INCORRECT,
+                    AnswerOutcome.CORRECT,
+                    AnswerOutcome.CORRECT,
+                    AnswerOutcome.CORRECT,
                     AnswerOutcome.CORRECT,
                     AnswerOutcome.CORRECT,
                     AnswerOutcome.CORRECT,
@@ -129,7 +149,7 @@ class AppUserJourneyTest {
                 progressStore.savedAttempts.map { it.outcome },
             )
             assertEquals(
-                listOf("exercise-1", "exercise-1", "exercise-2", "exercise-3"),
+                listOf("exercise-1", "exercise-1", "exercise-2", "exercise-3", "exercise-4", "exercise-5", "exercise-6"),
                 progressStore.savedAttempts.map { it.exerciseId },
             )
             assertTrue(downloadedStore.listLessons().isEmpty())
@@ -171,20 +191,38 @@ class AppUserJourneyTest {
                                 ManualInputExercise(
                                     id = "exercise-1",
                                     contentId = lesson.id,
-                                    prompt = "Translate hello into Crimean Tatar.",
-                                    expectedAnswers = listOf("merhaba", "salam"),
+                                    prompt = "Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?",
+                                    expectedAnswers = listOf("Merhaba", "Merhaba!"),
                                 ),
                                 ManualInputExercise(
                                     id = "exercise-2",
                                     contentId = lesson.id,
-                                    prompt = "Translate good morning into Crimean Tatar.",
-                                    expectedAnswers = listOf("Sabahlar hayır", "Sabahlar hayır!"),
+                                    prompt = "Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие.",
+                                    expectedAnswers = listOf("Aleyküm selâm", "Aleyküm selâm!"),
                                 ),
                                 ManualInputExercise(
                                     id = "exercise-3",
                                     contentId = lesson.id,
-                                    prompt = "Ask how things are in Crimean Tatar.",
-                                    expectedAnswers = listOf("İşler nasıl", "İşler nasıl?"),
+                                    prompt = "Вы встретили друга. Напишите короткое неформальное приветствие.",
+                                    expectedAnswers = listOf("Selâm", "Selâm!", "Meraba", "Meraba!"),
+                                ),
+                                ManualInputExercise(
+                                    id = "exercise-4",
+                                    contentId = lesson.id,
+                                    prompt = "Какое приветствие обычно предшествует ответу «Aleyküm selâm!»?",
+                                    expectedAnswers = listOf("Selâm aleyküm", "Selâm aleyküm!"),
+                                ),
+                                ManualInputExercise(
+                                    id = "exercise-5",
+                                    contentId = lesson.id,
+                                    prompt = "Дополните диалог: A: Selâm aleyküm! B: ...",
+                                    expectedAnswers = listOf("Aleyküm selâm", "Aleyküm selâm!"),
+                                ),
+                                ManualInputExercise(
+                                    id = "exercise-6",
+                                    contentId = lesson.id,
+                                    prompt = "Вы знакомитесь со старшим человеком. Напишите традиционное уважительное приветствие.",
+                                    expectedAnswers = listOf("Selâm aleyküm", "Selâm aleyküm!"),
                                 ),
                             ),
                     ),
@@ -194,22 +232,57 @@ class AppUserJourneyTest {
                             id = ContentId("550e8400-e29b-41d4-a716-446655440012"),
                             kind = ContentKind.EXPLANATION,
                             position = 0,
-                            sourceLocale = LanguageTag("crh"),
-                            payload = ContentPayload.Text("Read the phrase before practising."),
+                            sourceLocale = LanguageTag("ru"),
+                            payload = ContentPayload.Text("Цель урока: научиться приветствовать собеседника и отвечать на традиционное приветствие."),
                         ),
                         LearnerLessonMaterial(
                             id = ContentId("550e8400-e29b-41d4-a716-446655440013"),
                             kind = ContentKind.VOCABULARY,
                             position = 1,
                             sourceLocale = LanguageTag("crh"),
-                            payload = ContentPayload.Vocabulary("Merhaba!", "Привет"),
+                            payload = ContentPayload.Vocabulary("Merhaba!", "Привет! / Здравствуйте!"),
                         ),
                         LearnerLessonMaterial(
                             id = ContentId("550e8400-e29b-41d4-a716-446655440014"),
-                            kind = ContentKind.EXAMPLE,
+                            kind = ContentKind.VOCABULARY,
                             position = 2,
                             sourceLocale = LanguageTag("crh"),
-                            payload = ContentPayload.Text("A: Merhaba! / B: Selâm!"),
+                            payload = ContentPayload.Vocabulary("Selâm aleyküm!", "Традиционное уважительное приветствие"),
+                        ),
+                        LearnerLessonMaterial(
+                            id = ContentId("550e8400-e29b-41d4-a716-446655440015"),
+                            kind = ContentKind.VOCABULARY,
+                            position = 3,
+                            sourceLocale = LanguageTag("crh"),
+                            payload = ContentPayload.Vocabulary("Aleyküm selâm!", "Ответ на «Selâm aleyküm!»"),
+                        ),
+                        LearnerLessonMaterial(
+                            id = ContentId("550e8400-e29b-41d4-a716-446655440016"),
+                            kind = ContentKind.VOCABULARY,
+                            position = 4,
+                            sourceLocale = LanguageTag("crh"),
+                            payload = ContentPayload.Vocabulary("Selâm!", "Привет! (неформально)"),
+                        ),
+                        LearnerLessonMaterial(
+                            id = ContentId("550e8400-e29b-41d4-a716-446655440017"),
+                            kind = ContentKind.EXPLANATION,
+                            position = 5,
+                            sourceLocale = LanguageTag("ru"),
+                            payload = ContentPayload.Text("Выбирайте приветствие по ситуации: уважительная форма для незнакомых и старших, короткая — для друзей."),
+                        ),
+                        LearnerLessonMaterial(
+                            id = ContentId("550e8400-e29b-41d4-a716-446655440018"),
+                            kind = ContentKind.EXAMPLE,
+                            position = 6,
+                            sourceLocale = LanguageTag("crh"),
+                            payload = ContentPayload.Text("Вежливый вариант: A: Selâm aleyküm! — Здравствуйте! / B: Aleyküm selâm! — Здравствуйте!"),
+                        ),
+                        LearnerLessonMaterial(
+                            id = ContentId("550e8400-e29b-41d4-a716-446655440019"),
+                            kind = ContentKind.EXAMPLE,
+                            position = 7,
+                            sourceLocale = LanguageTag("crh"),
+                            payload = ContentPayload.Text("Неформальный вариант: A: Selâm! — Привет! / B: Selâm! — Привет!"),
                         ),
                     ),
             )
