@@ -116,7 +116,7 @@ class AppUserJourneyTest {
             onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("1 / 6").performScrollTo().assertIsDisplayed()
             onNodeWithText(
-                "Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие.",
+                "Собеседник поздоровался словами «Selâm aleyküm!». Напишите правильный ответ на это приветствие.",
             ).performScrollTo()
                 .assertIsDisplayed()
 
@@ -216,7 +216,7 @@ class AppUserJourneyTest {
                                 ManualInputExercise(
                                     id = "exercise-2",
                                     contentId = lesson.id,
-                                    prompt = "Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие.",
+                                    prompt = "Собеседник поздоровался словами «Selâm aleyküm!». Напишите правильный ответ на это приветствие.",
                                     expectedAnswers = listOf("Aleyküm selâm", "Aleyküm selâm!"),
                                 ),
                                 ManualInputExercise(
