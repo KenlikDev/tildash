@@ -239,30 +239,30 @@ function Invoke-TildashRequest {
 $teacher = @{ "X-Tildash-Development-Role" = "teacher" }
 $reviewer = @{ "X-Tildash-Development-Role" = "reviewer" }
 $learner = @{ "X-Tildash-Development-Role" = "learner" }
-$demoTitle = "Crimean Tatar: First Conversations (" + (Get-Date -Format "yyyy-MM-dd HH:mm:ss") + ")"
+$demoTitle = "Крымскотатарский: первые разговоры (" + (Get-Date -Format "yyyy-MM-dd HH:mm:ss") + ")"
 $curriculumSource = "https://mon.gov.ua/static-objects/mon/sites/1/informatsia-dla-osib-z-tot-ta-vpo/materialy-mnp/modelni-navch-programy-na-tot/integrovanii-kurs-krimskotatarskoyi-movi-ta-literaturi.pdf"
 $etiquetteSource = "https://ana-yurt.com/urok-4-rechevoy-etiket-selamlasuv-ve-miracaat-etuv"
 
 $lessonPlans = @(
     @{
-        Title = "Greetings and polite replies"
+        Title = "Приветствия и вежливые ответы"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "Use 'Merhaba!' as a general hello. 'Selâm aleyküm!' is another traditional greeting; a conventional reply is 'Aleyküm selâm!' Learn that pair as a greeting and response, rather than translating each word separately."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель: научиться приветствовать собеседника и отвечать на традиционное приветствие. Merhaba! — общее «Привет!» или «Здравствуйте!». Selâm aleyküm! — традиционная форма приветствия; обычный ответ на неё — Aleyküm selâm! Запоминайте эти две фразы как пару и подбирайте приветствие к ситуации."; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Merhaba!"; Gloss = "Привет! / Здравствуйте!"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "Selâm aleyküm!"; Gloss = "Традиционное приветствие"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Aleyküm selâm!"; Gloss = "Ответ на «Selâm aleyküm!»"; SourceLocator = $curriculumSource }
             @{ Kind = "EXAMPLE"; Position = 4; Text = "A: Selâm aleyküm! — Здравствуйте! / B: Aleyküm selâm! — И вам здравствуйте! / A: Merhaba! — Привет!"; SourceLocator = $curriculumSource }
         )
         Exercises = @(
-            @{ Id = "greetings-1"; Position = 0; Prompt = "Translate 'Hello!' into Crimean Tatar."; ExpectedAnswers = @("Merhaba", "Merhaba!") }
-            @{ Id = "greetings-2"; Position = 1; Prompt = "Reply to 'Selâm aleyküm!' in Crimean Tatar."; ExpectedAnswers = @("Aleyküm selâm", "Aleyküm selâm!") }
-            @{ Id = "greetings-3"; Position = 2; Prompt = "Type the traditional greeting that begins with 'Selâm'."; ExpectedAnswers = @("Selâm aleyküm", "Selâm aleyküm!") }
+            @{ Id = "greetings-1"; Position = 0; Prompt = "Как по-крымскотатарски сказать «Привет!» или «Здравствуйте!»?"; ExpectedAnswers = @("Merhaba", "Merhaba!") }
+            @{ Id = "greetings-2"; Position = 1; Prompt = "Как ответить на традиционное приветствие «Selâm aleyküm!»?"; ExpectedAnswers = @("Aleyküm selâm", "Aleyküm selâm!") }
+            @{ Id = "greetings-3"; Position = 2; Prompt = "Вы слышите ответ «Aleyküm selâm!». Какое приветствие образует с ним пару?"; ExpectedAnswers = @("Selâm aleyküm", "Selâm aleyküm!") }
         )
     }
     @{
-        Title = "Morning greetings and how things are"
+        Title = "Утреннее приветствие и как дела"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "'Sabahlar hayır!' is a morning greeting. 'İşler nasıl?' asks how things are going. 'Yahşı' means good or well; 'yaramay' can mean not good. Try to understand a phrase in context, not as an isolated word list."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель: поздороваться утром, спросить о делах и коротко ответить. Sabahlar hayır! означает «Доброе утро!». İşler nasıl? — «Как дела?». Yahşı означает «хорошо», а yaramay — «плохо» или «нехорошо». Можно ответить: Yahşı, sağ ol. — «Хорошо, спасибо»."; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Sabahlar hayır!"; Gloss = "Доброе утро!"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "İşler nasıl?"; Gloss = "Как дела? / Как идут дела?"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Yahşı"; Gloss = "Хорошо"; SourceLocator = $curriculumSource }
@@ -270,15 +270,15 @@ $lessonPlans = @(
             @{ Kind = "EXAMPLE"; Position = 5; Text = "A: Sabahlar hayır! — Доброе утро! / B: Sabahlar hayır! / A: İşler nasıl? — Как дела? / B: Yahşı, sağ ol. — Хорошо, спасибо."; SourceLocator = $curriculumSource }
         )
         Exercises = @(
-            @{ Id = "daily-1"; Position = 0; Prompt = "Translate 'Good morning!' into Crimean Tatar."; ExpectedAnswers = @("Sabahlar hayır", "Sabahlar hayır!") }
-            @{ Id = "daily-2"; Position = 1; Prompt = "Type the question that means 'How are things?'"; ExpectedAnswers = @("İşler nasıl", "İşler nasıl?") }
-            @{ Id = "daily-3"; Position = 2; Prompt = "Translate 'Good / well' into Crimean Tatar."; ExpectedAnswers = @("Yahşı") }
+            @{ Id = "daily-1"; Position = 0; Prompt = "Как по-крымскотатарски сказать «Доброе утро!»?"; ExpectedAnswers = @("Sabahlar hayır", "Sabahlar hayır!") }
+            @{ Id = "daily-2"; Position = 1; Prompt = "Как спросить собеседника «Как дела?»?"; ExpectedAnswers = @("İşler nasıl", "İşler nasıl?") }
+            @{ Id = "daily-3"; Position = 2; Prompt = "Вы отвечаете, что у вас всё хорошо. Напишите крымскотатарское слово «Хорошо»."; ExpectedAnswers = @("Yahşı") }
         )
     }
     @{
-        Title = "Thanking and saying goodbye"
+        Title = "Благодарность и прощание"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "'Sağ ol' is an informal way to say thank you; 'Sağ oluñız' is the polite form. 'Körüşkence!' means 'See you!'. In a farewell, 'Sağlıqnen qalıñız' is said by a person leaving to those staying; 'Sağlıqnen barıñız' is said to the person who is leaving."; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель: поблагодарить собеседника и выбрать прощание с учётом того, кто уходит. Sağ ol — «спасибо» в неформальном общении; Sağ oluñız — вежливая форма. Körüşkence! означает «До встречи!». Если вы уходите и прощаетесь с теми, кто остаётся, можно сказать Sağlıqnen qalıñız. Остающийся говорит уходящему Sağlıqnen barıñız."; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Sağ ol"; Gloss = "Спасибо (неформально)"; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "Sağ oluñız"; Gloss = "Спасибо (вежливо)"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Körüşkence!"; Gloss = "До встречи!"; SourceLocator = $curriculumSource }
@@ -287,14 +287,30 @@ $lessonPlans = @(
             @{ Kind = "EXAMPLE"; Position = 6; Text = "A: Sağ oluñız! — Спасибо вам! / B: Sağlıqnen qalıñız! — До свидания! / A: Körüşkence! — До встречи!"; SourceLocator = $etiquetteSource }
         )
         Exercises = @(
-            @{ Id = "farewell-1"; Position = 0; Prompt = "Type the polite form of 'Thank you'."; ExpectedAnswers = @("Sağ oluñız", "Sağ oluñız!") }
-            @{ Id = "farewell-2"; Position = 1; Prompt = "Translate 'See you!' into Crimean Tatar."; ExpectedAnswers = @("Körüşkence", "Körüşkence!") }
-            @{ Id = "farewell-3"; Position = 2; Prompt = "You are leaving and say goodbye to the people staying. Type the phrase."; ExpectedAnswers = @("Sağlıqnen qalıñız", "Sağlıqnen qalıñız!") }
+            @{ Id = "farewell-1"; Position = 0; Prompt = "Как вежливо сказать «Спасибо вам»?"; ExpectedAnswers = @("Sağ oluñız", "Sağ oluñız!") }
+            @{ Id = "farewell-2"; Position = 1; Prompt = "Какая фраза означает «До встречи!»?"; ExpectedAnswers = @("Körüşkence", "Körüşkence!") }
+            @{ Id = "farewell-3"; Position = 2; Prompt = "Вы уходите, а собеседник остаётся. Какое прощание следует сказать?"; ExpectedAnswers = @("Sağlıqnen qalıñız", "Sağlıqnen qalıñız!") }
+        )
+    }
+    @{
+        Title = "Знакомство и представление себя"
+        Materials = @(
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель: представиться, вежливо спросить имя собеседника и ответить на знакомство. Menim adım ... означает «Меня зовут ...». Siziñ adınız ne? — вежливый вопрос «Как Вас зовут?». Tanışqanımdan pek memnünim! означает «Очень приятно познакомиться!». На такое приветствие можно ответить Men de. — «Мне тоже»."; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 1; Term = "Menim adım ..."; Gloss = "Меня зовут ..."; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 2; Term = "Siziñ adınız ne?"; Gloss = "Как Вас зовут? (вежливо)"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 3; Term = "Tanışqanımdan pek memnünim!"; Gloss = "Очень приятно познакомиться!"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 4; Term = "Men de."; Gloss = "Мне тоже."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXAMPLE"; Position = 5; Text = "A: Merhaba! Menim adım Ali. Siziñ adınız ne? — Привет! Меня зовут Али. Как Вас зовут? / B: Menim adım Ayshe. — Меня зовут Айше. / A: Tanışqanımdan pek memnünim! — Очень приятно познакомиться! / B: Men de. — Мне тоже."; SourceLocator = $curriculumSource }
+        )
+        Exercises = @(
+            @{ Id = "intro-1"; Position = 0; Prompt = "Как сказать «Меня зовут Али» по-крымскотатарски?"; ExpectedAnswers = @("Menim adım Ali", "Menim adım Ali.") }
+            @{ Id = "intro-2"; Position = 1; Prompt = "Как вежливо спросить «Как Вас зовут?»?"; ExpectedAnswers = @("Siziñ adınız ne", "Siziñ adınız ne?") }
+            @{ Id = "intro-3"; Position = 2; Prompt = "Как сказать «Очень приятно познакомиться!»?"; ExpectedAnswers = @("Tanışqanımdan pek memnünim", "Tanışqanımdan pek memnünim!") }
         )
     }
 )
 
-Write-Host "Creating a three-lesson beginner course with teaching material and several exercises per lesson..."
+Write-Host "Creating a four-lesson beginner course with Russian explanations, vocabulary, dialogues, and three exercises per lesson..."
 $course = Invoke-TildashRequest -Method "POST" -Path "/api/v1/content/nodes" -Headers $teacher -Body @{
     kind = "COURSE"
     parentId = $null
@@ -302,9 +318,9 @@ $course = Invoke-TildashRequest -Method "POST" -Path "/api/v1/content/nodes" -He
     position = 0
     payload = @{ type = "TEXT"; value = $demoTitle }
     provenance = @{
-        sourceTitle = "Tildash original beginner course"
+        sourceTitle = "Tildash-authored local acceptance course"
         sourceLocator = $curriculumSource
-        copyrightStatus = "PUBLIC_DOMAIN"
+        copyrightStatus = "LICENSED"; licenseIdentifier = "Tildash Local Demo Content Terms v1"
         authorName = "Tildash local demo"
     }
 }
@@ -319,9 +335,9 @@ for ($lessonIndex = 0; $lessonIndex -lt $lessonPlans.Count; $lessonIndex++) {
         position = $lessonIndex
         payload = @{ type = "TEXT"; value = $plan.Title }
         provenance = @{
-            sourceTitle = "Tildash original Crimean Tatar learner lesson"
+            sourceTitle = "Tildash-authored local demo lesson"
             sourceLocator = $curriculumSource
-            copyrightStatus = "PUBLIC_DOMAIN"
+            copyrightStatus = "LICENSED"; licenseIdentifier = "Tildash Local Demo Content Terms v1"
             authorName = "Tildash local demo"
         }
     }
@@ -341,9 +357,9 @@ for ($lessonIndex = 0; $lessonIndex -lt $lessonPlans.Count; $lessonIndex++) {
             position = $material.Position
             payload = $payload
             provenance = @{
-                sourceTitle = "Crimean Tatar introductory curriculum and language etiquette references"
+                sourceTitle = "Tildash-authored bilingual teaching material with phrase references"
                 sourceLocator = $material.SourceLocator
-                copyrightStatus = "PUBLIC_DOMAIN"
+                copyrightStatus = "LICENSED"; licenseIdentifier = "Tildash Local Demo Content Terms v1"
                 authorName = "Tildash local demo"
             }
         }
@@ -372,7 +388,7 @@ function Publish-ContentNode {
     }
 }
 
-Write-Host "Publishing the course and all three validated lessons..."
+Write-Host "Publishing the course and all four validated lessons..."
 Publish-ContentNode -ContentId $course.id
 foreach ($record in $createdLessons) {
     Publish-ContentNode -ContentId $record.Id
@@ -383,8 +399,8 @@ $publishedCourse = @($catalog.courses | Where-Object { $_.id -eq $course.id }) |
 if ($null -eq $publishedCourse) {
     throw "The newly published course was not returned by the learner catalog."
 }
-if (@($publishedCourse.lessons).Count -ne 3) {
-    throw "Expected three published lessons; learner catalog returned $(@($publishedCourse.lessons).Count)."
+if (@($publishedCourse.lessons).Count -ne 4) {
+    throw "Expected four published lessons; learner catalog returned $(@($publishedCourse.lessons).Count)."
 }
 
 foreach ($record in $createdLessons) {
@@ -399,7 +415,7 @@ foreach ($record in $createdLessons) {
 
 Write-Host ""
 Write-Host ("Ready to explore: " + $demoTitle)
-Write-Host "The published course contains three lessons, explanations, vocabulary, examples, and three exercises per lesson."
+Write-Host "The published course contains four lessons, Russian explanations, vocabulary, bilingual examples, and twelve exercises."
 Write-Host "The backend stays open in its own PowerShell window."
 Write-Host "Starting Desktop. Open Catalog, download the first lesson, and study its material before practising."
 Write-Host ""
