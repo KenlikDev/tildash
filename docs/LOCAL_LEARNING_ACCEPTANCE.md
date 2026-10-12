@@ -17,7 +17,7 @@ From the repository root, run:
 
 The script starts PostgreSQL, starts or reuses a healthy backend bound to loopback, creates and publishes a timestamped course and lesson through the real authoring/review/publish API, verifies the learner catalog and lesson package, and launches the Desktop UI. The development-role headers are for isolated local acceptance only; do not expose the development backend to a shared or public network.
 
-The script uses the local demo database credentials documented in `compose.yaml`. It does not delete Docker volumes or reset existing database contents.
+The script uses the local demo database credentials documented in `compose.yaml` and never runs `docker compose down -v` or deletes named volumes. This branch corrects the PostgreSQL 18 data mount: when Compose recreates a container made with the previous mount target, the old cluster may not be present at PostgreSQL 18's expected data path, so the recreated container may initialize a fresh local demo database. Back up any valuable local database data before rerunning; do not assume data from the old container is preserved.
 
 ## Manual product acceptance
 
