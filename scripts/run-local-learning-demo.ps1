@@ -375,11 +375,12 @@ for ($lessonIndex = 0; $lessonIndex -lt $lessonPlans.Count; $lessonIndex++) {
         } else {
             $payload = @{ type = "TEXT"; value = $material.Text }
         }
+        $materialLocale = if ($material.Kind -eq "EXPLANATION") { "ru" } else { "crh" }
 
         $null = Invoke-TildashRequest -Method "POST" -Path "/api/v1/content/nodes" -Headers $teacher -Body @{
             kind = $material.Kind
             parentId = $lesson.id
-            sourceLocale = "crh"
+            sourceLocale = $materialLocale
             position = $material.Position
             payload = $payload
             provenance = @{
@@ -431,8 +432,8 @@ if (@($publishedCourse.lessons).Count -ne 4) {
 
 foreach ($record in $createdLessons) {
     $package = Invoke-TildashRequest -Method "GET" -Path ("/api/v1/learning/lessons/" + $record.Id) -Headers $learner
-    if (@($package.materials).Count -lt 3) {
-        throw "Lesson '$($record.Plan.Title)' did not return its explanation, vocabulary, and example blocks."
+    if (@($package.materials).Count -lt 8) {
+        throw "Lesson '$($record.Plan.Title)' did not return its complete ordered teaching material."
     }
     if (@($package.exercises).Count -lt 6) {
         throw "Lesson '$($record.Plan.Title)' did not return all six practice exercises."
