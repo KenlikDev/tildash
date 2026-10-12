@@ -41,6 +41,74 @@ jobs:
 
           echo "Source-branch policy passed."
 
+  local-demo-script:
+    name: Windows PowerShell local-demo verification
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Parse demo script and verify native stderr handling
+        shell: powershell
+        run: |
+          if ($PSVersionTable.PSVersion.Major -ne 5) {
+            throw "This regression check must run under Windows PowerShell 5.1."
+          }
+
+          $scriptPath = Join-Path $env:GITHUB_WORKSPACE "scripts/run-local-learning-demo.ps1"
+          $tokens = $null
+          $parseErrors = $null
+          $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+            $scriptPath,
+            [ref]$tokens,
+            [ref]$parseErrors
+          )
+          if ($parseErrors.Count -gt 0) {
+            $parseErrors | Format-List *
+            throw "The local learning demo script contains PowerShell syntax errors."
+          }
+
+          $functionAst = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+              $node.Name -eq "Invoke-ExternalCommand"
+          }, $true)
+          if ($null -eq $functionAst) {
+            throw "Invoke-ExternalCommand was not found in the local demo script."
+          }
+
+          . ([scriptblock]::Create($functionAst.Extent.Text))
+          $ErrorActionPreference = "Stop"
+          $nativeCommand = Join-Path $env:SystemRoot "System32/cmd.exe"
+          $stderrMessage = "Tildash native stderr probe"
+
+          $successfulResult = Invoke-ExternalCommand -FilePath $nativeCommand -Arguments @(
+            "/d", "/c", "echo $stderrMessage 1>&2"
+          )
+          if ($successfulResult.ExitCode -ne 0) {
+            throw "Expected a zero exit code, got $($successfulResult.ExitCode)."
+          }
+          $capturedLines = @($successfulResult.Output | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+              $_.Exception.Message
+            } else {
+              [string]$_
+            }
+          })
+          if (-not (($capturedLines -join "`n").Contains($stderrMessage))) {
+            throw "Native stderr output was not captured by Invoke-ExternalCommand."
+          }
+
+          $failedResult = Invoke-ExternalCommand -FilePath $nativeCommand -Arguments @(
+            "/d", "/c", "echo $stderrMessage 1>&2 & exit /b 7"
+          )
+          if ($failedResult.ExitCode -ne 7) {
+            throw "Expected the native exit code 7, got $($failedResult.ExitCode)."
+          }
+
+          Write-Host "PowerShell syntax and native stderr regression checks passed."
+
   linux-verification:
     name: Linux verification
     runs-on: ubuntu-latest
