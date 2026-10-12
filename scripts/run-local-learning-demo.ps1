@@ -247,22 +247,22 @@ $lessonPlans = @(
     @{
         Title = "Greetings and polite replies"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "Use “Merhaba!” as a general hello. “Selâm aleyküm!” is another traditional greeting; a conventional reply is “Aleyküm selâm!” Learn that pair as a greeting and response, rather than translating each word separately."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Use 'Merhaba!' as a general hello. 'Selâm aleyküm!' is another traditional greeting; a conventional reply is 'Aleyküm selâm!' Learn that pair as a greeting and response, rather than translating each word separately."; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Merhaba!"; Gloss = "Привет! / Здравствуйте!"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "Selâm aleyküm!"; Gloss = "Традиционное приветствие"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Aleyküm selâm!"; Gloss = "Ответ на «Selâm aleyküm!»"; SourceLocator = $curriculumSource }
             @{ Kind = "EXAMPLE"; Position = 4; Text = "A: Selâm aleyküm! — Здравствуйте! / B: Aleyküm selâm! — И вам здравствуйте! / A: Merhaba! — Привет!"; SourceLocator = $curriculumSource }
         )
         Exercises = @(
-            @{ Id = "greetings-1"; Position = 0; Prompt = "Translate “Hello!” into Crimean Tatar."; ExpectedAnswers = @("Merhaba", "Merhaba!") }
-            @{ Id = "greetings-2"; Position = 1; Prompt = "Reply to “Selâm aleyküm!” in Crimean Tatar."; ExpectedAnswers = @("Aleyküm selâm", "Aleyküm selâm!") }
-            @{ Id = "greetings-3"; Position = 2; Prompt = "Type the traditional greeting that begins with “Selâm”."; ExpectedAnswers = @("Selâm aleyküm", "Selâm aleyküm!") }
+            @{ Id = "greetings-1"; Position = 0; Prompt = "Translate 'Hello!' into Crimean Tatar."; ExpectedAnswers = @("Merhaba", "Merhaba!") }
+            @{ Id = "greetings-2"; Position = 1; Prompt = "Reply to 'Selâm aleyküm!' in Crimean Tatar."; ExpectedAnswers = @("Aleyküm selâm", "Aleyküm selâm!") }
+            @{ Id = "greetings-3"; Position = 2; Prompt = "Type the traditional greeting that begins with 'Selâm'."; ExpectedAnswers = @("Selâm aleyküm", "Selâm aleyküm!") }
         )
     }
     @{
         Title = "Morning greetings and how things are"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "“Sabahlar hayır!” is a morning greeting. “İşler nasıl?” asks how things are going. “Yahşı” means good or well; “yaramay” can mean not good. Try to understand a phrase in context, not as an isolated word list."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "'Sabahlar hayır!' is a morning greeting. 'İşler nasıl?' asks how things are going. 'Yahşı' means good or well; 'yaramay' can mean not good. Try to understand a phrase in context, not as an isolated word list."; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Sabahlar hayır!"; Gloss = "Доброе утро!"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "İşler nasıl?"; Gloss = "Как дела? / Как идут дела?"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Yahşı"; Gloss = "Хорошо"; SourceLocator = $curriculumSource }
@@ -270,15 +270,15 @@ $lessonPlans = @(
             @{ Kind = "EXAMPLE"; Position = 5; Text = "A: Sabahlar hayır! — Доброе утро! / B: Sabahlar hayır! / A: İşler nasıl? — Как дела? / B: Yahşı, sağ ol. — Хорошо, спасибо."; SourceLocator = $curriculumSource }
         )
         Exercises = @(
-            @{ Id = "daily-1"; Position = 0; Prompt = "Translate “Good morning!” into Crimean Tatar."; ExpectedAnswers = @("Sabahlar hayır", "Sabahlar hayır!") }
-            @{ Id = "daily-2"; Position = 1; Prompt = "Type the question that means “How are things?”"; ExpectedAnswers = @("İşler nasıl", "İşler nasıl?") }
-            @{ Id = "daily-3"; Position = 2; Prompt = "Translate “Good / well” into Crimean Tatar."; ExpectedAnswers = @("Yahşı") }
+            @{ Id = "daily-1"; Position = 0; Prompt = "Translate 'Good morning!' into Crimean Tatar."; ExpectedAnswers = @("Sabahlar hayır", "Sabahlar hayır!") }
+            @{ Id = "daily-2"; Position = 1; Prompt = "Type the question that means 'How are things?'"; ExpectedAnswers = @("İşler nasıl", "İşler nasıl?") }
+            @{ Id = "daily-3"; Position = 2; Prompt = "Translate 'Good / well' into Crimean Tatar."; ExpectedAnswers = @("Yahşı") }
         )
     }
     @{
         Title = "Thanking and saying goodbye"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "“Sağ ol” is an informal way to say thank you; “Sağ oluñız” is the polite form. “Körüskence!” means “See you!”. In a farewell, “Sağlıqnen qalıñız” is said by a person leaving to those staying; “Sağlıqnen barıñız” is said to the person who is leaving."; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "'Sağ ol' is an informal way to say thank you; 'Sağ oluñız' is the polite form. 'Körüskence!' means 'See you!'. In a farewell, 'Sağlıqnen qalıñız' is said by a person leaving to those staying; 'Sağlıqnen barıñız' is said to the person who is leaving."; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Sağ ol"; Gloss = "Спасибо (неформально)"; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "Sağ oluñız"; Gloss = "Спасибо (вежливо)"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Körüskence!"; Gloss = "До встречи!"; SourceLocator = $curriculumSource }
@@ -287,8 +287,8 @@ $lessonPlans = @(
             @{ Kind = "EXAMPLE"; Position = 6; Text = "A: Sağ oluñız! — Спасибо вам! / B: Sağlıqnen qalıñız! — До свидания! / A: Körüskence! — До встречи!"; SourceLocator = $etiquetteSource }
         )
         Exercises = @(
-            @{ Id = "farewell-1"; Position = 0; Prompt = "Type the polite form of “Thank you”."; ExpectedAnswers = @("Sağ oluñız", "Sağ oluñız!") }
-            @{ Id = "farewell-2"; Position = 1; Prompt = "Translate “See you!” into Crimean Tatar."; ExpectedAnswers = @("Körüskence", "Körüskence!") }
+            @{ Id = "farewell-1"; Position = 0; Prompt = "Type the polite form of 'Thank you'."; ExpectedAnswers = @("Sağ oluñız", "Sağ oluñız!") }
+            @{ Id = "farewell-2"; Position = 1; Prompt = "Translate 'See you!' into Crimean Tatar."; ExpectedAnswers = @("Körüskence", "Körüskence!") }
             @{ Id = "farewell-3"; Position = 2; Prompt = "You are leaving and say goodbye to the people staying. Type the phrase."; ExpectedAnswers = @("Sağlıqnen qalıñız", "Sağlıqnen qalıñız!") }
         )
     }
