@@ -80,6 +80,18 @@ class AppUserJourneyTest {
         onNodeWithText("Check answer").performClick()
         onNodeWithText("Try again").assertIsDisplayed()
 
+        // Verify remove and re-download before completing the lesson; progress survives package removal.
+        onNodeWithText("Back to lessons").performClick()
+        onNodeWithText("Remove").performClick()
+        onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
+
+        onNodeWithText("Catalog").performClick()
+        onNodeWithText("Download").performClick()
+        onNodeWithText("Open").assertIsDisplayed()
+        onNodeWithText("Downloaded (1)").performClick()
+        onNodeWithText("Open").performClick()
+        onNodeWithText("Translate hello into Crimean Tatar.").assertIsDisplayed()
+
         onNodeWithTag("learner-answer-input").performTextInput("merhaba")
         onNodeWithText("Check answer").performClick()
         onNodeWithText("Completed").assertIsDisplayed()
