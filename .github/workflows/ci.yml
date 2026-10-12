@@ -83,6 +83,13 @@ jobs:
           $nativeCommand = Join-Path $env:SystemRoot "System32/cmd.exe"
           $stderrMessage = "Tildash native stderr probe"
 
+          $failedResult = Invoke-ExternalCommand -FilePath $nativeCommand -Arguments @(
+            "/d", "/c", "echo $stderrMessage 1>&2 & exit /b 7"
+          )
+          if ($failedResult.ExitCode -ne 7) {
+            throw "Expected the native exit code 7, got $($failedResult.ExitCode)."
+          }
+
           $successfulResult = Invoke-ExternalCommand -FilePath $nativeCommand -Arguments @(
             "/d", "/c", "echo $stderrMessage 1>&2"
           )
@@ -98,13 +105,6 @@ jobs:
           })
           if (-not (($capturedLines -join "`n").Contains($stderrMessage))) {
             throw "Native stderr output was not captured by Invoke-ExternalCommand."
-          }
-
-          $failedResult = Invoke-ExternalCommand -FilePath $nativeCommand -Arguments @(
-            "/d", "/c", "echo $stderrMessage 1>&2 & exit /b 7"
-          )
-          if ($failedResult.ExitCode -ne 7) {
-            throw "Expected the native exit code 7, got $($failedResult.ExitCode)."
           }
 
           Write-Host "PowerShell syntax and native stderr regression checks passed."
