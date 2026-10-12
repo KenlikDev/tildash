@@ -87,16 +87,14 @@ class AppUserJourneyTest {
             onNodeWithText("Неформальный вариант:", substring = true).performScrollTo().assertIsDisplayed()
             onNodeWithText(
                 "Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?",
-            )
-                .performScrollTo()
+            ).performScrollTo()
                 .assertIsDisplayed()
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("wrong")
             onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("Try again").performScrollTo().assertIsDisplayed()
             onNodeWithText(
                 "Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?",
-            )
-                .performScrollTo()
+            ).performScrollTo()
                 .assertIsDisplayed()
 
             // Verify remove and re-download before completing the lesson; progress survives package removal.
@@ -111,8 +109,7 @@ class AppUserJourneyTest {
             onNodeWithText("Open").performClick()
             onNodeWithText(
                 "Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?",
-            )
-                .performScrollTo()
+            ).performScrollTo()
                 .assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Merhaba")
@@ -120,8 +117,7 @@ class AppUserJourneyTest {
             onNodeWithText("1 / 6").performScrollTo().assertIsDisplayed()
             onNodeWithText(
                 "Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие.",
-            )
-                .performScrollTo()
+            ).performScrollTo()
                 .assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Aleyküm selâm")
@@ -139,8 +135,7 @@ class AppUserJourneyTest {
             onNodeWithText("4 / 6").performScrollTo().assertIsDisplayed()
             onNodeWithText(
                 "Что выражает традиционное «Selâm aleyküm!» в отличие от короткого «Selâm!»?",
-            )
-                .performScrollTo()
+            ).performScrollTo()
                 .assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Уважительное приветствие")
@@ -148,8 +143,7 @@ class AppUserJourneyTest {
             onNodeWithText("5 / 6").performScrollTo().assertIsDisplayed()
             onNodeWithText(
                 "Составьте короткий вежливый диалог приветствия и ответа, разделив реплики символом /.",
-            )
-                .performScrollTo()
+            ).performScrollTo()
                 .assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm aleyküm! / Aleyküm selâm!")
