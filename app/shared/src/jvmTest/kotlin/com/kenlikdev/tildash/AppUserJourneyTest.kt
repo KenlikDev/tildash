@@ -102,15 +102,36 @@ class AppUserJourneyTest {
 
             onNodeWithTag("learner-answer-input").performTextInput("merhaba")
             onNodeWithText("Check answer").performClick()
+            onNodeWithText("1 / 3").assertIsDisplayed()
+            onNodeWithText("Translate good morning into Crimean Tatar.").assertIsDisplayed()
+
+            onNodeWithTag("learner-answer-input").performTextInput("Sabahlar hayır")
+            onNodeWithText("Check answer").performClick()
+            onNodeWithText("2 / 3").assertIsDisplayed()
+            onNodeWithText("Ask how things are in Crimean Tatar.").assertIsDisplayed()
+
+            onNodeWithTag("learner-answer-input").performTextInput("İşler nasıl?")
+            onNodeWithText("Check answer").performClick()
             onNodeWithText("Completed").assertIsDisplayed()
             onNodeWithText("Lesson complete.").assertIsDisplayed()
 
             onNodeWithText("Back to lessons").performClick()
             onNodeWithText("Remove").performClick()
             onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
-            assertEquals(2, progressStore.savedAttempts.size)
-            assertEquals(AnswerOutcome.INCORRECT, progressStore.savedAttempts.first().outcome)
-            assertEquals(AnswerOutcome.CORRECT, progressStore.savedAttempts.last().outcome)
+            assertEquals(4, progressStore.savedAttempts.size)
+            assertEquals(
+                listOf(
+                    AnswerOutcome.INCORRECT,
+                    AnswerOutcome.CORRECT,
+                    AnswerOutcome.CORRECT,
+                    AnswerOutcome.CORRECT,
+                ),
+                progressStore.savedAttempts.map { it.outcome },
+            )
+            assertEquals(
+                listOf("exercise-1", "exercise-1", "exercise-2", "exercise-3"),
+                progressStore.savedAttempts.map { it.exerciseId },
+            )
             assertTrue(downloadedStore.listLessons().isEmpty())
         }
 
@@ -152,6 +173,18 @@ class AppUserJourneyTest {
                                     contentId = lesson.id,
                                     prompt = "Translate hello into Crimean Tatar.",
                                     expectedAnswers = listOf("merhaba", "salam"),
+                                ),
+                                ManualInputExercise(
+                                    id = "exercise-2",
+                                    contentId = lesson.id,
+                                    prompt = "Translate good morning into Crimean Tatar.",
+                                    expectedAnswers = listOf("Sabahlar hayır", "Sabahlar hayır!"),
+                                ),
+                                ManualInputExercise(
+                                    id = "exercise-3",
+                                    contentId = lesson.id,
+                                    prompt = "Ask how things are in Crimean Tatar.",
+                                    expectedAnswers = listOf("İşler nasıl", "İşler nasıl?"),
                                 ),
                             ),
                     ),
