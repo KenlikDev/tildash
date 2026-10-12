@@ -1,8 +1,21 @@
-[CmdletBinding()]
-param(
-    [string]$BaseUrl = "http://127.0.0.1:8080"
+# Use loopback only: this script sends local development-role headers.
+$BaseUrl = "http://127.0.0.1:8080"
+$environmentNames = @(
+    "TILDASH_DATABASE_NAME",
+    "TILDASH_DATABASE_USERNAME",
+    "TILDASH_DATABASE_PASSWORD",
+    "TILDASH_DATABASE_PORT",
+    "TILDASH_DATABASE_URL",
+    "TILDASH_SECURITY_DEVELOPMENT_ENABLED",
+    "TILDASH_API_URL",
+    "TILDASH_DEVELOPMENT_ROLE"
 )
+$originalEnvironment = @{}
+foreach ($name in $environmentNames) {
+    $originalEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, "Process")
+}
 
+try {
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $composeFile = Join-Path $repoRoot "compose.yaml"
@@ -201,3 +214,8 @@ try {
 }
 
 Write-Host "Acceptance run finished. Close the backend window when done; stop PostgreSQL with 'docker compose stop postgres' if desired."
+} finally {
+    foreach ($name in $environmentNames) {
+        [Environment]::SetEnvironmentVariable($name, $originalEnvironment[$name], "Process")
+    }
+}
