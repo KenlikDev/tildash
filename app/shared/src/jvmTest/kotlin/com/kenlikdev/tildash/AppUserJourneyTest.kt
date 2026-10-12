@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.kenlikdev.tildash.content.model.ContentId
@@ -79,20 +80,20 @@ class AppUserJourneyTest {
             onNodeWithText("Downloaded (1)").performClick()
             onNodeWithText("Open").performClick()
 
-            onNodeWithText("Цель урока:", substring = true).assertIsDisplayed()
-            onNodeWithText("Merhaba!").assertIsDisplayed()
-            onNodeWithText("Привет! / Здравствуйте!").assertIsDisplayed()
-            onNodeWithText("Вежливый вариант:", substring = true).assertIsDisplayed()
-            onNodeWithText("Неформальный вариант:", substring = true).assertIsDisplayed()
-            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").assertIsDisplayed()
-            onNodeWithTag("learner-answer-input").performTextInput("wrong")
-            onNodeWithText("Check answer").performClick()
-            onNodeWithText("Try again").assertIsDisplayed()
-            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").assertIsDisplayed()
+            onNodeWithText("Цель урока:", substring = true).performScrollTo().assertIsDisplayed()
+            onNodeWithText("Merhaba!").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Привет! / Здравствуйте!").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Вежливый вариант:", substring = true).performScrollTo().assertIsDisplayed()
+            onNodeWithText("Неформальный вариант:", substring = true).performScrollTo().assertIsDisplayed()
+            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").performScrollTo().assertIsDisplayed()
+            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("wrong")
+            onNodeWithText("Check answer").performScrollTo().performClick()
+            onNodeWithText("Try again").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").performScrollTo().assertIsDisplayed()
 
             // Verify remove and re-download before completing the lesson; progress survives package removal.
-            onNodeWithText("Back to lessons").performClick()
-            onNodeWithText("Remove").performClick()
+            onNodeWithText("Back to lessons").performScrollTo().performClick()
+            onNodeWithText("Remove").performScrollTo().performClick()
             onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
 
             onNodeWithText("Catalog").performClick()
@@ -100,40 +101,40 @@ class AppUserJourneyTest {
             onNodeWithText("Open").assertIsDisplayed()
             onNodeWithText("Downloaded (1)").performClick()
             onNodeWithText("Open").performClick()
-            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").assertIsDisplayed()
+            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").performScrollTo().assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performTextInput("Merhaba")
-            onNodeWithText("Check answer").performClick()
+            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Merhaba")
+            onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("1 / 6").assertIsDisplayed()
-            onNodeWithText("Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие.").assertIsDisplayed()
+            onNodeWithText("Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие.").performScrollTo().assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performTextInput("Aleyküm selâm")
-            onNodeWithText("Check answer").performClick()
+            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Aleyküm selâm")
+            onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("2 / 6").assertIsDisplayed()
-            onNodeWithText("Вы встретили друга. Напишите короткое неформальное приветствие.").assertIsDisplayed()
+            onNodeWithText("Вы встретили друга. Напишите короткое неформальное приветствие.").performScrollTo().assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performTextInput("Selâm")
-            onNodeWithText("Check answer").performClick()
+            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm")
+            onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("3 / 6").assertIsDisplayed()
-            onNodeWithText("Какое приветствие обычно предшествует ответу «Aleyküm selâm!»?").assertIsDisplayed()
+            onNodeWithText("Какое приветствие обычно предшествует ответу «Aleyküm selâm!»?").performScrollTo().assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performTextInput("Selâm aleyküm")
-            onNodeWithText("Check answer").performClick()
+            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm aleyküm")
+            onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("4 / 6").assertIsDisplayed()
-            onNodeWithText("Дополните диалог: A: Selâm aleyküm! B: ...").assertIsDisplayed()
+            onNodeWithText("Дополните диалог: A: Selâm aleyküm! B: ...").performScrollTo().assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performTextInput("Aleyküm selâm")
-            onNodeWithText("Check answer").performClick()
+            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Aleyküm selâm")
+            onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("5 / 6").assertIsDisplayed()
-            onNodeWithText("Вы знакомитесь со старшим человеком. Напишите традиционное уважительное приветствие.").assertIsDisplayed()
+            onNodeWithText("Вы знакомитесь со старшим человеком. Напишите традиционное уважительное приветствие.").performScrollTo().assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performTextInput("Selâm aleyküm")
-            onNodeWithText("Check answer").performClick()
-            onNodeWithText("Completed").assertIsDisplayed()
-            onNodeWithText("Lesson complete.").assertIsDisplayed()
+            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm aleyküm")
+            onNodeWithText("Check answer").performScrollTo().performClick()
+            onNodeWithText("Completed").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Lesson complete.").performScrollTo().assertIsDisplayed()
 
-            onNodeWithText("Back to lessons").performClick()
-            onNodeWithText("Remove").performClick()
+            onNodeWithText("Back to lessons").performScrollTo().performClick()
+            onNodeWithText("Remove").performScrollTo().performClick()
             onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
             assertEquals(7, progressStore.savedAttempts.size)
             assertEquals(
