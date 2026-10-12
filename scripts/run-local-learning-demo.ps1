@@ -28,6 +28,44 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     throw "Docker CLI was not found. Install and start Docker Desktop, then retry."
 }
 
+function Invoke-ExternalCommand {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath,
+        [Parameter(Mandatory = $true)]
+        [string[]]$Arguments
+    )
+
+    # Windows PowerShell 5.1 can stop on native stderr even when it is redirected.
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $commandOutput = @(& $FilePath @Arguments 2>&1)
+        $commandExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    [pscustomobject]@{
+        ExitCode = $commandExitCode
+        Output = $commandOutput
+    }
+}
+
+function Write-ExternalCommandOutput {
+    param(
+        [object[]]$Lines
+    )
+
+    foreach ($line in $Lines) {
+        if ($line -is [System.Management.Automation.ErrorRecord]) {
+            Write-Host $line.Exception.Message
+        } else {
+            Write-Host ([string]$line)
+        }
+    }
+}
+
 $serverResponding = $false
 $alreadyRunning = $false
 try {
@@ -49,28 +87,32 @@ $env:TILDASH_DATABASE_PORT = "5432"
 $env:TILDASH_DATABASE_URL = "jdbc:postgresql://127.0.0.1:5432/tildash"
 
 Write-Host "Starting the local PostgreSQL service..."
-$composeOutput = & docker compose -f $composeFile up -d postgres 2>&1
-$composeExitCode = $LASTEXITCODE
-if ($composeOutput) {
-    $composeOutput | ForEach-Object { Write-Host $_ }
-}
-if ($composeExitCode -ne 0) {
-    $composeLogs = & docker compose -f $composeFile logs --no-color --tail 100 postgres 2>&1
-    if ($composeLogs) {
+$composeResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
+    "compose", "-f", $composeFile, "up", "-d", "postgres"
+)
+Write-ExternalCommandOutput -Lines $composeResult.Output
+if ($composeResult.ExitCode -ne 0) {
+    $composeLogResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
+        "compose", "-f", $composeFile, "logs", "--no-color", "--tail", "100", "postgres"
+    )
+    if ($composeLogResult.Output) {
         Write-Host "Recent PostgreSQL container logs:"
-        $composeLogs | ForEach-Object { Write-Host $_ }
+        Write-ExternalCommandOutput -Lines $composeLogResult.Output
     }
     throw "Docker Compose could not start PostgreSQL. Check Docker Desktop and port 5432."
 }
 
-$containerIdOutput = & docker compose -f $composeFile ps -q postgres 2>&1
-$containerIdExitCode = $LASTEXITCODE
-$containerId = (($containerIdOutput | ForEach-Object { "$_".Trim() } | Where-Object { $_ -ne "" } | Select-Object -First 1) -as [string])
-if ($containerIdExitCode -ne 0 -or [string]::IsNullOrWhiteSpace($containerId)) {
-    $composeLogs = & docker compose -f $composeFile logs --no-color --tail 100 postgres 2>&1
-    if ($composeLogs) {
+$containerIdResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
+    "compose", "-f", $composeFile, "ps", "-q", "postgres"
+)
+$containerId = (($containerIdResult.Output | ForEach-Object { "$_".Trim() } | Where-Object { $_ -ne "" } | Select-Object -First 1) -as [string])
+if ($containerIdResult.ExitCode -ne 0 -or [string]::IsNullOrWhiteSpace($containerId)) {
+    $composeLogResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
+        "compose", "-f", $composeFile, "logs", "--no-color", "--tail", "100", "postgres"
+    )
+    if ($composeLogResult.Output) {
         Write-Host "Recent PostgreSQL container logs:"
-        $composeLogs | ForEach-Object { Write-Host $_ }
+        Write-ExternalCommandOutput -Lines $composeLogResult.Output
     }
     throw "Docker Compose did not return a PostgreSQL container ID. Inspect the Docker output above."
 }
@@ -80,10 +122,11 @@ $lastContainerState = "unknown"
 $lastHealthState = "unknown"
 $restartObservations = 0
 for ($attempt = 1; $attempt -le 45; $attempt++) {
-    $stateOutput = & docker inspect --format '{{.State.Status}}|{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' $containerId 2>&1
-    $inspectExitCode = $LASTEXITCODE
-    if ($inspectExitCode -eq 0) {
-        $stateLine = (($stateOutput | Select-Object -First 1) -as [string]).Trim()
+    $stateResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
+        "inspect", "--format", '{{.State.Status}}|{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}', $containerId
+    )
+    if ($stateResult.ExitCode -eq 0) {
+        $stateLine = (($stateResult.Output | Select-Object -First 1) -as [string]).Trim()
         $stateParts = $stateLine -split '\|', 2
         if ($stateParts.Count -ge 1) {
             $lastContainerState = $stateParts[0]
@@ -111,11 +154,13 @@ for ($attempt = 1; $attempt -le 45; $attempt++) {
 }
 
 if (-not $databaseReady) {
-    $composeLogs = & docker compose -f $composeFile logs --no-color --tail 100 postgres 2>&1
-    if ($composeLogs) {
+    $composeLogResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
+        "compose", "-f", $composeFile, "logs", "--no-color", "--tail", "100", "postgres"
+    )
+    if ($composeLogResult.Output) {
         Write-Host ""
         Write-Host "Recent PostgreSQL container logs (the startup error should appear above):"
-        $composeLogs | ForEach-Object { Write-Host $_ }
+        Write-ExternalCommandOutput -Lines $composeLogResult.Output
     }
     throw "PostgreSQL did not become healthy. Last observed container state: '$lastContainerState'; health: '$lastHealthState'. Resolve the reported container error and rerun the demo."
 }
@@ -274,13 +319,22 @@ Write-Host ""
 $env:TILDASH_API_URL = $BaseUrl.TrimEnd("/")
 $env:TILDASH_DEVELOPMENT_ROLE = "learner"
 Push-Location $repoRoot
+$gradleExitCode = -1
 try {
-    & ".\gradlew.bat" ":app:desktopApp:run" "--no-configuration-cache"
-    if ($LASTEXITCODE -ne 0) {
-        throw "The Desktop application did not exit successfully. Review the Gradle output above."
+    # Keep Gradle output live while allowing ordinary native stderr diagnostics.
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        & ".\gradlew.bat" ":app:desktopApp:run" "--no-configuration-cache"
+        $gradleExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
     }
 } finally {
     Pop-Location
+}
+if ($gradleExitCode -ne 0) {
+    throw "The Desktop application did not exit successfully (Gradle exit code: $gradleExitCode). Review the Gradle output above."
 }
 
 Write-Host "Acceptance run finished. Close the backend window when done; stop PostgreSQL with 'docker compose stop postgres' if desired."
