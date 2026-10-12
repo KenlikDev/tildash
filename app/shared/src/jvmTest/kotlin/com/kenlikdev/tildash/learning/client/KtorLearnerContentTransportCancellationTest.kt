@@ -9,7 +9,8 @@ import kotlin.test.assertIs
 
 class KtorLearnerContentTransportCancellationTest {
     @Test
-    fun cancellationIsPropagatedInsteadOfConvertedToTransportFailure() = runBlocking {
+    fun cancellationIsPropagatedInsteadOfConvertedToTransportFailure() =
+        runBlocking {
         val client =
             HttpClient(
                 MockEngine {

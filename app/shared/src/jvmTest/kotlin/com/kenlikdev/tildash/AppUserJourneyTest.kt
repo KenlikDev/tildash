@@ -37,7 +37,8 @@ import kotlin.time.Instant
 class AppUserJourneyTest {
     @OptIn(ExperimentalTestApi::class)
     @Test
-    fun learnerCanDownloadOpenAnswerAndRemovePublishedLesson() = runComposeUiTest {
+    fun learnerCanDownloadOpenAnswerAndRemovePublishedLesson() =
+        runComposeUiTest {
         val downloadedStore = FakeDownloadedLessonStore()
         val progressStore = FakeLearningProgressStore()
         val transport = DemoContentTransport()
@@ -133,8 +134,7 @@ class AppUserJourneyTest {
                 lessons = listOf(lesson),
             )
 
-        override suspend fun loadCatalog(): LearnerCourseCatalog =
-            LearnerCourseCatalog(courses = listOf(course))
+        override suspend fun loadCatalog(): LearnerCourseCatalog = LearnerCourseCatalog(courses = listOf(course))
 
         override suspend fun loadLesson(lessonId: ContentId): LearnerLessonPackage {
             require(lessonId == this.lesson.id)
@@ -204,8 +204,7 @@ class AppUserJourneyTest {
     private class FakeLearningProgressStore : LearningProgressStore {
         val savedAttempts = mutableListOf<LearningAttempt>()
 
-        override fun loadProgress(): LearningProgress =
-            LearningProgress.fromPersistedAttempts(savedAttempts.toList())
+        override fun loadProgress(): LearningProgress = LearningProgress.fromPersistedAttempts(savedAttempts.toList())
 
         override fun saveAttempt(attempt: LearningAttempt) {
             savedAttempts += attempt

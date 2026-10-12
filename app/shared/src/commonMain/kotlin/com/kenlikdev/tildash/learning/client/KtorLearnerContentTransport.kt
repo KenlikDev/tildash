@@ -219,19 +219,23 @@ class KtorLearnerContentTransport(
                     when (kind) {
                         ContentKind.EXPLANATION,
                         ContentKind.EXAMPLE,
-                        -> ContentPayload.Text(material.requiredString("text"))
+                        -> {
+                            ContentPayload.Text(material.requiredString("text"))
+                        }
 
-                        ContentKind.VOCABULARY ->
+                        ContentKind.VOCABULARY -> {
                             ContentPayload.Vocabulary(
                                 term = material.requiredString("term"),
                                 gloss = material.requiredString("gloss"),
                             )
+                        }
 
-                        else ->
+                        else -> {
                             throw LearnerContentTransportFailure(
                                 statusCode = null,
                                 message = "Unsupported learner lesson material kind: $kind.",
                             )
+                        }
                     }
                 LearnerLessonMaterial(
                     id = ContentId(material.requiredString("id")),

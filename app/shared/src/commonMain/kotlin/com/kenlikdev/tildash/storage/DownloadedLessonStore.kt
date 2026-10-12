@@ -325,14 +325,18 @@ class SqlDelightDownloadedLessonStore(
                         put("position", JsonPrimitive(material.position))
                         put("sourceLocale", JsonPrimitive(material.sourceLocale.value))
                         when (val payload = material.payload) {
-                            is ContentPayload.Text -> put("text", JsonPrimitive(payload.value))
+                            is ContentPayload.Text -> {
+                                put("text", JsonPrimitive(payload.value))
+                            }
+
                             is ContentPayload.Vocabulary -> {
                                 put("term", JsonPrimitive(payload.term))
                                 put("gloss", JsonPrimitive(payload.gloss))
                             }
 
-                            is ContentPayload.MediaReference ->
+                            is ContentPayload.MediaReference -> {
                                 error("Media references are not learner lesson materials.")
+                            }
                         }
                     },
                 )
@@ -347,15 +351,20 @@ class SqlDelightDownloadedLessonStore(
                 when (kind) {
                     ContentKind.EXPLANATION,
                     ContentKind.EXAMPLE,
-                    -> ContentPayload.Text(material.requiredText("text"))
+                    -> {
+                        ContentPayload.Text(material.requiredText("text"))
+                    }
 
-                    ContentKind.VOCABULARY ->
+                    ContentKind.VOCABULARY -> {
                         ContentPayload.Vocabulary(
                             term = material.requiredText("term"),
                             gloss = material.requiredText("gloss"),
                         )
+                    }
 
-                    else -> error("Unsupported stored lesson material kind '$kind'.")
+                    else -> {
+                        error("Unsupported stored lesson material kind '$kind'.")
+                    }
                 }
             LearnerLessonMaterial(
                 id = ContentId(material.requiredText("id")),

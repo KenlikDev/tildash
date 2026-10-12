@@ -155,22 +155,28 @@ class PublishedLearningLessonRepository(
                     when (kind) {
                         ContentKind.EXPLANATION,
                         ContentKind.EXAMPLE,
-                        -> ContentPayload.Text(
-                            value =
-                                payload.get("value")?.asText()
-                                    ?: throw PublishedLearningLessonInvalidException(),
-                        )
+                        -> {
+                            ContentPayload.Text(
+                                value =
+                                    payload.get("value")?.asText()
+                                        ?: throw PublishedLearningLessonInvalidException(),
+                            )
+                        }
 
-                        ContentKind.VOCABULARY -> ContentPayload.Vocabulary(
-                            term =
-                                payload.get("term")?.asText()
-                                    ?: throw PublishedLearningLessonInvalidException(),
-                            gloss =
-                                payload.get("gloss")?.asText()
-                                    ?: throw PublishedLearningLessonInvalidException(),
-                        )
+                        ContentKind.VOCABULARY -> {
+                            ContentPayload.Vocabulary(
+                                term =
+                                    payload.get("term")?.asText()
+                                        ?: throw PublishedLearningLessonInvalidException(),
+                                gloss =
+                                    payload.get("gloss")?.asText()
+                                        ?: throw PublishedLearningLessonInvalidException(),
+                            )
+                        }
 
-                        else -> throw PublishedLearningLessonInvalidException()
+                        else -> {
+                            throw PublishedLearningLessonInvalidException()
+                        }
                     }
                 LearnerLessonMaterial(
                     id = ContentId(rs.getObject("material_content_node_id", UUID::class.java).toString()),

@@ -149,8 +149,9 @@ private fun LearnerLessonPackage.toResponse(): LearningLessonPackageResponse =
                     ContentKind.EXPLANATION,
                     ContentKind.EXAMPLE,
                     -> {
-                        val payload = material.payload as? ContentPayload.Text
-                            ?: error("Text lesson material has an incompatible payload.")
+                        val payload =
+                            material.payload as? ContentPayload.Text
+                                ?: error("Text lesson material has an incompatible payload.")
                         LearnerLessonMaterialResponse(
                             id = material.id.value,
                             kind = material.kind.name,
@@ -161,8 +162,9 @@ private fun LearnerLessonPackage.toResponse(): LearningLessonPackageResponse =
                     }
 
                     ContentKind.VOCABULARY -> {
-                        val payload = material.payload as? ContentPayload.Vocabulary
-                            ?: error("Vocabulary lesson material has an incompatible payload.")
+                        val payload =
+                            material.payload as? ContentPayload.Vocabulary
+                                ?: error("Vocabulary lesson material has an incompatible payload.")
                         LearnerLessonMaterialResponse(
                             id = material.id.value,
                             kind = material.kind.name,
@@ -173,7 +175,9 @@ private fun LearnerLessonPackage.toResponse(): LearningLessonPackageResponse =
                         )
                     }
 
-                    else -> error("Unsupported learner lesson material kind: " + material.kind)
+                    else -> {
+                        error("Unsupported learner lesson material kind: " + material.kind)
+                    }
                 }
             },
     )

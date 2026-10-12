@@ -19,12 +19,16 @@ data class LearnerLessonMaterial(
         when (kind) {
             ContentKind.EXPLANATION,
             ContentKind.EXAMPLE,
-            -> require(payload is ContentPayload.Text) {
-                "Explanation and example materials must contain text."
+            -> {
+                require(payload is ContentPayload.Text) {
+                    "Explanation and example materials must contain text."
+                }
             }
 
-            ContentKind.VOCABULARY -> require(payload is ContentPayload.Vocabulary) {
-                "Vocabulary materials must contain a term and a gloss."
+            ContentKind.VOCABULARY -> {
+                require(payload is ContentPayload.Vocabulary) {
+                    "Vocabulary materials must contain a term and a gloss."
+                }
             }
 
             else -> throw IllegalArgumentException("Unsupported learner lesson material kind '$kind'.")
