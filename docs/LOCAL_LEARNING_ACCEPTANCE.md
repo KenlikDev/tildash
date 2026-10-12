@@ -16,7 +16,7 @@ Then run:
 
     .\scripts\run-local-learning-demo.ps1
 
-The script publishes a timestamped four-lesson beginner course through the real authoring, validation, review, and publication API. Every lesson has a Russian explanation, Crimean Tatar vocabulary with Russian glosses, two example dialogues, and six exercises. The script publishes a timestamped four-lesson beginner course through the real authoring, validation, review, and publication API. Every lesson has Russian explanations, Crimean Tatar vocabulary with Russian glosses, two example dialogues, and six exercises. It verifies that explanation blocks remain tagged with locale ru while vocabulary/examples remain crh in the learner API, then checks all four lesson packages before launching Desktop.
+The script publishes a timestamped four-lesson beginner course through the real authoring, validation, review, and publication API. Each lesson has Russian explanation blocks (locale `ru`), Crimean Tatar vocabulary and example blocks (locale `crh`), two example dialogues, and six exercises. It verifies the source-locale metadata and checks all four learner packages before launching Desktop.
 
 The development-role headers are only for local acceptance. The script binds the backend and database to loopback; do not expose the development backend to a shared or public network.
 
@@ -27,7 +27,7 @@ The development-role headers are only for local acceptance. The script binds the
 ## What to test in Desktop
 
 1. In Catalog, open the course titled “Крымскотатарский: первые разговоры” with a timestamp.
-2. Confirm four lessons are listed: “Приветствия и вежливые ответы”, “Утреннее приветствие и как дела”, “Благодарность и прощание”, and “Знакомство и представление себя”.
+2. Confirm four lessons are listed: “Приветствия и вежливые ответы”, “Приветствия в разное время суток”, “Благодарность и прощание”, and “Знакомство и представление себя”.
 3. Download the first lesson and open it from Downloaded.
 4. Above Practice, verify that Study material displays a Russian explanation, vocabulary entries with Russian meanings, and a bilingual dialogue.
 5. Work through all six exercises. An incorrect answer must show “Try again” and keep the current exercise. A correct answer must advance progress to the next exercise.
@@ -38,12 +38,12 @@ The development-role headers are only for local acceptance. The script binds the
 
 ## Expected learning sequence
 
-The local course now covers four short conversation situations:
+The local course now covers four beginner conversation situations:
 
-- greetings and the conventional reply to “Selâm aleyküm!”;
-- a morning greeting, asking how things are, and answering “good”;
-- thanking politely and choosing a context-appropriate farewell;
-- introducing yourself, asking someone’s name politely, and responding to an introduction.
+- choosing a greeting by formality and replying to “Selâm aleyküm!” with “Aleyküm selâm!”;
+- selecting greetings for morning, daytime, evening, and night, including a short fill-in-the-blank exercise;
+- expressing informal/polite/strong thanks and choosing the correct farewell according to who is leaving;
+- introducing yourself, asking someone’s name politely, and composing a short introduction exchange.
 
 The phrase selection follows the Ukrainian Ministry of Education’s Crimean Tatar model curriculum for greetings and introductions, including the later theme “Переїзд та нові знайомства”. The Russian explanations, dialogue composition, and exercises are written for this local demo and are not a claim that the referenced programme is public domain.
 
