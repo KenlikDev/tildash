@@ -8,7 +8,8 @@ $environmentNames = @(
     "TILDASH_DATABASE_URL",
     "TILDASH_SECURITY_DEVELOPMENT_ENABLED",
     "TILDASH_API_URL",
-    "TILDASH_DEVELOPMENT_ROLE"
+    "TILDASH_DEVELOPMENT_ROLE",
+    "SERVER_ADDRESS"
 )
 $originalEnvironment = @{}
 foreach ($name in $environmentNames) {
@@ -67,6 +68,7 @@ if (-not $databaseReady) {
 $escapedRoot = $repoRoot.Replace("'", "''")
 $serverCommand = @'
 $env:TILDASH_SECURITY_DEVELOPMENT_ENABLED = "true"
+$env:SERVER_ADDRESS = "127.0.0.1"
 $env:TILDASH_DATABASE_URL = "jdbc:postgresql://127.0.0.1:5432/tildash"
 $env:TILDASH_DATABASE_USERNAME = "tildash"
 $env:TILDASH_DATABASE_PASSWORD = "tildash-dev"
