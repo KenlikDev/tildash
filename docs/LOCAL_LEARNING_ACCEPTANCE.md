@@ -16,7 +16,7 @@ Then run:
 
     .\scripts\run-local-learning-demo.ps1
 
-The script publishes a timestamped four-lesson beginner course through the real authoring, validation, review, and publication API. Every lesson has a Russian explanation, Crimean Tatar vocabulary with Russian glosses, an example dialogue, and three exercises. The script verifies the learner catalog and all four lesson packages before launching Desktop.
+The script publishes a timestamped four-lesson beginner course through the real authoring, validation, review, and publication API. Every lesson has a Russian explanation, Crimean Tatar vocabulary with Russian glosses, two example dialogues, and six exercises. The script verifies the learner catalog and all four lesson packages before launching Desktop.
 
 The development-role headers are only for local acceptance. The script binds the backend and database to loopback; do not expose the development backend to a shared or public network.
 
@@ -30,8 +30,8 @@ The development-role headers are only for local acceptance. The script binds the
 2. Confirm four lessons are listed: “Приветствия и вежливые ответы”, “Утреннее приветствие и как дела”, “Благодарность и прощание”, and “Знакомство и представление себя”.
 3. Download the first lesson and open it from Downloaded.
 4. Above Practice, verify that Study material displays a Russian explanation, vocabulary entries with Russian meanings, and a bilingual dialogue.
-5. Work through all three exercises. An incorrect answer must show “Try again” and keep the current exercise. A correct answer must advance progress to the next exercise.
-6. Return to the catalog and download/open each remaining lesson. Each has its own topic, explanation, vocabulary, example, and three exercises; they are not the same exercise with a different title.
+5. Work through all six exercises. An incorrect answer must show “Try again” and keep the current exercise. A correct answer must advance progress to the next exercise.
+6. Return to the catalog and download/open each remaining lesson. Each has its own topic, contextual explanation, vocabulary, example dialogues, and six exercises; they are not the same exercise with a different title.
 7. Remove one downloaded lesson and download it again. Its explanation, vocabulary, and example must be restored from the published lesson package.
 8. With a lesson downloaded and not yet completed, stop the backend from its PowerShell window with Ctrl+C. Continue answering the active lesson while offline.
 9. Close and restart Desktop while the backend remains stopped. Downloaded content and saved progress must remain available.

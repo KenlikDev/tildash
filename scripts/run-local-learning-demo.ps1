@@ -247,70 +247,96 @@ $lessonPlans = @(
     @{
         Title = "Приветствия и вежливые ответы"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель: научиться приветствовать собеседника и отвечать на традиционное приветствие. Merhaba! — общее «Привет!» или «Здравствуйте!». Selâm aleyküm! — традиционная форма приветствия; обычный ответ на неё — Aleyküm selâm! Запоминайте эти две фразы как пару и подбирайте приветствие к ситуации."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель урока: научиться начинать короткий разговор и правильно отвечать на традиционное приветствие. Merhaba! — распространённое приветствие. Selâm aleyküm! — уважительная формула приветствия, на которую обычно отвечают Aleyküm selâm! Запоминайте последнюю пару вместе: приветствие и ответ — это разные реплики."; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Merhaba!"; Gloss = "Привет! / Здравствуйте!"; SourceLocator = $curriculumSource }
-            @{ Kind = "VOCABULARY"; Position = 2; Term = "Selâm aleyküm!"; Gloss = "Традиционное приветствие"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 2; Term = "Selâm aleyküm!"; Gloss = "Традиционное уважительное приветствие"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Aleyküm selâm!"; Gloss = "Ответ на «Selâm aleyküm!»"; SourceLocator = $curriculumSource }
-            @{ Kind = "EXAMPLE"; Position = 4; Text = "A: Selâm aleyküm! — Здравствуйте! / B: Aleyküm selâm! — И вам здравствуйте!"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 4; Term = "Selâm!"; Gloss = "Привет! (неформально)"; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXPLANATION"; Position = 5; Text = "Выбирайте приветствие по ситуации. С незнакомым человеком или старшим уместно начать с Selâm aleyküm! и дождаться ответной формулы Aleyküm selâm! С другом можно ограничиться Selâm! или Meraba! Не подменяйте ответ Aleyküm selâm! повторением той же самой первой реплики."; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXAMPLE"; Position = 6; Text = "Вежливый вариант: A: Selâm aleyküm! — Здравствуйте! / B: Aleyküm selâm! — Здравствуйте! / Неформальный вариант: A: Selâm! — Привет! / B: Selâm! — Привет!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXAMPLE"; Position = 7; Text = "Ситуация: вы встречаете нового соседа. A: Selâm aleyküm! / B: Aleyküm selâm! / Ситуация: вы увидели друга. A: Selâm!"; SourceLocator = $etiquetteSource }
         )
         Exercises = @(
-            @{ Id = "greetings-1"; Position = 0; Prompt = "Как по-крымскотатарски сказать «Привет!» или «Здравствуйте!»?"; ExpectedAnswers = @("Merhaba", "Merhaba!") }
-            @{ Id = "greetings-2"; Position = 1; Prompt = "Как ответить на традиционное приветствие «Selâm aleyküm!»?"; ExpectedAnswers = @("Aleyküm selâm", "Aleyküm selâm!") }
-            @{ Id = "greetings-3"; Position = 2; Prompt = "Вы слышите ответ «Aleyküm selâm!». Какое приветствие образует с ним пару?"; ExpectedAnswers = @("Selâm aleyküm", "Selâm aleyküm!") }
+            @{ Id = "greetings-1"; Position = 0; Prompt = "Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?"; ExpectedAnswers = @("Merhaba", "Merhaba!") }
+            @{ Id = "greetings-2"; Position = 1; Prompt = "Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие."; ExpectedAnswers = @("Aleyküm selâm", "Aleyküm selâm!") }
+            @{ Id = "greetings-3"; Position = 2; Prompt = "Вы встретили друга. Напишите короткое неформальное приветствие."; ExpectedAnswers = @("Selâm", "Selâm!", "Meraba", "Meraba!") }
+            @{ Id = "greetings-4"; Position = 3; Prompt = "Какое приветствие обычно предшествует ответу «Aleyküm selâm!»?"; ExpectedAnswers = @("Selâm aleyküm", "Selâm aleyküm!") }
+            @{ Id = "greetings-5"; Position = 4; Prompt = "Дополните диалог: A: Selâm aleyküm! B: ..."; ExpectedAnswers = @("Aleyküm selâm", "Aleyküm selâm!") }
+            @{ Id = "greetings-6"; Position = 5; Prompt = "Вы знакомитесь со старшим человеком. Напишите традиционное уважительное приветствие."; ExpectedAnswers = @("Selâm aleyküm", "Selâm aleyküm!") }
         )
     }
     @{
-        Title = "Утреннее приветствие и как дела"
+        Title = "Приветствия в разное время суток"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель: поздороваться утром, спросить о делах и коротко ответить. Sabahlar hayır! означает «Доброе утро!». İşler nasıl? — «Как дела?». Yahşı означает «хорошо», а yaramay — «плохо» или «нехорошо». Можно ответить: Yahşı, sağ ol. — «Хорошо, спасибо»."; SourceLocator = $curriculumSource }
-            @{ Kind = "VOCABULARY"; Position = 1; Term = "Sabahlar hayır!"; Gloss = "Доброе утро!"; SourceLocator = $curriculumSource }
-            @{ Kind = "VOCABULARY"; Position = 2; Term = "İşler nasıl?"; Gloss = "Как дела? / Как идут дела?"; SourceLocator = $curriculumSource }
-            @{ Kind = "VOCABULARY"; Position = 3; Term = "Yahşı"; Gloss = "Хорошо"; SourceLocator = $curriculumSource }
-            @{ Kind = "VOCABULARY"; Position = 4; Term = "Yaramay"; Gloss = "Плохо / нехорошо"; SourceLocator = $curriculumSource }
-            @{ Kind = "EXAMPLE"; Position = 5; Text = "A: Sabahlar hayır! — Доброе утро! / B: Sabahlar hayır! / A: İşler nasıl? — Как дела? / B: Yahşı, sağ ol. — Хорошо, спасибо."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель урока: выбрать приветствие с учётом времени суток. Вежливые формы могут быть длиннее обычного Meraba! и буквально не переводятся слово в слово. Запомните устойчивые выражения целиком и используйте соответствующее времени суток приветствие."; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 1; Term = "Sabahıñız hayırlı olsun!"; Gloss = "Доброго вам утра!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 2; Term = "Künüñiz hayırlı olsun!"; Gloss = "Доброго вам дня!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 3; Term = "Aqşamıñız hayırlı olsun!"; Gloss = "Доброго вам вечера!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 4; Term = "Hayırlı gece bolsun!"; Gloss = "Доброй ночи!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 5; Term = "Selâm!"; Gloss = "Привет! (неформально)"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 6; Term = "Meraba!"; Gloss = "Привет! / Здравствуй!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXPLANATION"; Position = 7; Text = "Сначала определите ситуацию: утро, день, вечер или прощание на ночь. Sabahıñız hayırlı olsun! относится к утру; Künüñiz hayırlı olsun! — ко дню; Aqşamıñız hayırlı olsun! — к вечеру; Hayırlı gece bolsun! — пожелание доброй ночи. Selâm! и Meraba! — короткие приветствия, которые удобно использовать с друзьями и знакомыми."; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXAMPLE"; Position = 8; Text = "Утром: A: Sabahıñız hayırlı olsun! — Доброго вам утра! / Днём: A: Künüñiz hayırlı olsun! — Доброго вам дня!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXAMPLE"; Position = 9; Text = "Вечером: A: Aqşamıñız hayırlı olsun! — Доброго вам вечера! / Перед сном: Hayırlı gece bolsun! — Доброй ночи!"; SourceLocator = $etiquetteSource }
         )
         Exercises = @(
-            @{ Id = "daily-1"; Position = 0; Prompt = "Как по-крымскотатарски сказать «Доброе утро!»?"; ExpectedAnswers = @("Sabahlar hayır", "Sabahlar hayır!") }
-            @{ Id = "daily-2"; Position = 1; Prompt = "Как спросить собеседника «Как дела?»?"; ExpectedAnswers = @("İşler nasıl", "İşler nasıl?") }
-            @{ Id = "daily-3"; Position = 2; Prompt = "Вы отвечаете, что у вас всё хорошо. Напишите крымскотатарское слово «Хорошо»."; ExpectedAnswers = @("Yahşı") }
+            @{ Id = "daily-1"; Position = 0; Prompt = "Как вежливо пожелать доброго утра?"; ExpectedAnswers = @("Sabahıñız hayırlı olsun", "Sabahıñız hayırlı olsun!") }
+            @{ Id = "daily-2"; Position = 1; Prompt = "Вы встречаете человека днём. Напишите подходящее приветствие."; ExpectedAnswers = @("Künüñiz hayırlı olsun", "Künüñiz hayırlı olsun!") }
+            @{ Id = "daily-3"; Position = 2; Prompt = "Как сказать «Доброго вам вечера!»?"; ExpectedAnswers = @("Aqşamıñız hayırlı olsun", "Aqşamıñız hayırlı olsun!") }
+            @{ Id = "daily-4"; Position = 3; Prompt = "Как пожелать собеседнику доброй ночи?"; ExpectedAnswers = @("Hayırlı gece bolsun", "Hayırlı gece bolsun!") }
+            @{ Id = "daily-5"; Position = 4; Prompt = "Вы встретили друга днём. Напишите короткое неформальное приветствие."; ExpectedAnswers = @("Selâm", "Selâm!", "Meraba", "Meraba!") }
+            @{ Id = "daily-6"; Position = 5; Prompt = "Вы прощаетесь поздно вечером и желаете доброй ночи. Какая фраза подходит?"; ExpectedAnswers = @("Hayırlı gece bolsun", "Hayırlı gece bolsun!") }
         )
     }
     @{
         Title = "Благодарность и прощание"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель: поблагодарить собеседника и выбрать прощание с учётом того, кто уходит. Sağ ol — «спасибо» в неформальном общении; Sağ oluñız — вежливая форма. Körüşkence! означает «До встречи!». Если вы уходите и прощаетесь с теми, кто остаётся, можно сказать Sağlıqnen qalıñız. Остающийся говорит уходящему Sağlıqnen barıñız."; SourceLocator = $etiquetteSource }
-            @{ Kind = "VOCABULARY"; Position = 1; Term = "Sağ ol"; Gloss = "Спасибо (неформально)"; SourceLocator = $etiquetteSource }
-            @{ Kind = "VOCABULARY"; Position = 2; Term = "Sağ oluñız"; Gloss = "Спасибо (вежливо)"; SourceLocator = $curriculumSource }
-            @{ Kind = "VOCABULARY"; Position = 3; Term = "Körüşkence!"; Gloss = "До встречи!"; SourceLocator = $curriculumSource }
-            @{ Kind = "VOCABULARY"; Position = 4; Term = "Sağlıqnen qalıñız"; Gloss = "До свидания! (уходящий говорит остающимся)"; SourceLocator = $etiquetteSource }
-            @{ Kind = "VOCABULARY"; Position = 5; Term = "Sağlıqnen barıñız"; Gloss = "До свидания! (говорят уходящему)"; SourceLocator = $etiquetteSource }
-            @{ Kind = "EXAMPLE"; Position = 6; Text = "A: Sağ ol! — Спасибо! / A: Sağlıqnen qalıñız! — До свидания! / B: Sağlıqnen barıñız! — И вам до свидания! / A: Körüşkence! — До встречи!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель урока: поблагодарить человека и подобрать прощание по роли собеседника. Sağ ol — неформальное «спасибо». Sağ oluñız — вежливое «спасибо вам», а Çoq sağ oluñız — усиленная благодарность. Для прощания важно, кто уходит: уходящий говорит остающимся Sağlıqnen qalıñız; остающийся — уходящему Sağlıqnen barıñız."; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 1; Term = "Sağ ol"; Gloss = "Спасибо / будь здоров (неформально)"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 2; Term = "Sağ oluñız"; Gloss = "Спасибо вам (вежливо)"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 3; Term = "Çoq sağ oluñız!"; Gloss = "Большое спасибо!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 4; Term = "Teşekkür etem."; Gloss = "Благодарю (более официально)"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 5; Term = "Körüskence!"; Gloss = "До встречи! / Пока!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 6; Term = "Sağlıqnen qalıñız."; Gloss = "До свидания (говорит уходящий остающимся)"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 7; Term = "Sağlıqnen barıñız."; Gloss = "До свидания (говорит остающийся уходящему)"; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXPLANATION"; Position = 8; Text = "Не смешивайте форму благодарности с прощанием. Если вам помогли, выберите Sağ ol, Sağ oluñız или Çoq sağ oluñız! в зависимости от того, насколько формально вы обращаетесь. Körüskence! — короткая неформальная фраза «До встречи!». Направление двух форм Sağlıqnen qalıñız / barıñız различается в зависимости от того, кто уходит."; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXAMPLE"; Position = 9; Text = "A: Çoq sağ oluñız! — Большое спасибо! / A: Sağlıqnen qalıñız! — До свидания! / B: Sağlıqnen barıñız! — И вам до свидания! / A: Körüskence! — До встречи!"; SourceLocator = $etiquetteSource }
         )
         Exercises = @(
-            @{ Id = "farewell-1"; Position = 0; Prompt = "Как вежливо сказать «Спасибо вам»?"; ExpectedAnswers = @("Sağ oluñız", "Sağ oluñız!") }
-            @{ Id = "farewell-2"; Position = 1; Prompt = "Какая фраза означает «До встречи!»?"; ExpectedAnswers = @("Körüşkence", "Körüşkence!") }
-            @{ Id = "farewell-3"; Position = 2; Prompt = "Вы уходите, а собеседник остаётся. Какое прощание следует сказать?"; ExpectedAnswers = @("Sağlıqnen qalıñız", "Sağlıqnen qalıñız!") }
+            @{ Id = "farewell-1"; Position = 0; Prompt = "Как неформально сказать «Спасибо» знакомому или другу?"; ExpectedAnswers = @("Sağ ol", "Sağ ol!") }
+            @{ Id = "farewell-2"; Position = 1; Prompt = "Как вежливо поблагодарить незнакомого человека?"; ExpectedAnswers = @("Sağ oluñız", "Sağ oluñız!") }
+            @{ Id = "farewell-3"; Position = 2; Prompt = "Как сказать «Большое спасибо!»?"; ExpectedAnswers = @("Çoq sağ oluñız", "Çoq sağ oluñız!") }
+            @{ Id = "farewell-4"; Position = 3; Prompt = "Какая фраза означает «До встречи!»?"; ExpectedAnswers = @("Körüskence", "Körüskence!") }
+            @{ Id = "farewell-5"; Position = 4; Prompt = "Вы уходите, а собеседник остаётся. Какое прощание следует сказать?"; ExpectedAnswers = @("Sağlıqnen qalıñız", "Sağlıqnen qalıñız!") }
+            @{ Id = "farewell-6"; Position = 5; Prompt = "Вы остаётесь, а собеседник уходит. Что вы ему скажете на прощание?"; ExpectedAnswers = @("Sağlıqnen barıñız", "Sağlıqnen barıñız!") }
         )
     }
     @{
         Title = "Знакомство и представление себя"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель: представиться, вежливо спросить имя собеседника и ответить на знакомство. Menim adım ... означает «Меня зовут ...». Siziñ adınız ne? — вежливый вопрос «Как Вас зовут?». Tanışqanımdan pek memnünim! означает «Очень приятно познакомиться!». В ответ на эту фразу можно сказать Men de. — «Мне тоже»."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель урока: представиться, вежливо спросить имя и познакомить людей друг с другом. Menim adım ... — «Меня зовут ...». Siziñ adınız ne? — «Как Вас зовут?». Tanışqanımdan pek memnünim! — «Очень приятно познакомиться!». Tanış etmege musaade etiñiz! — «Позвольте представиться». Используйте целые выражения в подходящей социальной ситуации."; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Menim adım ..."; Gloss = "Меня зовут ..."; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "Siziñ adınız ne?"; Gloss = "Как Вас зовут? (вежливо)"; SourceLocator = $curriculumSource }
-            @{ Kind = "VOCABULARY"; Position = 3; Term = "Tanışqanımdan pek memnünim!"; Gloss = "Очень приятно познакомиться!"; SourceLocator = $curriculumSource }
-            @{ Kind = "VOCABULARY"; Position = 4; Term = "Men de."; Gloss = "Мне тоже."; SourceLocator = $curriculumSource }
-            @{ Kind = "EXAMPLE"; Position = 5; Text = "A: Merhaba! Menim adım Ali. Siziñ adınız ne? — Привет! Меня зовут Али. Как Вас зовут? / B: Menim adım Ayshe. — Меня зовут Айше. / A: Tanışqanımdan pek memnünim! — Очень приятно познакомиться! / B: Men de. — Мне тоже."; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 3; Term = "Tanış etmege musaade etiñiz!"; Gloss = "Позвольте представиться!"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 4; Term = "Tanışqanımdan pek memnünim!"; Gloss = "Очень приятно познакомиться!"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 5; Term = "Bu — menim qomşum."; Gloss = "Это мой сосед / моя соседка."; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 6; Term = "Men de."; Gloss = "Мне тоже."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXPLANATION"; Position = 7; Text = "Постройте знакомство в логичном порядке: поздоровайтесь, назовите своё имя, спросите имя собеседника, затем обменяйтесь фразами вежливости. Если вы знакомите двух людей, можно добавить Bu — menim qomşum. — «Это мой сосед / моя соседка». Не забудьте, что Siziñ adınız ne? — вежливый вопрос, а имя меняется в зависимости от того, кого вы представляете."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXAMPLE"; Position = 8; Text = "A: Merhaba! Menim adım Ali. Siziñ adınız ne? — Здравствуйте! Меня зовут Али. Как Вас зовут? / B: Menim adım Ayshe. — Меня зовут Айше. / A: Tanışqanımdan pek memnünim! — Очень приятно познакомиться! / B: Men de. — Мне тоже."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXAMPLE"; Position = 9; Text = "A: Bu — menim qomşum, Ayshe. — Это моя соседка, Айше. / B: Merhaba, Ayshe! — Здравствуйте, Айше! / Ayshe: Merhaba!"; SourceLocator = $curriculumSource }
         )
         Exercises = @(
-            @{ Id = "intro-1"; Position = 0; Prompt = "Как сказать «Меня зовут Али» по-крымскотатарски?"; ExpectedAnswers = @("Menim adım Ali", "Menim adım Ali.") }
+            @{ Id = "intro-1"; Position = 0; Prompt = "Как сказать «Меня зовут Али»?"; ExpectedAnswers = @("Menim adım Ali", "Menim adım Ali.") }
             @{ Id = "intro-2"; Position = 1; Prompt = "Как вежливо спросить «Как Вас зовут?»?"; ExpectedAnswers = @("Siziñ adınız ne", "Siziñ adınız ne?") }
             @{ Id = "intro-3"; Position = 2; Prompt = "Как сказать «Очень приятно познакомиться!»?"; ExpectedAnswers = @("Tanışqanımdan pek memnünim", "Tanışqanımdan pek memnünim!") }
+            @{ Id = "intro-4"; Position = 3; Prompt = "Как вежливо начать знакомство словами «Позвольте представиться»?"; ExpectedAnswers = @("Tanış etmege musaade etiñiz", "Tanış etmege musaade etiñiz!") }
+            @{ Id = "intro-5"; Position = 4; Prompt = "Как сказать «Это мой сосед / моя соседка»?"; ExpectedAnswers = @("Bu — menim qomşum", "Bu menim qomşum", "Bu — menim qomşum.") }
+            @{ Id = "intro-6"; Position = 5; Prompt = "Составьте две реплики: «Меня зовут Айше. Как Вас зовут?»"; ExpectedAnswers = @("Menim adım Ayshe. Siziñ adınız ne?", "Menim adım Ayshe Siziñ adınız ne") }
         )
     }
 )
 
-Write-Host "Creating a four-lesson beginner course with Russian explanations, vocabulary, dialogues, and three exercises per lesson..."
+Write-Host "Creating a four-lesson beginner course with Russian explanations, vocabulary, dialogues, and six exercises per lesson..."
 $course = Invoke-TildashRequest -Method "POST" -Path "/api/v1/content/nodes" -Headers $teacher -Body @{
     kind = "COURSE"
     parentId = $null
@@ -408,14 +434,14 @@ foreach ($record in $createdLessons) {
     if (@($package.materials).Count -lt 3) {
         throw "Lesson '$($record.Plan.Title)' did not return its explanation, vocabulary, and example blocks."
     }
-    if (@($package.exercises).Count -lt 3) {
-        throw "Lesson '$($record.Plan.Title)' did not return all three practice exercises."
+    if (@($package.exercises).Count -lt 6) {
+        throw "Lesson '$($record.Plan.Title)' did not return all six practice exercises."
     }
 }
 
 Write-Host ""
 Write-Host ("Ready to explore: " + $demoTitle)
-Write-Host "The published course contains four lessons, Russian explanations, vocabulary, bilingual examples, and twelve exercises."
+Write-Host "The published course contains four lessons, Russian explanations, vocabulary, bilingual examples, and twenty-four exercises."
 Write-Host "The backend stays open in its own PowerShell window."
 Write-Host "Starting Desktop. Open Catalog, download the first lesson, and study its material before practising."
 Write-Host ""
