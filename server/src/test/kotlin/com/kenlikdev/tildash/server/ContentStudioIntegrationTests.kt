@@ -211,6 +211,7 @@ class ContentStudioIntegrationTests {
                 parentId = lessonId,
                 value = "Learn the phrase before practising.",
                 position = 0,
+                sourceLocale = "ru",
             )
         createNode(
             kind = "EXAMPLE",
@@ -238,8 +239,11 @@ class ContentStudioIntegrationTests {
                 ).andExpect(status().isOk)
                 .andExpect(jsonPath("$.materials.length()").value(3))
                 .andExpect(jsonPath("$.materials[0].kind").value("EXPLANATION"))
+                .andExpect(jsonPath("$.materials[0].sourceLocale").value("ru"))
                 .andExpect(jsonPath("$.materials[0].text").value("Learn the phrase before practising."))
                 .andExpect(jsonPath("$.materials[1].kind").value("EXAMPLE"))
+                .andExpect(jsonPath("$.materials[1].sourceLocale").value("crh"))
+                .andExpect(jsonPath("$.materials[2].sourceLocale").value("crh"))
                 .andExpect(jsonPath("$.materials[2].term").value("Merhaba"))
                 .andExpect(jsonPath("$.materials[2].gloss").value("Привет"))
 
@@ -693,6 +697,7 @@ class ContentStudioIntegrationTests {
         seedExercise: Boolean = true,
         seedExplanation: Boolean = true,
         position: Int = 0,
+        sourceLocale: String = "crh",
         payloadOverride: Map<String, Any?>? = null,
     ): String {
         val payload =
@@ -712,7 +717,7 @@ class ContentStudioIntegrationTests {
                                 mapOf(
                                     "kind" to kind,
                                     "parentId" to parentId,
-                                    "sourceLocale" to "crh",
+                                    "sourceLocale" to sourceLocale,
                                     "position" to position,
                                     "payload" to payload,
                                     "provenance" to

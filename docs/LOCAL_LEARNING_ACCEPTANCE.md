@@ -16,7 +16,7 @@ Then run:
 
     .\scripts\run-local-learning-demo.ps1
 
-The script publishes a timestamped four-lesson beginner course through the real authoring, validation, review, and publication API. Every lesson has a Russian explanation, Crimean Tatar vocabulary with Russian glosses, two example dialogues, and six exercises. The script verifies the learner catalog and all four lesson packages before launching Desktop.
+The script publishes a timestamped four-lesson beginner course through the real authoring, validation, review, and publication API. Every lesson has a Russian explanation, Crimean Tatar vocabulary with Russian glosses, two example dialogues, and six exercises. The script publishes a timestamped four-lesson beginner course through the real authoring, validation, review, and publication API. Every lesson has Russian explanations, Crimean Tatar vocabulary with Russian glosses, two example dialogues, and six exercises. It verifies that explanation blocks remain tagged with locale ru while vocabulary/examples remain crh in the learner API, then checks all four lesson packages before launching Desktop.
 
 The development-role headers are only for local acceptance. The script binds the backend and database to loopback; do not expose the development backend to a shared or public network.
 

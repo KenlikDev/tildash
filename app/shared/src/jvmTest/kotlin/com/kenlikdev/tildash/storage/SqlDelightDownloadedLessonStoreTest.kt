@@ -105,7 +105,7 @@ class SqlDelightDownloadedLessonStoreTest {
                     id = ContentId("550e8400-e29b-41d4-a716-446655440104"),
                     kind = ContentKind.EXPLANATION,
                     position = 0,
-                    sourceLocale = LanguageTag("crh"),
+                    sourceLocale = LanguageTag("ru"),
                     payload = ContentPayload.Text("Greetings depend on context."),
                 ),
                 LearnerLessonMaterial(

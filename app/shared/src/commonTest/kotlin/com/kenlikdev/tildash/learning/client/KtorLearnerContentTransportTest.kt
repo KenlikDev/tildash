@@ -162,7 +162,7 @@ class KtorLearnerContentTransportTest {
                                       "id": "550e8400-e29b-41d4-a716-446655440010",
                                       "kind": "EXPLANATION",
                                       "position": 0,
-                                      "sourceLocale": "crh",
+                                      "sourceLocale": "ru",
                                       "text": "Read the phrase before practising."
                                     },
                                     {
@@ -205,6 +205,10 @@ class KtorLearnerContentTransportTest {
                 assertEquals(
                     listOf(ContentKind.EXPLANATION, ContentKind.VOCABULARY),
                     packageData.materials.map { it.kind },
+                )
+                assertEquals(
+                    listOf("ru", "crh"),
+                    packageData.materials.map { it.sourceLocale.value },
                 )
                 assertEquals(
                     ContentPayload.Text("Read the phrase before practising."),

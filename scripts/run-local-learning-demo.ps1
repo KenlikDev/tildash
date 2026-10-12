@@ -435,6 +435,14 @@ foreach ($record in $createdLessons) {
     if (@($package.materials).Count -lt 8) {
         throw "Lesson '$($record.Plan.Title)' did not return its complete ordered teaching material."
     }
+    $explanations = @($package.materials | Where-Object { $_.kind -eq "EXPLANATION" })
+    if ($explanations.Count -lt 2 -or @($explanations | Where-Object { $_.sourceLocale -ne "ru" }).Count -ne 0) {
+        throw "Lesson '$($record.Plan.Title)' did not preserve Russian explanation language metadata."
+    }
+    $learningLanguageMaterials = @($package.materials | Where-Object { $_.kind -ne "EXPLANATION" })
+    if ($learningLanguageMaterials.Count -lt 6 -or @($learningLanguageMaterials | Where-Object { $_.sourceLocale -ne "crh" }).Count -ne 0) {
+        throw "Lesson '$($record.Plan.Title)' did not preserve Crimean Tatar material language metadata."
+    }
     if (@($package.exercises).Count -lt 6) {
         throw "Lesson '$($record.Plan.Title)' did not return all six practice exercises."
     }
