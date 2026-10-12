@@ -116,19 +116,19 @@ class AppUserJourneyTest {
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm")
             onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("3 / 6").assertIsDisplayed()
-            onNodeWithText("Какое приветствие обычно предшествует ответу «Aleyküm selâm!»?").performScrollTo().assertIsDisplayed()
+            onNodeWithText("По-русски объясните, чем является «Aleyküm selâm!» в разговоре.").performScrollTo().assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm aleyküm")
+            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Ответ на традиционное приветствие")
             onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("4 / 6").assertIsDisplayed()
-            onNodeWithText("Дополните диалог: A: Selâm aleyküm! B: ...").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Что выражает традиционное «Selâm aleyküm!» в отличие от короткого «Selâm!»?").performScrollTo().assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Aleyküm selâm")
+            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Уважительное приветствие")
             onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("5 / 6").assertIsDisplayed()
-            onNodeWithText("Вы знакомитесь со старшим человеком. Напишите традиционное уважительное приветствие.").performScrollTo().assertIsDisplayed()
+            onNodeWithText("Составьте короткий вежливый диалог приветствия и ответа, разделив реплики символом /.").performScrollTo().assertIsDisplayed()
 
-            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm aleyküm")
+            onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm aleyküm! / Aleyküm selâm!")
             onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("Completed").performScrollTo().assertIsDisplayed()
             onNodeWithText("Lesson complete.").performScrollTo().assertIsDisplayed()
@@ -210,20 +210,20 @@ class AppUserJourneyTest {
                                 ManualInputExercise(
                                     id = "exercise-4",
                                     contentId = lesson.id,
-                                    prompt = "Какое приветствие обычно предшествует ответу «Aleyküm selâm!»?",
-                                    expectedAnswers = listOf("Selâm aleyküm", "Selâm aleyküm!"),
+                                    prompt = "По-русски объясните, чем является «Aleyküm selâm!» в разговоре.",
+                                    expectedAnswers = listOf("Ответ на традиционное приветствие", "Ответ на «Selâm aleyküm!»", "Ответ на приветствие"),
                                 ),
                                 ManualInputExercise(
                                     id = "exercise-5",
                                     contentId = lesson.id,
-                                    prompt = "Дополните диалог: A: Selâm aleyküm! B: ...",
-                                    expectedAnswers = listOf("Aleyküm selâm", "Aleyküm selâm!"),
+                                    prompt = "Что выражает традиционное «Selâm aleyküm!» в отличие от короткого «Selâm!»?",
+                                    expectedAnswers = listOf("Уважительное приветствие", "Выражает уважение"),
                                 ),
                                 ManualInputExercise(
                                     id = "exercise-6",
                                     contentId = lesson.id,
-                                    prompt = "Вы знакомитесь со старшим человеком. Напишите традиционное уважительное приветствие.",
-                                    expectedAnswers = listOf("Selâm aleyküm", "Selâm aleyküm!"),
+                                    prompt = "Составьте короткий вежливый диалог приветствия и ответа, разделив реплики символом /.",
+                                    expectedAnswers = listOf("Selâm aleyküm! / Aleyküm selâm!", "Selâm aleyküm / Aleyküm selâm"),
                                 ),
                             ),
                     ),

@@ -260,9 +260,9 @@ $lessonPlans = @(
             @{ Id = "greetings-1"; Position = 0; Prompt = "Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?"; ExpectedAnswers = @("Merhaba", "Merhaba!") }
             @{ Id = "greetings-2"; Position = 1; Prompt = "Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие."; ExpectedAnswers = @("Aleyküm selâm", "Aleyküm selâm!") }
             @{ Id = "greetings-3"; Position = 2; Prompt = "Вы встретили друга. Напишите короткое неформальное приветствие."; ExpectedAnswers = @("Selâm", "Selâm!", "Meraba", "Meraba!") }
-            @{ Id = "greetings-4"; Position = 3; Prompt = "Какое приветствие обычно предшествует ответу «Aleyküm selâm!»?"; ExpectedAnswers = @("Selâm aleyküm", "Selâm aleyküm!") }
-            @{ Id = "greetings-5"; Position = 4; Prompt = "Дополните диалог: A: Selâm aleyküm! B: ..."; ExpectedAnswers = @("Aleyküm selâm", "Aleyküm selâm!") }
-            @{ Id = "greetings-6"; Position = 5; Prompt = "Вы знакомитесь со старшим человеком. Напишите традиционное уважительное приветствие."; ExpectedAnswers = @("Selâm aleyküm", "Selâm aleyküm!") }
+            @{ Id = "greetings-4"; Position = 3; Prompt = "По-русски объясните, чем является «Aleyküm selâm!» в разговоре."; ExpectedAnswers = @("Ответ на традиционное приветствие", "Ответ на «Selâm aleyküm!»", "Ответ на приветствие") }
+            @{ Id = "greetings-5"; Position = 4; Prompt = "Что выражает традиционное «Selâm aleyküm!» в отличие от короткого «Selâm!»?"; ExpectedAnswers = @("Уважительное приветствие", "Выражает уважение") }
+            @{ Id = "greetings-6"; Position = 5; Prompt = "Составьте короткий вежливый диалог приветствия и ответа, разделив реплики символом /."; ExpectedAnswers = @("Selâm aleyküm! / Aleyküm selâm!", "Selâm aleyküm / Aleyküm selâm") }
         )
     }
     @{
@@ -285,7 +285,7 @@ $lessonPlans = @(
             @{ Id = "daily-3"; Position = 2; Prompt = "Как сказать «Доброго вам вечера!»?"; ExpectedAnswers = @("Aqşamıñız hayırlı olsun", "Aqşamıñız hayırlı olsun!") }
             @{ Id = "daily-4"; Position = 3; Prompt = "Как пожелать собеседнику доброй ночи?"; ExpectedAnswers = @("Geceler hayır", "Geceler hayır!") }
             @{ Id = "daily-5"; Position = 4; Prompt = "Вы встретили друга днём. Напишите короткое неформальное приветствие."; ExpectedAnswers = @("Selâm", "Selâm!", "Meraba", "Meraba!") }
-            @{ Id = "daily-6"; Position = 5; Prompt = "Вы прощаетесь поздно вечером и желаете доброй ночи. Какая фраза подходит?"; ExpectedAnswers = @("Geceler hayır", "Geceler hayır!") }
+            @{ Id = "daily-6"; Position = 5; Prompt = "Заполните пропуск в пожелании доброго дня: Künüñiz ___ olsun!"; ExpectedAnswers = @("hayırlı") }
         )
     }
     @{
