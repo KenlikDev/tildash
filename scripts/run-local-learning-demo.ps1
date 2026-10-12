@@ -251,7 +251,7 @@ $lessonPlans = @(
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Merhaba!"; Gloss = "Привет! / Здравствуйте!"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "Selâm aleyküm!"; Gloss = "Традиционное приветствие"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Aleyküm selâm!"; Gloss = "Ответ на «Selâm aleyküm!»"; SourceLocator = $curriculumSource }
-            @{ Kind = "EXAMPLE"; Position = 4; Text = "A: Selâm aleyküm! — Здравствуйте! / B: Aleyküm selâm! — И вам здравствуйте! / A: Merhaba! — Привет!"; SourceLocator = $curriculumSource }
+            @{ Kind = "EXAMPLE"; Position = 4; Text = "A: Selâm aleyküm! — Здравствуйте! / B: Aleyküm selâm! — И вам здравствуйте!"; SourceLocator = $curriculumSource }
         )
         Exercises = @(
             @{ Id = "greetings-1"; Position = 0; Prompt = "Как по-крымскотатарски сказать «Привет!» или «Здравствуйте!»?"; ExpectedAnswers = @("Merhaba", "Merhaba!") }
@@ -284,7 +284,7 @@ $lessonPlans = @(
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Körüşkence!"; Gloss = "До встречи!"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 4; Term = "Sağlıqnen qalıñız"; Gloss = "До свидания! (уходящий говорит остающимся)"; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 5; Term = "Sağlıqnen barıñız"; Gloss = "До свидания! (говорят уходящему)"; SourceLocator = $etiquetteSource }
-            @{ Kind = "EXAMPLE"; Position = 6; Text = "A: Sağ oluñız! — Спасибо вам! / B: Sağlıqnen qalıñız! — До свидания! / A: Körüşkence! — До встречи!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXAMPLE"; Position = 6; Text = "A: Sağ ol! — Спасибо! / A: Sağlıqnen qalıñız! — До свидания! / B: Sağlıqnen barıñız! — И вам до свидания! / A: Körüşkence! — До встречи!"; SourceLocator = $etiquetteSource }
         )
         Exercises = @(
             @{ Id = "farewell-1"; Position = 0; Prompt = "Как вежливо сказать «Спасибо вам»?"; ExpectedAnswers = @("Sağ oluñız", "Sağ oluñız!") }
@@ -295,7 +295,7 @@ $lessonPlans = @(
     @{
         Title = "Знакомство и представление себя"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель: представиться, вежливо спросить имя собеседника и ответить на знакомство. Menim adım ... означает «Меня зовут ...». Siziñ adınız ne? — вежливый вопрос «Как Вас зовут?». Tanışqanımdan pek memnünim! означает «Очень приятно познакомиться!». На такое приветствие можно ответить Men de. — «Мне тоже»."; SourceLocator = $curriculumSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель: представиться, вежливо спросить имя собеседника и ответить на знакомство. Menim adım ... означает «Меня зовут ...». Siziñ adınız ne? — вежливый вопрос «Как Вас зовут?». Tanışqanımdan pek memnünim! означает «Очень приятно познакомиться!». В ответ на эту фразу можно сказать Men de. — «Мне тоже»."; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Menim adım ..."; Gloss = "Меня зовут ..."; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "Siziñ adınız ne?"; Gloss = "Как Вас зовут? (вежливо)"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Tanışqanımdan pek memnünim!"; Gloss = "Очень приятно познакомиться!"; SourceLocator = $curriculumSource }
