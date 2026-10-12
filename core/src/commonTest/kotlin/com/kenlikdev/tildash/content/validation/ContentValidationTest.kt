@@ -27,6 +27,7 @@ class ContentValidationTest {
     private val exampleId = ContentId("550e8400-e29b-41d4-a716-446655440002")
     private val vocabularyId = ContentId("550e8400-e29b-41d4-a716-446655440003")
     private val mediaId = ContentId("550e8400-e29b-41d4-a716-446655440004")
+    private val explanationId = ContentId("550e8400-e29b-41d4-a716-446655440005")
     private val author = PersonReference("Author")
 
     @Test
@@ -399,6 +400,22 @@ class ContentValidationTest {
     }
 
     @Test
+    fun lessonWithoutExplanationIsRejected() {
+        val input =
+            validInput(
+                nodes = defaultNodes().filterNot { it.id == explanationId },
+                sourceRevisions = defaultRevisions().filterNot { it.contentId == explanationId },
+            )
+
+        val result = validator.validateLesson(input)
+
+        assertEquals(ReviewOutcome.FAIL, result.outcome)
+        assertHasCode(result, ValidationCode.MISSING_LESSON_EXPLANATION)
+        assertFalse(result.canSubmit)
+        assertFalse(result.canPublish)
+    }
+
+    @Test
     fun validCoursePassesWithoutRequiringLessonExercises() {
         val result = validator.validateCourse(validCourseInput())
 
@@ -452,6 +469,7 @@ class ContentValidationTest {
             node(exampleId, ContentKind.EXAMPLE, lessonId, 1),
             node(vocabularyId, ContentKind.VOCABULARY, lessonId, 2),
             node(mediaId, ContentKind.MEDIA_REFERENCE, lessonId, 3),
+            node(explanationId, ContentKind.EXPLANATION, lessonId, 4),
         )
 
     private fun defaultRevisions() =
@@ -470,6 +488,12 @@ class ContentValidationTest {
                 1,
                 CopyrightStatus.LICENSED,
                 ContentPayload.MediaReference("https://example.com/audio.mp3", "audio/mpeg"),
+            ),
+            sourceRevision(
+                explanationId,
+                1,
+                CopyrightStatus.LICENSED,
+                ContentPayload.Text("Study the phrase before practice."),
             ),
         )
 

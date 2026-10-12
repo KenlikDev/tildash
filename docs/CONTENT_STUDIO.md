@@ -12,7 +12,7 @@ Each source revision stores a provenance snapshot. Draft editing is append-only 
 
 Preview reads the latest source revision without changing workflow state.
 
-A lesson can contain EXPLANATION, EXAMPLE, and VOCABULARY child nodes. The learner client renders these ordered materials before the lesson's executable exercises.
+A lesson must contain at least one EXPLANATION child before it can be submitted for review. It can also contain EXAMPLE and VOCABULARY child nodes. The learner client renders these ordered materials before the lesson's executable exercises.
 
 ## Review lifecycle
 

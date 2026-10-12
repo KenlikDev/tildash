@@ -43,6 +43,7 @@ enum class ValidationCode {
     EXERCISE_OPTION_SET_INVALID,
     EXPECTED_ANSWER_NOT_IN_OPTIONS,
     EMPTY_LESSON_EXERCISES,
+    MISSING_LESSON_EXPLANATION,
 }
 
 data class ValidationIssue(
@@ -232,6 +233,14 @@ class ContentValidator {
                             ValidationCode.EMPTY_LESSON_EXERCISES,
                             "Lesson '${target.id.value}' must define at least one exercise.",
                             "exercises",
+                        )
+                }
+                if (input.nodes.none { it.parentId == target.id && it.kind == ContentKind.EXPLANATION }) {
+                    issues +=
+                        validationError(
+                            ValidationCode.MISSING_LESSON_EXPLANATION,
+                            "Lesson '${target.id.value}' must contain at least one explanation before it can be submitted for review.",
+                            "materials",
                         )
                 }
             }

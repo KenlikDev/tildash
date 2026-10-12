@@ -80,7 +80,7 @@ Media references additionally require:
 
 The validator does not perform network access. Reachability and storage policy are separate infrastructure concerns.
 
-EXPLANATION nodes are instructional prose shown before practice. EXAMPLE nodes contain illustrative source text, while VOCABULARY nodes require a term and gloss.
+A lesson must have at least one direct-child EXPLANATION node before submission. This is the minimum instructional body shown before practice; a lesson with only a title and exercises is incomplete and cannot enter review. EXAMPLE nodes contain illustrative source text, while VOCABULARY nodes require a term and gloss.
 
 ### Exercises
 

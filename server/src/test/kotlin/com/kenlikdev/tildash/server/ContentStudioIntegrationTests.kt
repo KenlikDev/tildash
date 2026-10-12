@@ -204,7 +204,7 @@ class ContentStudioIntegrationTests {
     @Test
     fun publishedLessonIncludesImmutableTeachingMaterials() {
         val courseId = createNode("COURSE", null, "Crimean Tatar greetings", seedExercise = false)
-        val lessonId = createNode("LESSON", courseId, "Greetings")
+        val lessonId = createNode("LESSON", courseId, "Greetings", seedExplanation = false)
         val explanationId =
             createNode(
                 kind = "EXPLANATION",
@@ -691,6 +691,7 @@ class ContentStudioIntegrationTests {
         copyrightStatus: String = "LICENSED",
         includeLicense: Boolean = true,
         seedExercise: Boolean = true,
+        seedExplanation: Boolean = true,
         position: Int = 0,
         payloadOverride: Map<String, Any?>? = null,
     ): String {
@@ -730,6 +731,17 @@ class ContentStudioIntegrationTests {
         val response = objectMapper.readTree(result.response.contentAsString)
         val id = response.get("id")?.asText()
         assertNotNull(id)
+
+        if (kind == "LESSON" && seedExplanation) {
+            createNode(
+                kind = "EXPLANATION",
+                parentId = id,
+                value = "Study the lesson material before practice.",
+                position = 1000,
+                seedExercise = false,
+                seedExplanation = false,
+            )
+        }
 
         if (kind == "LESSON" && seedExercise) {
             mockMvc
