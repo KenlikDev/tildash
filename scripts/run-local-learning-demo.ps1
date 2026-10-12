@@ -278,17 +278,17 @@ $lessonPlans = @(
     @{
         Title = "Thanking and saying goodbye"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "'Sağ ol' is an informal way to say thank you; 'Sağ oluñız' is the polite form. 'Körüskence!' means 'See you!'. In a farewell, 'Sağlıqnen qalıñız' is said by a person leaving to those staying; 'Sağlıqnen barıñız' is said to the person who is leaving."; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "'Sağ ol' is an informal way to say thank you; 'Sağ oluñız' is the polite form. 'Körüşkence!' means 'See you!'. In a farewell, 'Sağlıqnen qalıñız' is said by a person leaving to those staying; 'Sağlıqnen barıñız' is said to the person who is leaving."; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Sağ ol"; Gloss = "Спасибо (неформально)"; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "Sağ oluñız"; Gloss = "Спасибо (вежливо)"; SourceLocator = $curriculumSource }
-            @{ Kind = "VOCABULARY"; Position = 3; Term = "Körüskence!"; Gloss = "До встречи!"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 3; Term = "Körüşkence!"; Gloss = "До встречи!"; SourceLocator = $curriculumSource }
             @{ Kind = "VOCABULARY"; Position = 4; Term = "Sağlıqnen qalıñız"; Gloss = "До свидания! (уходящий говорит остающимся)"; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 5; Term = "Sağlıqnen barıñız"; Gloss = "До свидания! (говорят уходящему)"; SourceLocator = $etiquetteSource }
-            @{ Kind = "EXAMPLE"; Position = 6; Text = "A: Sağ oluñız! — Спасибо вам! / B: Sağlıqnen qalıñız! — До свидания! / A: Körüskence! — До встречи!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXAMPLE"; Position = 6; Text = "A: Sağ oluñız! — Спасибо вам! / B: Sağlıqnen qalıñız! — До свидания! / A: Körüşkence! — До встречи!"; SourceLocator = $etiquetteSource }
         )
         Exercises = @(
             @{ Id = "farewell-1"; Position = 0; Prompt = "Type the polite form of 'Thank you'."; ExpectedAnswers = @("Sağ oluñız", "Sağ oluñız!") }
-            @{ Id = "farewell-2"; Position = 1; Prompt = "Translate 'See you!' into Crimean Tatar."; ExpectedAnswers = @("Körüskence", "Körüskence!") }
+            @{ Id = "farewell-2"; Position = 1; Prompt = "Translate 'See you!' into Crimean Tatar."; ExpectedAnswers = @("Körüşkence", "Körüşkence!") }
             @{ Id = "farewell-3"; Position = 2; Prompt = "You are leaving and say goodbye to the people staying. Type the phrase."; ExpectedAnswers = @("Sağlıqnen qalıñız", "Sağlıqnen qalıñız!") }
         )
     }
