@@ -20,6 +20,7 @@ class LearnerContentApplication(
                 lesson = packageData.lesson,
                 plan = packageData.plan,
                 downloadedAt = clock.now(),
+                materials = packageData.materials,
             )
         downloadedLessonStore.save(downloadedLesson)
         return downloadedLesson

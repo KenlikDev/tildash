@@ -202,6 +202,61 @@ class ContentStudioIntegrationTests {
     }
 
     @Test
+    fun publishedLessonIncludesImmutableTeachingMaterials() {
+        val courseId = createNode("COURSE", null, "Crimean Tatar greetings", seedExercise = false)
+        val lessonId = createNode("LESSON", courseId, "Greetings")
+        val explanationId =
+            createNode(
+                kind = "EXPLANATION",
+                parentId = lessonId,
+                value = "Learn the phrase before practising.",
+                position = 0,
+            )
+        createNode(
+            kind = "EXAMPLE",
+            parentId = lessonId,
+            value = "A: Merhaba! B: Selâm!",
+            position = 1,
+        )
+        createNode(
+            kind = "VOCABULARY",
+            parentId = lessonId,
+            value = "Merhaba",
+            position = 2,
+            payloadOverride = mapOf("type" to "VOCABULARY", "term" to "Merhaba", "gloss" to "Привет"),
+        )
+
+        publishCourse(courseId)
+        publishLesson(lessonId)
+
+        fun requestPackage() =
+            mockMvc
+                .perform(
+                    get("/api/v1/learning/lessons/$lessonId")
+                        .with(user("learner").roles("LEARNER"))
+                        .accept(MediaType.APPLICATION_JSON),
+                ).andExpect(status().isOk)
+                .andExpect(jsonPath("$.materials.length()").value(3))
+                .andExpect(jsonPath("$.materials[0].kind").value("EXPLANATION"))
+                .andExpect(jsonPath("$.materials[0].text").value("Learn the phrase before practising."))
+                .andExpect(jsonPath("$.materials[1].kind").value("EXAMPLE"))
+                .andExpect(jsonPath("$.materials[2].term").value("Merhaba"))
+                .andExpect(jsonPath("$.materials[2].gloss").value("Привет"))
+
+        requestPackage()
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$explanationId/source-revisions")
+                    .with(user("teacher").roles("TEACHER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(revisionRequest("A changed draft, not the published lesson."))),
+            ).andExpect(status().isCreated)
+
+        requestPackage()
+    }
+
+    @Test
     fun teacherCanPublishCourseThroughSameReviewLifecycle() {
         val courseId = createNode("COURSE", null, "Course")
 
@@ -636,7 +691,15 @@ class ContentStudioIntegrationTests {
         copyrightStatus: String = "LICENSED",
         includeLicense: Boolean = true,
         seedExercise: Boolean = true,
+        position: Int = 0,
+        payloadOverride: Map<String, Any?>? = null,
     ): String {
+        val payload =
+            payloadOverride ?: when (kind) {
+                "VOCABULARY" -> mapOf("type" to "VOCABULARY", "term" to value, "gloss" to "Gloss for $value")
+                "MEDIA_REFERENCE" -> mapOf("type" to "MEDIA_REFERENCE", "uri" to value, "mediaType" to "text/plain")
+                else -> mapOf("type" to "TEXT", "value" to value)
+            }
         val result =
             mockMvc
                 .perform(
@@ -649,12 +712,8 @@ class ContentStudioIntegrationTests {
                                     "kind" to kind,
                                     "parentId" to parentId,
                                     "sourceLocale" to "crh",
-                                    "position" to 0,
-                                    "payload" to
-                                        mapOf(
-                                            "type" to "TEXT",
-                                            "value" to value,
-                                        ),
+                                    "position" to position,
+                                    "payload" to payload,
                                     "provenance" to
                                         mapOf(
                                             "sourceTitle" to "Test source",

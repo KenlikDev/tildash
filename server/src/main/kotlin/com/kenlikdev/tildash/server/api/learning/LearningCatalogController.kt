@@ -1,6 +1,8 @@
 package com.kenlikdev.tildash.server.api.learning
 
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentPayload
 import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.ManualInputExercise
@@ -139,6 +141,39 @@ private fun LearnerLessonPackage.toResponse(): LearningLessonPackageResponse =
                                 exercise::class.simpleName,
                         )
                     }
+                }
+            },
+        materials =
+            materials.map { material ->
+                when (material.kind) {
+                    ContentKind.EXPLANATION,
+                    ContentKind.EXAMPLE,
+                    -> {
+                        val payload = material.payload as? ContentPayload.Text
+                            ?: error("Text lesson material has an incompatible payload.")
+                        LearnerLessonMaterialResponse(
+                            id = material.id.value,
+                            kind = material.kind.name,
+                            position = material.position,
+                            sourceLocale = material.sourceLocale.value,
+                            text = payload.value,
+                        )
+                    }
+
+                    ContentKind.VOCABULARY -> {
+                        val payload = material.payload as? ContentPayload.Vocabulary
+                            ?: error("Vocabulary lesson material has an incompatible payload.")
+                        LearnerLessonMaterialResponse(
+                            id = material.id.value,
+                            kind = material.kind.name,
+                            position = material.position,
+                            sourceLocale = material.sourceLocale.value,
+                            term = payload.term,
+                            gloss = payload.gloss,
+                        )
+                    }
+
+                    else -> error("Unsupported learner lesson material kind: " + material.kind)
                 }
             },
     )

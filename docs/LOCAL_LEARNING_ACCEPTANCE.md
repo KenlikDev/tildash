@@ -4,62 +4,52 @@
 
 Requirements: Windows PowerShell 5.1, JDK 21, Docker Desktop running, and local ports 5432 and 8080 available.
 
-First, preserve any local work and update the checkout to the task branch:
+Preserve uncommitted work and update the task branch from the repository root:
 
     git status --short
     git fetch origin
     git switch feat/learning-real-vertical-slice
     git pull --ff-only origin feat/learning-real-vertical-slice
+    git rev-parse HEAD
 
-From the repository root, run:
+Then run:
 
     .\scripts\run-local-learning-demo.ps1
 
-The script starts PostgreSQL, starts or reuses a healthy backend bound to loopback, creates and publishes a timestamped course and lesson through the real authoring/review/publish API, verifies the learner catalog and lesson package, and launches the Desktop UI. The development-role headers are for isolated local acceptance only; do not expose the development backend to a shared or public network.
+The script publishes a three-lesson beginner course through the real authoring, validation, review and publication API. Each lesson contains an explanation, a vocabulary list, a translated example dialogue and three exercises. The learner API is checked for all three lessons and their materials before the Desktop app is launched.
 
-The script uses the local demo database credentials documented in `compose.yaml` and never runs `docker compose down -v` or deletes named volumes. This branch corrects the PostgreSQL 18 data mount: when Compose recreates a container made with the previous mount target, the old cluster may not be present at PostgreSQL 18's expected data path, so the recreated container may initialize a fresh local demo database. Back up any valuable local database data before rerunning; do not assume data from the old container is preserved.
+The development-role headers are only for local acceptance. The script binds the backend and database to loopback; do not expose the development backend to a shared or public network.
 
-## Manual product acceptance
+**Database caution:** this branch corrects the PostgreSQL 18 data mount. If Compose recreates a container created with the old mount target, its old database cluster may not be found at the new expected path, and the new container may initialize a fresh local demo database. Back up any valuable local database data before rerunning. The script does not run `docker compose down -v` and does not delete named volumes.
 
-Exercise this order; it intentionally checks re-download **before** completing the lesson because learning progress must survive removing the downloaded content package.
+## What to test in Desktop
 
-1. In Catalog, confirm the timestamped course and its “Greetings” lesson appear.
-2. Click Download. Wait for the action to change to Open.
-3. Click Downloaded and open the lesson.
-4. Confirm the exercise prompt, answer field, progress indicator, and Check answer button appear.
-5. Submit an incorrect answer. “Try again” must appear, and the exercise must remain active.
-6. Return to lessons, click Remove, and confirm the downloaded list is empty.
-7. Return to Catalog, download the same lesson again, open Downloaded, and open the lesson. The exercise prompt and answer field must be restored.
-8. While the lesson is still active, stop the backend from its separate PowerShell window with Ctrl+C. Return to the open Desktop app and submit “merhaba”. The lesson must show Completed and “Lesson complete.” while the backend is stopped. This verifies answering offline using the downloaded package.
-9. Close Desktop while leaving the backend stopped.
-10. Restart Desktop using the explicit offline command below. Catalog may show a connection error; open Downloaded and verify the lesson remains present and opens as Completed. Progress is durable and therefore must not reset to an active exercise after restart.
+1. In Catalog, open the course titled “Crimean Tatar: First Conversations” with a timestamp.
+2. Confirm three lessons are listed: “Greetings and polite replies”, “Morning greetings and how things are”, and “Thanking and saying goodbye”.
+3. Download the first lesson and open it from Downloaded.
+4. Above Practice, verify that Study material displays an explanation, multiple vocabulary entries with Russian meanings, and an example dialogue.
+5. Work through all three exercises. An incorrect answer must show “Try again” and keep the current exercise. A correct answer must advance progress to the next exercise.
+6. Return to the catalog and download/open each remaining lesson. Each has different material and three exercises, not just a renamed copy of the first lesson.
+7. Remove one downloaded lesson and download it again. Its explanation, vocabulary and example must be restored from the published lesson package.
+8. With a lesson downloaded and not yet completed, stop the backend from its PowerShell window with Ctrl+C. Continue answering the active lesson while offline.
+9. Close and restart Desktop while the backend remains stopped. Downloaded content and saved progress must remain available.
 
-The remove/re-download step happens before the correct answer on purpose. Removing a package does not erase durable learning attempts; once the correct answer is saved, reopening the same lesson version should show Completed.
+## Expected content
 
-After testing, restart the backend by rerunning the demo script when online catalog/download behavior is needed. Stop PostgreSQL, if desired, from the repository root with:
+The course teaches short introductory interactions: greetings and conventional replies, asking how things are, responding “good / not good”, thanking informally and politely, and context-appropriate farewells. The language examples are grounded in the Crimean Tatar model curriculum and language-etiquette references listed below; the explanations, lesson structure and exercises are authored for this demo.
 
-    docker compose stop postgres
+Curriculum reference: https://mon.gov.ua/static-objects/mon/sites/1/informatsia-dla-osib-z-tot-ta-vpo/materialy-mnp/modelni-navch-programy-na-tot/integrovanii-kurs-krimskotatarskoyi-movi-ta-literaturi.pdf
 
-Each demo run creates a timestamped course so the authoring and publication path is exercised rather than bypassed by writing fixture rows directly to the database.
-
-## Explicit offline restart command
-
-After the first demo run has opened the Desktop app and you have stopped the backend as described in step 8, close Desktop. Open a new PowerShell window at the repository root and run:
-
-    $env:TILDASH_API_URL = "http://127.0.0.1:8080"
-    $env:TILDASH_DEVELOPMENT_ROLE = "learner"
-    .\gradlew.bat :app:desktopApp:run --no-configuration-cache
-
-The app should report that the catalog cannot be reached while the backend is stopped, but downloaded lesson content and local progress must remain accessible. Open Downloaded and verify the lesson state is Completed. Do not expect another answer input for a lesson version whose correct answer was already saved.
+Language-etiquette reference: https://ana-yurt.com/urok-4-rechevoy-etiket-selamlasuv-ve-miracaat-etuv
 
 ## Automated verification
 
-The Compose Desktop user journey is covered by `AppUserJourneyTest`:
+The Compose user journey includes displayed lesson material as well as practice interactions. Run the target-specific test task on Windows:
 
     .\gradlew.bat :app:shared:jvmTest --no-configuration-cache
 
-The CI workflow also parses the demo script and tests its Windows PowerShell native-command stderr handling. CI must be checked against the latest PR head SHA; older runs are not evidence for a newer commit.
+The server integration test verifies that published lesson material is returned from the immutable published-version snapshot, even if a draft child node receives a later source revision. SQLDelight tests verify that downloaded teaching materials survive a local database reopen. GitHub CI must be checked against the latest PR head SHA.
 
 ## Integration gate
 
-Keep the PR in draft until applicable CI checks are green and the project owner has manually exercised the complete flow on the local machine. Do not merge this task branch into `ai/integration` before that local acceptance. The final `ai/integration`-to-`develop` promotion requires fresh acceptance against the exact promotion PR head.
+Keep the PR in draft until the applicable CI checks pass and the project owner has completed the local acceptance path above. Do not merge this task branch into `ai/integration` before that acceptance is explicitly confirmed. The final `ai/integration`-to-`develop` promotion requires fresh acceptance against its exact PR head.

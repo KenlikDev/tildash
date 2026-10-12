@@ -239,17 +239,62 @@ function Invoke-TildashRequest {
 $teacher = @{ "X-Tildash-Development-Role" = "teacher" }
 $reviewer = @{ "X-Tildash-Development-Role" = "reviewer" }
 $learner = @{ "X-Tildash-Development-Role" = "learner" }
-$demoTitle = "Tildash Local Demo " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+$demoTitle = "Crimean Tatar: First Conversations (" + (Get-Date -Format "yyyy-MM-dd HH:mm:ss") + ")"
+$curriculumSource = "https://mon.gov.ua/static-objects/mon/sites/1/informatsia-dla-osib-z-tot-ta-vpo/materialy-mnp/modelni-navch-programy-na-tot/integrovanii-kurs-krimskotatarskoyi-movi-ta-literaturi.pdf"
+$etiquetteSource = "https://ana-yurt.com/urok-4-rechevoy-etiket-selamlasuv-ve-miracaat-etuv"
 
-if ($alreadyRunning) {
-    try {
-        $null = Invoke-TildashRequest -Method "GET" -Path "/api/v1/learning/catalog" -Headers $learner
-    } catch {
-        throw "The existing backend is healthy but does not accept the local development learner identity. Stop it and re-run this script."
+$lessonPlans = @(
+    @{
+        Title = "Greetings and polite replies"
+        Materials = @(
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Use “Merhaba!” as a general hello. “Selâm aleyküm!” is another traditional greeting; a conventional reply is “Aleyküm selâm!” Learn that pair as a greeting and response, rather than translating each word separately."; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 1; Term = "Merhaba!"; Gloss = "Привет! / Здравствуйте!"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 2; Term = "Selâm aleyküm!"; Gloss = "Традиционное приветствие"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 3; Term = "Aleyküm selâm!"; Gloss = "Ответ на «Selâm aleyküm!»"; SourceLocator = $curriculumSource }
+            @{ Kind = "EXAMPLE"; Position = 4; Text = "A: Selâm aleyküm! — Здравствуйте! / B: Aleyküm selâm! — И вам здравствуйте! / A: Merhaba! — Привет!"; SourceLocator = $curriculumSource }
+        )
+        Exercises = @(
+            @{ Id = "greetings-1"; Position = 0; Prompt = "Translate “Hello!” into Crimean Tatar."; ExpectedAnswers = @("Merhaba", "Merhaba!") }
+            @{ Id = "greetings-2"; Position = 1; Prompt = "Reply to “Selâm aleyküm!” in Crimean Tatar."; ExpectedAnswers = @("Aleyküm selâm", "Aleyküm selâm!") }
+            @{ Id = "greetings-3"; Position = 2; Prompt = "Type the traditional greeting that begins with “Selâm”."; ExpectedAnswers = @("Selâm aleyküm", "Selâm aleyküm!") }
+        )
     }
-}
+    @{
+        Title = "Morning greetings and how things are"
+        Materials = @(
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "“Sabahlar hayır!” is a morning greeting. “İşler nasıl?” asks how things are going. “Yahşı” means good or well; “yaramay” can mean not good. Try to understand a phrase in context, not as an isolated word list."; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 1; Term = "Sabahlar hayır!"; Gloss = "Доброе утро!"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 2; Term = "İşler nasıl?"; Gloss = "Как дела? / Как идут дела?"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 3; Term = "Yahşı"; Gloss = "Хорошо"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 4; Term = "Yaramay"; Gloss = "Плохо / нехорошо"; SourceLocator = $curriculumSource }
+            @{ Kind = "EXAMPLE"; Position = 5; Text = "A: Sabahlar hayır! — Доброе утро! / B: Sabahlar hayır! / A: İşler nasıl? — Как дела? / B: Yahşı, sağ ol. — Хорошо, спасибо."; SourceLocator = $curriculumSource }
+        )
+        Exercises = @(
+            @{ Id = "daily-1"; Position = 0; Prompt = "Translate “Good morning!” into Crimean Tatar."; ExpectedAnswers = @("Sabahlar hayır", "Sabahlar hayır!") }
+            @{ Id = "daily-2"; Position = 1; Prompt = "Type the question that means “How are things?”"; ExpectedAnswers = @("İşler nasıl", "İşler nasıl?") }
+            @{ Id = "daily-3"; Position = 2; Prompt = "Translate “Good / well” into Crimean Tatar."; ExpectedAnswers = @("Yahşı") }
+        )
+    }
+    @{
+        Title = "Thanking and saying goodbye"
+        Materials = @(
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "“Sağ ol” is an informal way to say thank you; “Sağ oluñız” is the polite form. “Körüskence!” means “See you!”. In a farewell, “Sağlıqnen qalıñız” is said by a person leaving to those staying; “Sağlıqnen barıñız” is said to the person who is leaving."; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 1; Term = "Sağ ol"; Gloss = "Спасибо (неформально)"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 2; Term = "Sağ oluñız"; Gloss = "Спасибо (вежливо)"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 3; Term = "Körüskence!"; Gloss = "До встречи!"; SourceLocator = $curriculumSource }
+            @{ Kind = "VOCABULARY"; Position = 4; Term = "Sağlıqnen qalıñız"; Gloss = "До свидания! (уходящий говорит остающимся)"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 5; Term = "Sağlıqnen barıñız"; Gloss = "До свидания! (говорят уходящему)"; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXAMPLE"; Position = 6; Text = "A: Sağ oluñız! — Спасибо вам! / B: Sağlıqnen qalıñız! — До свидания! / A: Körüskence! — До встречи!"; SourceLocator = $etiquetteSource }
+        )
+        Exercises = @(
+            @{ Id = "farewell-1"; Position = 0; Prompt = "Type the polite form of “Thank you”."; ExpectedAnswers = @("Sağ oluñız", "Sağ oluñız!") }
+            @{ Id = "farewell-2"; Position = 1; Prompt = "Translate “See you!” into Crimean Tatar."; ExpectedAnswers = @("Körüskence", "Körüskence!") }
+            @{ Id = "farewell-3"; Position = 2; Prompt = "You are leaving and say goodbye to the people staying. Type the phrase."; ExpectedAnswers = @("Sağlıqnen qalıñız", "Sağlıqnen qalıñız!") }
+        )
+    }
+)
 
-Write-Host "Creating and publishing a fresh demo course and exercise..."
+Write-Host "Creating a three-lesson beginner course with teaching material and several exercises per lesson..."
 $course = Invoke-TildashRequest -Method "POST" -Path "/api/v1/content/nodes" -Headers $teacher -Body @{
     kind = "COURSE"
     parentId = $null
@@ -257,63 +302,106 @@ $course = Invoke-TildashRequest -Method "POST" -Path "/api/v1/content/nodes" -He
     position = 0
     payload = @{ type = "TEXT"; value = $demoTitle }
     provenance = @{
-        sourceTitle = "Tildash local acceptance demo"
+        sourceTitle = "Tildash original beginner course"
+        sourceLocator = $curriculumSource
         copyrightStatus = "PUBLIC_DOMAIN"
-        authorName = "Local developer"
+        authorName = "Tildash local demo"
     }
 }
 
-$lesson = Invoke-TildashRequest -Method "POST" -Path "/api/v1/content/nodes" -Headers $teacher -Body @{
-    kind = "LESSON"
-    parentId = $course.id
-    sourceLocale = "crh"
-    position = 0
-    payload = @{ type = "TEXT"; value = "Greetings" }
-    provenance = @{
-        sourceTitle = "Tildash local acceptance demo"
-        copyrightStatus = "PUBLIC_DOMAIN"
-        authorName = "Local developer"
+$createdLessons = @()
+for ($lessonIndex = 0; $lessonIndex -lt $lessonPlans.Count; $lessonIndex++) {
+    $plan = $lessonPlans[$lessonIndex]
+    $lesson = Invoke-TildashRequest -Method "POST" -Path "/api/v1/content/nodes" -Headers $teacher -Body @{
+        kind = "LESSON"
+        parentId = $course.id
+        sourceLocale = "crh"
+        position = $lessonIndex
+        payload = @{ type = "TEXT"; value = $plan.Title }
+        provenance = @{
+            sourceTitle = "Tildash original Crimean Tatar learner lesson"
+            sourceLocator = $curriculumSource
+            copyrightStatus = "PUBLIC_DOMAIN"
+            authorName = "Tildash local demo"
+        }
+    }
+    $createdLessons += [pscustomobject]@{ Id = $lesson.id; Plan = $plan }
+
+    foreach ($material in $plan.Materials) {
+        if ($material.Kind -eq "VOCABULARY") {
+            $payload = @{ type = "VOCABULARY"; term = $material.Term; gloss = $material.Gloss }
+        } else {
+            $payload = @{ type = "TEXT"; value = $material.Text }
+        }
+
+        $null = Invoke-TildashRequest -Method "POST" -Path "/api/v1/content/nodes" -Headers $teacher -Body @{
+            kind = $material.Kind
+            parentId = $lesson.id
+            sourceLocale = "crh"
+            position = $material.Position
+            payload = $payload
+            provenance = @{
+                sourceTitle = "Crimean Tatar introductory curriculum and language etiquette references"
+                sourceLocator = $material.SourceLocator
+                copyrightStatus = "PUBLIC_DOMAIN"
+                authorName = "Tildash local demo"
+            }
+        }
+    }
+
+    foreach ($exercise in $plan.Exercises) {
+        $null = Invoke-TildashRequest -Method "POST" -Path ("/api/v1/content/" + $lesson.id + "/exercises") -Headers $teacher -Body @{
+            id = $exercise.Id
+            prompt = $exercise.Prompt
+            position = $exercise.Position
+            expectedAnswers = @($exercise.ExpectedAnswers)
+        }
     }
 }
 
-$null = Invoke-TildashRequest -Method "POST" -Path ("/api/v1/content/" + $lesson.id + "/exercises") -Headers $teacher -Body @{
-    id = "exercise-1"
-    prompt = "Translate hello into Crimean Tatar."
-    position = 0
-    expectedAnswers = @("merhaba", "salam")
+function Publish-ContentNode {
+    param([Parameter(Mandatory = $true)][string]$ContentId)
+
+    foreach ($step in @(
+        @{ Path = "/api/v1/content/" + $ContentId + "/submit"; Headers = $teacher },
+        @{ Path = "/api/v1/content/" + $ContentId + "/review/start"; Headers = $reviewer },
+        @{ Path = "/api/v1/content/" + $ContentId + "/review/approve"; Headers = $reviewer },
+        @{ Path = "/api/v1/content/" + $ContentId + "/publish"; Headers = $reviewer }
+    )) {
+        $null = Invoke-TildashRequest -Method "POST" -Path $step.Path -Headers $step.Headers
+    }
 }
 
-foreach ($step in @(
-    @{ Path = "/api/v1/content/" + $course.id + "/submit"; Headers = $teacher },
-    @{ Path = "/api/v1/content/" + $course.id + "/review/start"; Headers = $reviewer },
-    @{ Path = "/api/v1/content/" + $course.id + "/review/approve"; Headers = $reviewer },
-    @{ Path = "/api/v1/content/" + $course.id + "/publish"; Headers = $reviewer },
-    @{ Path = "/api/v1/content/" + $lesson.id + "/submit"; Headers = $teacher },
-    @{ Path = "/api/v1/content/" + $lesson.id + "/review/start"; Headers = $reviewer },
-    @{ Path = "/api/v1/content/" + $lesson.id + "/review/approve"; Headers = $reviewer },
-    @{ Path = "/api/v1/content/" + $lesson.id + "/publish"; Headers = $reviewer }
-)) {
-    $null = Invoke-TildashRequest -Method "POST" -Path $step.Path -Headers $step.Headers
+Write-Host "Publishing the course and all three validated lessons..."
+Publish-ContentNode -ContentId $course.id
+foreach ($record in $createdLessons) {
+    Publish-ContentNode -ContentId $record.Id
 }
 
 $catalog = Invoke-TildashRequest -Method "GET" -Path "/api/v1/learning/catalog" -Headers $learner
 $publishedCourse = @($catalog.courses | Where-Object { $_.id -eq $course.id }) | Select-Object -First 1
 if ($null -eq $publishedCourse) {
-    throw "The newly published demo course was not returned by the learner catalog."
+    throw "The newly published course was not returned by the learner catalog."
 }
-$publishedLesson = @($publishedCourse.lessons | Where-Object { $_.id -eq $lesson.id })
-if ($publishedLesson.Count -eq 0) {
-    throw "The newly published demo lesson was not returned by the learner catalog."
+if (@($publishedCourse.lessons).Count -ne 3) {
+    throw "Expected three published lessons; learner catalog returned $(@($publishedCourse.lessons).Count)."
 }
-$package = Invoke-TildashRequest -Method "GET" -Path ("/api/v1/learning/lessons/" + $lesson.id) -Headers $learner
-if (@($package.exercises | Where-Object { $_.id -eq "exercise-1" }).Count -eq 0) {
-    throw "The published lesson package does not contain the expected demo exercise."
+
+foreach ($record in $createdLessons) {
+    $package = Invoke-TildashRequest -Method "GET" -Path ("/api/v1/learning/lessons/" + $record.Id) -Headers $learner
+    if (@($package.materials).Count -lt 3) {
+        throw "Lesson '$($record.Plan.Title)' did not return its explanation, vocabulary, and example blocks."
+    }
+    if (@($package.exercises).Count -lt 3) {
+        throw "Lesson '$($record.Plan.Title)' did not return all three practice exercises."
+    }
 }
 
 Write-Host ""
 Write-Host ("Ready to explore: " + $demoTitle)
+Write-Host "The published course contains three lessons, explanations, vocabulary, examples, and three exercises per lesson."
 Write-Host "The backend stays open in its own PowerShell window."
-Write-Host "Starting the Desktop app. In the UI: Download -> Open -> enter a wrong answer -> retry with merhaba."
+Write-Host "Starting Desktop. Open Catalog, download the first lesson, and study its material before practising."
 Write-Host ""
 
 $env:TILDASH_API_URL = $BaseUrl.TrimEnd("/")

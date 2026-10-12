@@ -8,10 +8,13 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentPayload
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
+import com.kenlikdev.tildash.learning.LearnerLessonMaterial
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
 import com.kenlikdev.tildash.learning.LearningAttempt
@@ -75,6 +78,10 @@ class AppUserJourneyTest {
         onNodeWithText("Downloaded (1)").performClick()
         onNodeWithText("Open").performClick()
 
+        onNodeWithText("Read the phrase before practising.").assertIsDisplayed()
+        onNodeWithText("Merhaba!").assertIsDisplayed()
+        onNodeWithText("Привет").assertIsDisplayed()
+        onNodeWithText("A: Merhaba! / B: Selâm!").assertIsDisplayed()
         onNodeWithText("Translate hello into Crimean Tatar.").assertIsDisplayed()
         onNodeWithTag("learner-answer-input").performTextInput("wrong")
         onNodeWithText("Check answer").performClick()
@@ -147,6 +154,30 @@ class AppUserJourneyTest {
                                     expectedAnswers = listOf("merhaba", "salam"),
                                 ),
                             ),
+                    ),
+                materials =
+                    listOf(
+                        LearnerLessonMaterial(
+                            id = ContentId("550e8400-e29b-41d4-a716-446655440012"),
+                            kind = ContentKind.EXPLANATION,
+                            position = 0,
+                            sourceLocale = LanguageTag("crh"),
+                            payload = ContentPayload.Text("Read the phrase before practising."),
+                        ),
+                        LearnerLessonMaterial(
+                            id = ContentId("550e8400-e29b-41d4-a716-446655440013"),
+                            kind = ContentKind.VOCABULARY,
+                            position = 1,
+                            sourceLocale = LanguageTag("crh"),
+                            payload = ContentPayload.Vocabulary("Merhaba!", "Привет"),
+                        ),
+                        LearnerLessonMaterial(
+                            id = ContentId("550e8400-e29b-41d4-a716-446655440014"),
+                            kind = ContentKind.EXAMPLE,
+                            position = 2,
+                            sourceLocale = LanguageTag("crh"),
+                            payload = ContentPayload.Text("A: Merhaba! / B: Selâm!"),
+                        ),
                     ),
             )
         }

@@ -1,0 +1,2 @@
+ALTER TABLE downloaded_lesson
+ADD COLUMN materials_json TEXT NOT NULL DEFAULT '[]';

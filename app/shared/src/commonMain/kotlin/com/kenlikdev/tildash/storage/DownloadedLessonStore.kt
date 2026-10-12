@@ -2,9 +2,12 @@ package com.kenlikdev.tildash.storage
 
 import app.cash.sqldelight.db.SqlDriver
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentPayload
 import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
+import com.kenlikdev.tildash.learning.LearnerLessonMaterial
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
 import com.kenlikdev.tildash.learning.LearnerLocalizedText
 import com.kenlikdev.tildash.learning.LearningExercise
@@ -26,6 +29,7 @@ data class DownloadedLesson(
     val lesson: LearnerLessonSummary,
     val plan: LearningPlan,
     val downloadedAt: Instant,
+    val materials: List<LearnerLessonMaterial> = emptyList(),
 ) {
     init {
         require(course.lessons.any { it.id == lesson.id }) {
@@ -96,6 +100,7 @@ class SqlDelightDownloadedLessonStore(
                 position = downloadedLesson.position().toLong(),
                 downloaded_at_epoch_millis = downloadedLesson.downloadedAt.toEpochMilliseconds(),
                 course_lessons_json = encodeCourseLessons(downloadedLesson.course.lessons),
+                materials_json = encodeMaterials(downloadedLesson.materials),
             )
 
             downloadedLesson.plan.exercises.forEachIndexed { index, exercise ->
@@ -211,6 +216,7 @@ class SqlDelightDownloadedLessonStore(
                     publishedVersion = lessonRow.published_version.toInt(),
                 ),
             downloadedAt = Instant.fromEpochMilliseconds(lessonRow.downloaded_at_epoch_millis),
+            materials = decodeMaterials(lessonRow.materials_json),
         )
     }
 
@@ -306,6 +312,59 @@ class SqlDelightDownloadedLessonStore(
                                         ?.let(ContentVariantType::valueOf),
                             )
                         }.orEmpty(),
+            )
+        }
+
+    private fun encodeMaterials(materials: List<LearnerLessonMaterial>): String =
+        buildJsonArray {
+            materials.sortedBy { it.position }.forEach { material ->
+                add(
+                    buildJsonObject {
+                        put("id", JsonPrimitive(material.id.value))
+                        put("kind", JsonPrimitive(material.kind.name))
+                        put("position", JsonPrimitive(material.position))
+                        put("sourceLocale", JsonPrimitive(material.sourceLocale.value))
+                        when (val payload = material.payload) {
+                            is ContentPayload.Text -> put("text", JsonPrimitive(payload.value))
+                            is ContentPayload.Vocabulary -> {
+                                put("term", JsonPrimitive(payload.term))
+                                put("gloss", JsonPrimitive(payload.gloss))
+                            }
+
+                            is ContentPayload.MediaReference ->
+                                error("Media references are not learner lesson materials.")
+                        }
+                    },
+                )
+            }
+        }.toString()
+
+    private fun decodeMaterials(serialized: String): List<LearnerLessonMaterial> =
+        storageJson.parseToJsonElement(serialized).jsonArray.map { element ->
+            val material = element.jsonObject
+            val kind = ContentKind.valueOf(material.requiredText("kind"))
+            val payload =
+                when (kind) {
+                    ContentKind.EXPLANATION,
+                    ContentKind.EXAMPLE,
+                    -> ContentPayload.Text(material.requiredText("text"))
+
+                    ContentKind.VOCABULARY ->
+                        ContentPayload.Vocabulary(
+                            term = material.requiredText("term"),
+                            gloss = material.requiredText("gloss"),
+                        )
+
+                    else -> error("Unsupported stored lesson material kind '$kind'.")
+                }
+            LearnerLessonMaterial(
+                id = ContentId(material.requiredText("id")),
+                kind = kind,
+                position =
+                    material.requiredText("position").toIntOrNull()
+                        ?: error("Stored lesson material position is not an integer."),
+                sourceLocale = LanguageTag(material.requiredText("sourceLocale")),
+                payload = payload,
             )
         }
 

@@ -15,6 +15,7 @@ COURSE
   |
   +-- LESSON
         |
+        +-- EXPLANATION
         +-- EXAMPLE
         +-- VOCABULARY
         +-- MEDIA_REFERENCE
@@ -22,7 +23,7 @@ COURSE
 
 `ContentNode.parentId` expresses the hierarchy. Courses are roots; every non-course node has a parent.
 
-`ContentKind` currently supports `COURSE`, `LESSON`, `EXAMPLE`, `VOCABULARY`, and `MEDIA_REFERENCE`.
+`ContentKind` supports `COURSE`, `LESSON`, `EXPLANATION`, `EXAMPLE`, `VOCABULARY`, and `MEDIA_REFERENCE`. Explanations, examples, and vocabulary entries can be children of a lesson and are presented as teaching material before practice.
 
 Ordering is represented by a non-negative `position` within a parent's children.
 
@@ -50,7 +51,7 @@ Revision records are append-oriented history. A later edit creates a later revis
 
 The canonical model supports these payload types:
 
-- `Text` for prose, examples, course/lesson text, and other free-form source content;
+- `Text` for explanations, prose, examples, course/lesson text, and other free-form source content;
 - `Vocabulary` for a term and its gloss;
 - `MediaReference` for an external media URI and optional media type.
 
@@ -112,7 +113,7 @@ Issue #12 defines the state model. The server-side review transition rules are i
 - the publishing actor;
 - the publication timestamp.
 
-The PostgreSQL schema additionally makes provenance, source revisions, localization revisions, published snapshots, and published exercise snapshots append-only by rejecting update/delete mutations through database triggers. A composite foreign key binds each published exercise to the content node owned by its published version, and the content-node guard permits a published node to be archived only when its immutable identity and structure fields are unchanged.
+The PostgreSQL schema additionally makes provenance, source revisions, localization revisions, published snapshots, and published exercise snapshots, and published lesson-material snapshots append-only by rejecting update/delete mutations through database triggers. Each lesson version snapshots its ordered explanation, example, and vocabulary child nodes alongside its exercises. A composite foreign key binds each published exercise to the content node owned by its published version, and the content-node guard permits a published node to be archived only when its immutable identity and structure fields are unchanged.
 
 Consequently a published version references immutable history and can be reconstructed later without depending on the current editable state.
 
@@ -125,7 +126,8 @@ The V2 migration creates:
 - `content_source_revisions` — source revision history;
 - `content_localization_revisions` — independent localization history;
 - `content_published_versions` — immutable publication snapshots;
-- `content_published_localizations` — immutable localization snapshots for a publication.
+- `content_published_localizations` — immutable localization snapshots for a publication;
+- `content_published_lesson_materials` — ordered explanation, example, and vocabulary snapshots tied to a published lesson version.
 
 Foreign keys keep revision and localization relationships explicit.
 
@@ -136,6 +138,7 @@ A first Crimean Tatar course can use the generic model:
 ```text
 Course node:       kind=COURSE, sourceLocale=crh
 Lesson node:       kind=LESSON, parentId=<course-id>
+Explanation node:  kind=EXPLANATION, parentId=<lesson-id>
 Example node:      kind=EXAMPLE, parentId=<lesson-id>
 Vocabulary node:   kind=VOCABULARY, parentId=<lesson-id>
 ```

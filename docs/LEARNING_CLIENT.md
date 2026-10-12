@@ -109,7 +109,7 @@ The Desktop composition uses the published learner API as the source of content:
 
 The client exposes Catalog, Downloaded, and Lesson states.
 
-Download writes the complete published lesson package to local SQLDelight storage. Remove deletes that local package. Open reads the package from local storage and therefore does not require a network connection after download.
+Download writes the complete published lesson package to local SQLDelight storage: the immutable lesson-version exercise set plus ordered explanation, example, and vocabulary blocks from the same published version. Remove deletes that local package without deleting durable learning attempts. Open reads the package and its teaching material from local storage and therefore does not require a network connection after download.
 
 Localized entries retain both locale and variant identity: multiple variants may share one locale, so locale alone is not a unique key. The server includes variant in its learner API response and the client stores it with the offline snapshot. For compatibility, previously saved snapshots that do not contain a variant remain readable and map that field to null.
 

@@ -1,10 +1,13 @@
 package com.kenlikdev.tildash.learning.client
 
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentPayload
 import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.LearnerCourseCatalog
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
+import com.kenlikdev.tildash.learning.LearnerLessonMaterial
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
 import com.kenlikdev.tildash.learning.LearnerLocalizedText
@@ -200,6 +203,45 @@ class KtorLearnerContentTransport(
                 }
             }
 
+        val materials =
+            optionalArray("materials").map { element ->
+                val material = element.jsonObject
+                val kind =
+                    runCatching { ContentKind.valueOf(material.requiredString("kind")) }
+                        .getOrElse {
+                            throw LearnerContentTransportFailure(
+                                statusCode = null,
+                                message = "Unsupported learner lesson material kind.",
+                                cause = it,
+                            )
+                        }
+                val payload =
+                    when (kind) {
+                        ContentKind.EXPLANATION,
+                        ContentKind.EXAMPLE,
+                        -> ContentPayload.Text(material.requiredString("text"))
+
+                        ContentKind.VOCABULARY ->
+                            ContentPayload.Vocabulary(
+                                term = material.requiredString("term"),
+                                gloss = material.requiredString("gloss"),
+                            )
+
+                        else ->
+                            throw LearnerContentTransportFailure(
+                                statusCode = null,
+                                message = "Unsupported learner lesson material kind: $kind.",
+                            )
+                    }
+                LearnerLessonMaterial(
+                    id = ContentId(material.requiredString("id")),
+                    kind = kind,
+                    position = material.requiredInt("position"),
+                    sourceLocale = LanguageTag(material.requiredString("sourceLocale")),
+                    payload = payload,
+                )
+            }
+
         return LearnerLessonPackage(
             course = course,
             lesson = lesson,
@@ -209,6 +251,7 @@ class KtorLearnerContentTransport(
                     exercises = exercises,
                     publishedVersion = lesson.publishedVersion,
                 ),
+            materials = materials,
         )
     }
 

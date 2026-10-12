@@ -2,9 +2,12 @@ package com.kenlikdev.tildash.storage
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentPayload
 import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
+import com.kenlikdev.tildash.learning.LearnerLessonMaterial
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
 import com.kenlikdev.tildash.learning.LearnerLocalizedText
 import com.kenlikdev.tildash.learning.LearningPlan
@@ -87,6 +90,47 @@ class SqlDelightDownloadedLessonStoreTest {
                 assertEquals("Translate hello", exercise.prompt)
                 assertEquals(listOf("hello"), exercise.expectedAnswers)
                 assertEquals(1L, store.countLessons())
+            }
+        } finally {
+            Files.deleteIfExists(databaseFile)
+        }
+    }
+
+    @Test
+    fun downloadedTeachingMaterialsSurviveDatabaseReopen() {
+        val databaseFile = Files.createTempFile("tildash-offline-materials-", ".db")
+        val materials =
+            listOf(
+                LearnerLessonMaterial(
+                    id = ContentId("550e8400-e29b-41d4-a716-446655440104"),
+                    kind = ContentKind.EXPLANATION,
+                    position = 0,
+                    sourceLocale = LanguageTag("crh"),
+                    payload = ContentPayload.Text("Greetings depend on context."),
+                ),
+                LearnerLessonMaterial(
+                    id = ContentId("550e8400-e29b-41d4-a716-446655440105"),
+                    kind = ContentKind.VOCABULARY,
+                    position = 1,
+                    sourceLocale = LanguageTag("crh"),
+                    payload = ContentPayload.Vocabulary("Merhaba", "Привет"),
+                ),
+            )
+
+        try {
+            open(databaseFile.toString(), createSchema = true).use { store ->
+                store.save(
+                    downloadedLesson(
+                        firstLessonId,
+                        "Greetings",
+                        1,
+                        materials = materials,
+                    ),
+                )
+            }
+
+            open(databaseFile.toString(), createSchema = false).use { store ->
+                assertEquals(materials, store.loadLesson(firstLessonId)?.materials)
             }
         } finally {
             Files.deleteIfExists(databaseFile)
@@ -263,6 +307,7 @@ class SqlDelightDownloadedLessonStoreTest {
                     expectedAnswers = listOf("hello"),
                 ),
             ),
+        materials: List<LearnerLessonMaterial> = emptyList(),
     ) = DownloadedLesson(
         course =
             LearnerCourseSummary(
@@ -275,6 +320,7 @@ class SqlDelightDownloadedLessonStoreTest {
         lesson = courseLessons.first { it.id == lessonId },
         plan = LearningPlan(lessonId = lessonId, exercises = exercises),
         downloadedAt = downloadedAt,
+        materials = materials,
     )
 
     private fun lessonSummary(

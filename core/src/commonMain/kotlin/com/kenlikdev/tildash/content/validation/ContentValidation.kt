@@ -612,7 +612,9 @@ class ContentValidator {
                         }
                     }
 
-                    ContentKind.EXAMPLE -> {
+                    ContentKind.EXPLANATION,
+                    ContentKind.EXAMPLE,
+                    -> {
                         if (payload !is ContentPayload.Text) {
                             issues +=
                                 validationError(

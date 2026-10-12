@@ -69,7 +69,7 @@ Duplicate (contentId, locale, revision) keys are rejected.
 
 Payload type must match the content kind:
 
-- COURSE, LESSON, and EXAMPLE use Text;
+- COURSE, LESSON, EXPLANATION, and EXAMPLE use Text;
 - VOCABULARY uses Vocabulary;
 - MEDIA_REFERENCE uses MediaReference.
 
@@ -79,6 +79,8 @@ Media references additionally require:
 - a media type using type/subtype syntax when present.
 
 The validator does not perform network access. Reachability and storage policy are separate infrastructure concerns.
+
+EXPLANATION nodes are instructional prose shown before practice. EXAMPLE nodes contain illustrative source text, while VOCABULARY nodes require a term and gloss.
 
 ### Exercises
 

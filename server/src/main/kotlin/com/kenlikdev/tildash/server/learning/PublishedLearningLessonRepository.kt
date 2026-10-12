@@ -1,6 +1,10 @@
 package com.kenlikdev.tildash.server.learning
 
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentPayload
+import com.kenlikdev.tildash.content.model.LanguageTag
+import com.kenlikdev.tildash.learning.LearnerLessonMaterial
 import com.kenlikdev.tildash.learning.LearnerLessonPackage
 import com.kenlikdev.tildash.learning.LearningCatalogProjector
 import com.kenlikdev.tildash.learning.LearningExercise
@@ -135,6 +139,48 @@ class PublishedLearningLessonRepository(
             throw PublishedLearningLessonInvalidException()
         }
 
+        val materials =
+            jdbc.query(
+                """
+                select material_content_node_id, kind, position, source_locale, payload
+                from tildash.content_published_lesson_materials
+                where published_version_id = :versionId
+                order by position, material_content_node_id
+                """.trimIndent(),
+                MapSqlParameterSource("versionId", versionId),
+            ) { rs, _ ->
+                val kind = ContentKind.valueOf(rs.getString("kind"))
+                val payload = objectMapper.readTree(rs.getString("payload"))
+                val materialPayload =
+                    when (kind) {
+                        ContentKind.EXPLANATION,
+                        ContentKind.EXAMPLE,
+                        -> ContentPayload.Text(
+                            value =
+                                payload.get("value")?.asText()
+                                    ?: throw PublishedLearningLessonInvalidException(),
+                        )
+
+                        ContentKind.VOCABULARY -> ContentPayload.Vocabulary(
+                            term =
+                                payload.get("term")?.asText()
+                                    ?: throw PublishedLearningLessonInvalidException(),
+                            gloss =
+                                payload.get("gloss")?.asText()
+                                    ?: throw PublishedLearningLessonInvalidException(),
+                        )
+
+                        else -> throw PublishedLearningLessonInvalidException()
+                    }
+                LearnerLessonMaterial(
+                    id = ContentId(rs.getObject("material_content_node_id", UUID::class.java).toString()),
+                    kind = kind,
+                    position = rs.getInt("position"),
+                    sourceLocale = LanguageTag(rs.getString("source_locale")),
+                    payload = materialPayload,
+                )
+            }
+
         return LearnerLessonPackage(
             course = course,
             lesson = lesson,
@@ -144,6 +190,7 @@ class PublishedLearningLessonRepository(
                     exercises = exercises,
                     publishedVersion = lesson.publishedVersion,
                 ),
+            materials = materials,
         )
     }
 }

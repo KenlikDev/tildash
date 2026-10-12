@@ -155,6 +155,52 @@ class ContentExerciseRepository(
                 .addValue("lessonId", UUID.fromString(contentId.value))
                 .addValue("publishedVersionId", publishedVersionId),
         )
+
+        jdbc.update(
+            """
+            with recursive descendants as (
+                select id, kind, source_locale, position,
+                       array[position]::integer[] as sort_path
+                from tildash.content_nodes
+                where id = :lessonId
+                union all
+                select child.id, child.kind, child.source_locale, child.position,
+                       parent.sort_path || child.position
+                from tildash.content_nodes child
+                join descendants parent on child.parent_id = parent.id
+            ),
+            materials as (
+                select d.id, d.kind, d.source_locale, d.sort_path, latest.payload
+                from descendants d
+                join lateral (
+                    select revision.payload
+                    from tildash.content_source_revisions revision
+                    where revision.content_node_id = d.id
+                    order by revision.revision_no desc
+                    limit 1
+                ) latest on true
+                where d.id <> :lessonId
+                  and d.kind in ('EXPLANATION', 'EXAMPLE', 'VOCABULARY')
+            )
+            insert into tildash.content_published_lesson_materials (
+                published_version_id, lesson_content_node_id, material_content_node_id,
+                kind, position, source_locale, payload
+            )
+            select
+                :publishedVersionId,
+                :lessonId,
+                materials.id,
+                materials.kind,
+                (row_number() over (order by materials.sort_path, materials.id) - 1)::integer,
+                materials.source_locale,
+                materials.payload
+            from materials
+            order by materials.sort_path, materials.id
+            """.trimIndent(),
+            MapSqlParameterSource()
+                .addValue("lessonId", UUID.fromString(contentId.value))
+                .addValue("publishedVersionId", publishedVersionId),
+        )
     }
 }
 

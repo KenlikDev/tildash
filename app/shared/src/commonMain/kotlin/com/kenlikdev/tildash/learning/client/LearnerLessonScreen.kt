@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
@@ -23,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentPayload
 import com.kenlikdev.tildash.learning.AnswerOutcome
 import com.kenlikdev.tildash.learning.LessonSessionState
 
@@ -71,6 +75,7 @@ private fun LearnerLessonContent(
         modifier =
             modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -104,6 +109,33 @@ private fun LearnerLessonContent(
             modifier = Modifier.fillMaxWidth(),
         )
 
+        if (state.lesson.materials.isNotEmpty()) {
+            Text("Study material", style = MaterialTheme.typography.titleLarge)
+            state.lesson.materials.sortedBy { it.position }.forEach { material ->
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    when (material.kind) {
+                        ContentKind.EXPLANATION -> {
+                            Text("Learn", style = MaterialTheme.typography.labelLarge)
+                            Text((material.payload as ContentPayload.Text).value)
+                        }
+
+                        ContentKind.EXAMPLE -> {
+                            Text("Example", style = MaterialTheme.typography.labelLarge)
+                            Text((material.payload as ContentPayload.Text).value)
+                        }
+
+                        ContentKind.VOCABULARY -> {
+                            val vocabulary = material.payload as ContentPayload.Vocabulary
+                            Text(vocabulary.term, style = MaterialTheme.typography.titleMedium)
+                            Text(vocabulary.gloss, style = MaterialTheme.typography.bodyLarge)
+                        }
+
+                        else -> error("Unsupported learner lesson material kind: " + material.kind)
+                    }
+                }
+            }
+        }
+
         when (state.session.state) {
             LessonSessionState.COMPLETED -> {
                 Text(
@@ -115,6 +147,7 @@ private fun LearnerLessonContent(
             LessonSessionState.ACTIVE -> {
                 val exercise = checkNotNull(state.session.nextExercise)
 
+                Text("Practice", style = MaterialTheme.typography.titleLarge)
                 Text(
                     text = exercise.prompt,
                     style = MaterialTheme.typography.headlineSmall,

@@ -1,5 +1,7 @@
 package com.kenlikdev.tildash.learning.client
 
+import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentPayload
 import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.storage.AccessTokenProvider
 import io.ktor.client.HttpClient
@@ -154,6 +156,23 @@ class KtorLearnerContentTransportTest {
                                       "prompt": "Translate hello.",
                                       "expectedAnswers": ["merhaba"]
                                     }
+                                  ],
+                                  "materials": [
+                                    {
+                                      "id": "550e8400-e29b-41d4-a716-446655440010",
+                                      "kind": "EXPLANATION",
+                                      "position": 0,
+                                      "sourceLocale": "crh",
+                                      "text": "Read the phrase before practising."
+                                    },
+                                    {
+                                      "id": "550e8400-e29b-41d4-a716-446655440011",
+                                      "kind": "VOCABULARY",
+                                      "position": 1,
+                                      "sourceLocale": "crh",
+                                      "term": "Merhaba",
+                                      "gloss": "Привет"
+                                    }
                                   ]
                                 }
                                 """.trimIndent(),
@@ -182,6 +201,18 @@ class KtorLearnerContentTransportTest {
                     packageData.plan.exercises
                         .single()
                         .prompt,
+                )
+                assertEquals(
+                    listOf(ContentKind.EXPLANATION, ContentKind.VOCABULARY),
+                    packageData.materials.map { it.kind },
+                )
+                assertEquals(
+                    ContentPayload.Text("Read the phrase before practising."),
+                    packageData.materials.first().payload,
+                )
+                assertEquals(
+                    ContentPayload.Vocabulary("Merhaba", "Привет"),
+                    packageData.materials.last().payload,
                 )
             } finally {
                 client.close()

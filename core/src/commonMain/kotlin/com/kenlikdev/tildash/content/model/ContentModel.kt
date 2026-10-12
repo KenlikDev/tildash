@@ -35,6 +35,7 @@ data class LanguageTag(
 enum class ContentKind {
     COURSE,
     LESSON,
+    EXPLANATION,
     EXAMPLE,
     VOCABULARY,
     MEDIA_REFERENCE,
