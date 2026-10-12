@@ -49,22 +49,75 @@ $env:TILDASH_DATABASE_PORT = "5432"
 $env:TILDASH_DATABASE_URL = "jdbc:postgresql://127.0.0.1:5432/tildash"
 
 Write-Host "Starting the local PostgreSQL service..."
-& docker compose -f $composeFile up -d postgres
-if ($LASTEXITCODE -ne 0) {
+$composeOutput = & docker compose -f $composeFile up -d postgres 2>&1
+$composeExitCode = $LASTEXITCODE
+if ($composeOutput) {
+    $composeOutput | ForEach-Object { Write-Host $_ }
+}
+if ($composeExitCode -ne 0) {
+    $composeLogs = & docker compose -f $composeFile logs --no-color --tail 100 postgres 2>&1
+    if ($composeLogs) {
+        Write-Host "Recent PostgreSQL container logs:"
+        $composeLogs | ForEach-Object { Write-Host $_ }
+    }
     throw "Docker Compose could not start PostgreSQL. Check Docker Desktop and port 5432."
 }
 
+$containerIdOutput = & docker compose -f $composeFile ps -q postgres 2>&1
+$containerIdExitCode = $LASTEXITCODE
+$containerId = (($containerIdOutput | ForEach-Object { "$_".Trim() } | Where-Object { $_ -ne "" } | Select-Object -First 1) -as [string])
+if ($containerIdExitCode -ne 0 -or [string]::IsNullOrWhiteSpace($containerId)) {
+    $composeLogs = & docker compose -f $composeFile logs --no-color --tail 100 postgres 2>&1
+    if ($composeLogs) {
+        Write-Host "Recent PostgreSQL container logs:"
+        $composeLogs | ForEach-Object { Write-Host $_ }
+    }
+    throw "Docker Compose did not return a PostgreSQL container ID. Inspect the Docker output above."
+}
+
 $databaseReady = $false
+$lastContainerState = "unknown"
+$lastHealthState = "unknown"
+$restartObservations = 0
 for ($attempt = 1; $attempt -le 45; $attempt++) {
-    & docker compose -f $composeFile exec -T postgres pg_isready -U tildash -d tildash *> $null
-    if ($LASTEXITCODE -eq 0) {
-        $databaseReady = $true
-        break
+    $stateOutput = & docker inspect --format '{{.State.Status}}|{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' $containerId 2>&1
+    $inspectExitCode = $LASTEXITCODE
+    if ($inspectExitCode -eq 0) {
+        $stateLine = (($stateOutput | Select-Object -First 1) -as [string]).Trim()
+        $stateParts = $stateLine -split '\|', 2
+        if ($stateParts.Count -ge 1) {
+            $lastContainerState = $stateParts[0]
+        }
+        if ($stateParts.Count -ge 2) {
+            $lastHealthState = $stateParts[1]
+        }
+
+        if ($lastContainerState -eq "running" -and $lastHealthState -eq "healthy") {
+            $databaseReady = $true
+            break
+        }
+
+        if ($lastContainerState -eq "restarting") {
+            $restartObservations++
+        } else {
+            $restartObservations = 0
+        }
+
+        if ($lastContainerState -in @("exited", "dead") -or $restartObservations -ge 3) {
+            break
+        }
     }
     Start-Sleep -Seconds 2
 }
+
 if (-not $databaseReady) {
-    throw "PostgreSQL did not become ready. Inspect Docker Desktop and the postgres container logs."
+    $composeLogs = & docker compose -f $composeFile logs --no-color --tail 100 postgres 2>&1
+    if ($composeLogs) {
+        Write-Host ""
+        Write-Host "Recent PostgreSQL container logs (the startup error should appear above):"
+        $composeLogs | ForEach-Object { Write-Host $_ }
+    }
+    throw "PostgreSQL did not become healthy. Last observed container state: '$lastContainerState'; health: '$lastHealthState'. Resolve the reported container error and rerun the demo."
 }
 
 $escapedRoot = $repoRoot.Replace("'", "''")
