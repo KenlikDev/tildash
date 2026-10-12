@@ -85,11 +85,19 @@ class AppUserJourneyTest {
             onNodeWithText("Привет! / Здравствуйте!").performScrollTo().assertIsDisplayed()
             onNodeWithText("Вежливый вариант:", substring = true).performScrollTo().assertIsDisplayed()
             onNodeWithText("Неформальный вариант:", substring = true).performScrollTo().assertIsDisplayed()
-            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").performScrollTo().assertIsDisplayed()
+            onNodeWithText(
+                "Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?",
+            )
+                .performScrollTo()
+                .assertIsDisplayed()
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("wrong")
             onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("Try again").performScrollTo().assertIsDisplayed()
-            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").performScrollTo().assertIsDisplayed()
+            onNodeWithText(
+                "Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?",
+            )
+                .performScrollTo()
+                .assertIsDisplayed()
 
             // Verify remove and re-download before completing the lesson; progress survives package removal.
             onNodeWithText("Back to lessons").performClick()
@@ -101,12 +109,20 @@ class AppUserJourneyTest {
             onNodeWithText("Open").assertIsDisplayed()
             onNodeWithText("Downloaded (1)").performClick()
             onNodeWithText("Open").performClick()
-            onNodeWithText("Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?").performScrollTo().assertIsDisplayed()
+            onNodeWithText(
+                "Вы хотите нейтрально поздороваться. Как сказать «Привет!» или «Здравствуйте!»?",
+            )
+                .performScrollTo()
+                .assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Merhaba")
             onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("1 / 6").performScrollTo().assertIsDisplayed()
-            onNodeWithText("Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие.").performScrollTo().assertIsDisplayed()
+            onNodeWithText(
+                "Вы услышали «Selâm aleyküm!». Напишите правильный ответ на это приветствие.",
+            )
+                .performScrollTo()
+                .assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Aleyküm selâm")
             onNodeWithText("Check answer").performScrollTo().performClick()
@@ -121,12 +137,20 @@ class AppUserJourneyTest {
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Ответ на традиционное приветствие")
             onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("4 / 6").performScrollTo().assertIsDisplayed()
-            onNodeWithText("Что выражает традиционное «Selâm aleyküm!» в отличие от короткого «Selâm!»?").performScrollTo().assertIsDisplayed()
+            onNodeWithText(
+                "Что выражает традиционное «Selâm aleyküm!» в отличие от короткого «Selâm!»?",
+            )
+                .performScrollTo()
+                .assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Уважительное приветствие")
             onNodeWithText("Check answer").performScrollTo().performClick()
             onNodeWithText("5 / 6").performScrollTo().assertIsDisplayed()
-            onNodeWithText("Составьте короткий вежливый диалог приветствия и ответа, разделив реплики символом /.").performScrollTo().assertIsDisplayed()
+            onNodeWithText(
+                "Составьте короткий вежливый диалог приветствия и ответа, разделив реплики символом /.",
+            )
+                .performScrollTo()
+                .assertIsDisplayed()
 
             onNodeWithTag("learner-answer-input").performScrollTo().performTextInput("Selâm aleyküm! / Aleyküm selâm!")
             onNodeWithText("Check answer").performScrollTo().performClick()
@@ -211,7 +235,12 @@ class AppUserJourneyTest {
                                     id = "exercise-4",
                                     contentId = lesson.id,
                                     prompt = "По-русски объясните, чем является «Aleyküm selâm!» в разговоре.",
-                                    expectedAnswers = listOf("Ответ на традиционное приветствие", "Ответ на «Selâm aleyküm!»", "Ответ на приветствие"),
+                                    expectedAnswers =
+                                        listOf(
+                                            "Ответ на традиционное приветствие",
+                                            "Ответ на «Selâm aleyküm!»",
+                                            "Ответ на приветствие",
+                                        ),
                                 ),
                                 ManualInputExercise(
                                     id = "exercise-5",
@@ -234,7 +263,10 @@ class AppUserJourneyTest {
                             kind = ContentKind.EXPLANATION,
                             position = 0,
                             sourceLocale = LanguageTag("ru"),
-                            payload = ContentPayload.Text("Цель урока: научиться приветствовать собеседника и отвечать на традиционное приветствие."),
+                            payload =
+                                ContentPayload.Text(
+                                    "Цель урока: научиться приветствовать собеседника и отвечать на традиционное приветствие.",
+                                ),
                         ),
                         LearnerLessonMaterial(
                             id = ContentId("550e8400-e29b-41d4-a716-446655440013"),
@@ -269,14 +301,20 @@ class AppUserJourneyTest {
                             kind = ContentKind.EXPLANATION,
                             position = 5,
                             sourceLocale = LanguageTag("ru"),
-                            payload = ContentPayload.Text("Выбирайте приветствие по ситуации: уважительная форма для незнакомых и старших, короткая — для друзей."),
+                            payload =
+                                ContentPayload.Text(
+                                    "Выбирайте приветствие по ситуации: уважительная форма для незнакомых и старших, короткая — для друзей.",
+                                ),
                         ),
                         LearnerLessonMaterial(
                             id = ContentId("550e8400-e29b-41d4-a716-446655440018"),
                             kind = ContentKind.EXAMPLE,
                             position = 6,
                             sourceLocale = LanguageTag("crh"),
-                            payload = ContentPayload.Text("Вежливый вариант: A: Selâm aleyküm! — Здравствуйте! / B: Aleyküm selâm! — Здравствуйте!"),
+                            payload =
+                                ContentPayload.Text(
+                                    "Вежливый вариант: A: Selâm aleyküm! — Здравствуйте! / B: Aleyküm selâm! — Здравствуйте!",
+                                ),
                         ),
                         LearnerLessonMaterial(
                             id = ContentId("550e8400-e29b-41d4-a716-446655440019"),
