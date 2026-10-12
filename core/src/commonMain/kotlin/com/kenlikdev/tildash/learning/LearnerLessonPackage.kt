@@ -31,7 +31,9 @@ data class LearnerLessonMaterial(
                 }
             }
 
-            else -> throw IllegalArgumentException("Unsupported learner lesson material kind '$kind'.")
+            else -> {
+                throw IllegalArgumentException("Unsupported learner lesson material kind '$kind'.")
+            }
         }
     }
 }

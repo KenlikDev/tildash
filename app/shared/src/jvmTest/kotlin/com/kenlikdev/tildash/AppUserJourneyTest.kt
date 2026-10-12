@@ -39,80 +39,80 @@ class AppUserJourneyTest {
     @Test
     fun learnerCanDownloadOpenAnswerAndRemovePublishedLesson() =
         runComposeUiTest {
-        val downloadedStore = FakeDownloadedLessonStore()
-        val progressStore = FakeLearningProgressStore()
-        val transport = DemoContentTransport()
-        var clockTick = 0L
-        var attemptNumber = 0
+            val downloadedStore = FakeDownloadedLessonStore()
+            val progressStore = FakeLearningProgressStore()
+            val transport = DemoContentTransport()
+            var clockTick = 0L
+            var attemptNumber = 0
 
-        val clock =
-            object : Clock {
-                override fun now(): Instant = Instant.fromEpochMilliseconds(1_000L + ++clockTick)
+            val clock =
+                object : Clock {
+                    override fun now(): Instant = Instant.fromEpochMilliseconds(1_000L + ++clockTick)
+                }
+            val lessonApplication =
+                LearnerLessonApplication(
+                    downloadedLessonStore = downloadedStore,
+                    coordinator = LearnerLessonCoordinator(downloadedStore, progressStore),
+                    clock = clock,
+                    attemptIdGenerator = { "attempt-" + (++attemptNumber) },
+                )
+            val contentApplication =
+                LearnerContentApplication(
+                    transport = transport,
+                    downloadedLessonStore = downloadedStore,
+                    clock = clock,
+                )
+
+            setContent {
+                App(
+                    learnerApplication = lessonApplication,
+                    contentApplication = contentApplication,
+                )
             }
-        val lessonApplication =
-            LearnerLessonApplication(
-                downloadedLessonStore = downloadedStore,
-                coordinator = LearnerLessonCoordinator(downloadedStore, progressStore),
-                clock = clock,
-                attemptIdGenerator = { "attempt-" + (++attemptNumber) },
-            )
-        val contentApplication =
-            LearnerContentApplication(
-                transport = transport,
-                downloadedLessonStore = downloadedStore,
-                clock = clock,
-            )
 
-        setContent {
-            App(
-                learnerApplication = lessonApplication,
-                contentApplication = contentApplication,
-            )
+            onNodeWithText("Tildash Learning").assertIsDisplayed()
+            onNodeWithText("Crimean Tatar basics").assertIsDisplayed()
+            onNodeWithText("Greetings").assertIsDisplayed()
+
+            onNodeWithText("Download").performClick()
+            onNodeWithText("Open").assertIsDisplayed()
+            onNodeWithText("Downloaded (1)").performClick()
+            onNodeWithText("Open").performClick()
+
+            onNodeWithText("Read the phrase before practising.").assertIsDisplayed()
+            onNodeWithText("Merhaba!").assertIsDisplayed()
+            onNodeWithText("Привет").assertIsDisplayed()
+            onNodeWithText("A: Merhaba! / B: Selâm!").assertIsDisplayed()
+            onNodeWithText("Translate hello into Crimean Tatar.").assertIsDisplayed()
+            onNodeWithTag("learner-answer-input").performTextInput("wrong")
+            onNodeWithText("Check answer").performClick()
+            onNodeWithText("Try again").assertIsDisplayed()
+
+            // Verify remove and re-download before completing the lesson; progress survives package removal.
+            onNodeWithText("Back to lessons").performClick()
+            onNodeWithText("Remove").performClick()
+            onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
+
+            onNodeWithText("Catalog").performClick()
+            onNodeWithText("Download").performClick()
+            onNodeWithText("Open").assertIsDisplayed()
+            onNodeWithText("Downloaded (1)").performClick()
+            onNodeWithText("Open").performClick()
+            onNodeWithText("Translate hello into Crimean Tatar.").assertIsDisplayed()
+
+            onNodeWithTag("learner-answer-input").performTextInput("merhaba")
+            onNodeWithText("Check answer").performClick()
+            onNodeWithText("Completed").assertIsDisplayed()
+            onNodeWithText("Lesson complete.").assertIsDisplayed()
+
+            onNodeWithText("Back to lessons").performClick()
+            onNodeWithText("Remove").performClick()
+            onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
+            assertEquals(2, progressStore.savedAttempts.size)
+            assertEquals(AnswerOutcome.INCORRECT, progressStore.savedAttempts.first().outcome)
+            assertEquals(AnswerOutcome.CORRECT, progressStore.savedAttempts.last().outcome)
+            assertTrue(downloadedStore.listLessons().isEmpty())
         }
-
-        onNodeWithText("Tildash Learning").assertIsDisplayed()
-        onNodeWithText("Crimean Tatar basics").assertIsDisplayed()
-        onNodeWithText("Greetings").assertIsDisplayed()
-
-        onNodeWithText("Download").performClick()
-        onNodeWithText("Open").assertIsDisplayed()
-        onNodeWithText("Downloaded (1)").performClick()
-        onNodeWithText("Open").performClick()
-
-        onNodeWithText("Read the phrase before practising.").assertIsDisplayed()
-        onNodeWithText("Merhaba!").assertIsDisplayed()
-        onNodeWithText("Привет").assertIsDisplayed()
-        onNodeWithText("A: Merhaba! / B: Selâm!").assertIsDisplayed()
-        onNodeWithText("Translate hello into Crimean Tatar.").assertIsDisplayed()
-        onNodeWithTag("learner-answer-input").performTextInput("wrong")
-        onNodeWithText("Check answer").performClick()
-        onNodeWithText("Try again").assertIsDisplayed()
-
-        // Verify remove and re-download before completing the lesson; progress survives package removal.
-        onNodeWithText("Back to lessons").performClick()
-        onNodeWithText("Remove").performClick()
-        onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
-
-        onNodeWithText("Catalog").performClick()
-        onNodeWithText("Download").performClick()
-        onNodeWithText("Open").assertIsDisplayed()
-        onNodeWithText("Downloaded (1)").performClick()
-        onNodeWithText("Open").performClick()
-        onNodeWithText("Translate hello into Crimean Tatar.").assertIsDisplayed()
-
-        onNodeWithTag("learner-answer-input").performTextInput("merhaba")
-        onNodeWithText("Check answer").performClick()
-        onNodeWithText("Completed").assertIsDisplayed()
-        onNodeWithText("Lesson complete.").assertIsDisplayed()
-
-        onNodeWithText("Back to lessons").performClick()
-        onNodeWithText("Remove").performClick()
-        onNodeWithText("No downloaded lessons yet. Open Catalog and download a published lesson.").assertIsDisplayed()
-        assertEquals(2, progressStore.savedAttempts.size)
-        assertEquals(AnswerOutcome.INCORRECT, progressStore.savedAttempts.first().outcome)
-        assertEquals(AnswerOutcome.CORRECT, progressStore.savedAttempts.last().outcome)
-        assertTrue(downloadedStore.listLessons().isEmpty())
-    }
 
     private class DemoContentTransport : LearnerContentTransport {
         private val courseId = ContentId("550e8400-e29b-41d4-a716-446655440001")

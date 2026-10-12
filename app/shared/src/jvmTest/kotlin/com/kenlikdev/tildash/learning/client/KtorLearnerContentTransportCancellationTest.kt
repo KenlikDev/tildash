@@ -11,26 +11,26 @@ class KtorLearnerContentTransportCancellationTest {
     @Test
     fun cancellationIsPropagatedInsteadOfConvertedToTransportFailure() =
         runBlocking {
-        val client =
-            HttpClient(
-                MockEngine {
-                    throw CancellationException("cancelled")
-                },
-            )
+            val client =
+                HttpClient(
+                    MockEngine {
+                        throw CancellationException("cancelled")
+                    },
+                )
 
-        try {
-            val failure =
-                try {
-                    KtorLearnerContentTransport(client, "http://example.test").loadCatalog()
-                    null
-                } catch (caught: Throwable) {
-                    caught
-                }
+            try {
+                val failure =
+                    try {
+                        KtorLearnerContentTransport(client, "http://example.test").loadCatalog()
+                        null
+                    } catch (caught: Throwable) {
+                        caught
+                    }
 
-            assertIs<CancellationException>(failure)
-            Unit
-        } finally {
-            client.close()
+                assertIs<CancellationException>(failure)
+                Unit
+            } finally {
+                client.close()
+            }
         }
-    }
 }
