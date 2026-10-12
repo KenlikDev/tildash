@@ -14,7 +14,7 @@ From the repository root, run:
 
     .\scripts\run-local-learning-demo.ps1
 
-The script starts PostgreSQL, starts the backend in a separate PowerShell window with the explicitly local development identity enabled, creates and publishes a fresh course and executable lesson through the real Content Studio API, verifies that the learner API returns the package, and launches the Desktop UI. It stops with an actionable error if Docker, PostgreSQL, backend health, publication, or package verification fails.
+The script starts PostgreSQL, starts the backend in a separate PowerShell window with the explicitly local development identity enabled (or reuses a healthy local backend that accepts the local learner role), creates and publishes a fresh course and executable lesson through the real Content Studio API, verifies that the learner API returns the package, and launches the Desktop UI. It stops with an actionable error if Docker, PostgreSQL, backend health, development identity, publication, or package verification fails. You can run the script again after closing Desktop; it reuses the already-running local backend instead of rejecting the restart.
 
 The development identity is only for isolated local acceptance. Do not expose this backend to a public or shared network. The script uses the repository's local development database credentials.
 
@@ -38,6 +38,18 @@ Keep the backend PowerShell window open while testing catalog and download behav
     docker compose stop postgres
 
 Each run creates a timestamped demo course so the authoring and publication workflow is exercised rather than bypassed by inserting fixture rows directly into the database.
+
+
+
+## Explicit offline restart check
+
+After downloading the lesson, close Desktop. Stop the backend from its PowerShell window with Ctrl+C. Then open another PowerShell window at the repository root and run:
+
+    $env:TILDASH_API_URL = "http://127.0.0.1:8080"
+    $env:TILDASH_DEVELOPMENT_ROLE = "learner"
+    .\gradlew.bat :app:desktopApp:run --no-configuration-cache
+
+The catalog request should show a connection error because the backend is intentionally stopped. Select Downloaded: the saved lesson must still be listed and openable, and its exercise must still accept answers offline. Close the Desktop app afterwards. Restart the backend or run the demo script again when you want to test online catalog/download behavior.
 
 ## Integration gate
 

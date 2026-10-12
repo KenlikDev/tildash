@@ -28,15 +28,17 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     throw "Docker CLI was not found. Install and start Docker Desktop, then retry."
 }
 
+$serverResponding = $false
 $alreadyRunning = $false
 try {
-    $null = Invoke-RestMethod -Uri ($BaseUrl.TrimEnd("/") + "/actuator/health") -TimeoutSec 2
-    $alreadyRunning = $true
+    $existingHealth = Invoke-RestMethod -Uri ($BaseUrl.TrimEnd("/") + "/actuator/health") -TimeoutSec 2
+    $serverResponding = $true
+    $alreadyRunning = $existingHealth.status -eq "UP"
 } catch {
     # A refused connection is expected before the local backend starts.
 }
-if ($alreadyRunning) {
-    throw "A server is already responding at $BaseUrl. Stop it first so this script can start the backend with local development identity enabled."
+if ($serverResponding -and -not $alreadyRunning) {
+    throw "A server is responding at $BaseUrl but is not healthy. Stop it and retry the local demo."
 }
 
 # Use isolated, documented local-development credentials for this demo process only.
@@ -82,15 +84,20 @@ if (-not (Test-Path $windowsPowerShell)) {
     $windowsPowerShell = (Get-Command powershell.exe -ErrorAction Stop).Source
 }
 $encodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($serverCommand))
-Write-Host "Starting the backend in a separate PowerShell window..."
-Start-Process -FilePath $windowsPowerShell -WorkingDirectory $repoRoot -ArgumentList @(
-    "-NoExit",
-    "-ExecutionPolicy", "Bypass",
-    "-EncodedCommand", $encodedCommand
-)
+if ($alreadyRunning) {
+    Write-Host "Reusing the healthy local backend already listening on 127.0.0.1:8080..."
+} else {
+    Write-Host "Starting the backend in a separate PowerShell window..."
+    Start-Process -FilePath $windowsPowerShell -WorkingDirectory $repoRoot -ArgumentList @(
+        "-NoExit",
+        "-ExecutionPolicy", "Bypass",
+        "-EncodedCommand", $encodedCommand
+    )
+}
 
 $serverReady = $false
-for ($attempt = 1; $attempt -le 180; $attempt++) {
+$healthAttempts = if ($alreadyRunning) { 1 } else { 180 }
+for ($attempt = 1; $attempt -le $healthAttempts; $attempt++) {
     try {
         $health = Invoke-RestMethod -Uri ($BaseUrl.TrimEnd("/") + "/actuator/health") -TimeoutSec 2
         if ($health.status -eq "UP") {
@@ -135,6 +142,14 @@ $teacher = @{ "X-Tildash-Development-Role" = "teacher" }
 $reviewer = @{ "X-Tildash-Development-Role" = "reviewer" }
 $learner = @{ "X-Tildash-Development-Role" = "learner" }
 $demoTitle = "Tildash Local Demo " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+
+if ($alreadyRunning) {
+    try {
+        $null = Invoke-TildashRequest -Method "GET" -Path "/api/v1/learning/catalog" -Headers $learner
+    } catch {
+        throw "The existing backend is healthy but does not accept the local development learner identity. Stop it and re-run this script."
+    }
+}
 
 Write-Host "Creating and publishing a fresh demo course and exercise..."
 $course = Invoke-TildashRequest -Method "POST" -Path "/api/v1/content/nodes" -Headers $teacher -Body @{
