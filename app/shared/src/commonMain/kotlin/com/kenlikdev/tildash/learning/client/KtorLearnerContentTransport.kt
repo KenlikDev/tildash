@@ -66,6 +66,8 @@ class KtorLearnerContentTransport(
             block()
         } catch (failure: LearnerContentTransportFailure) {
             throw failure
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (failure: Exception) {
             throw LearnerContentTransportFailure(
                 statusCode = null,

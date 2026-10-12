@@ -1,92 +1,44 @@
 # Local Learning Acceptance
 
-This acceptance flow validates the first real learner vertical slice against the local backend and Desktop application.
+## One-command Windows demo
 
-## Preconditions
+Requirements: Windows PowerShell, JDK 21, and Docker Desktop running.
 
-Start PostgreSQL using the repository's existing local development setup.
+First, update the local checkout to the task branch that contains the learner UI:
 
-Start the backend with the explicit local development identity enabled:
+    git fetch origin
+    git switch feat/learning-real-vertical-slice
+    git pull --ff-only origin feat/learning-real-vertical-slice
 
-    $env:TILDASH_SECURITY_DEVELOPMENT_ENABLED = "true"
-    .\gradlew.bat :server:bootRun --no-configuration-cache
+From the repository root, run:
 
-The development identity is disabled by default and is intended only for local acceptance.
+    .\scripts\run-local-learning-demo.ps1
 
-## Create and publish real lesson content
+The script starts PostgreSQL, starts the backend in a separate PowerShell window with the explicitly local development identity enabled, creates and publishes a fresh course and executable lesson through the real Content Studio API, verifies that the learner API returns the package, and launches the Desktop UI. It stops with an actionable error if Docker, PostgreSQL, backend health, publication, or package verification fails.
 
-From a second PowerShell window:
-
-    $base = "http://127.0.0.1:8080"
-
-    $teacher = @{ "X-Tildash-Development-Role" = "teacher" }
-    $reviewer = @{ "X-Tildash-Development-Role" = "reviewer" }
-    $learner = @{ "X-Tildash-Development-Role" = "learner" }
-
-    $courseBody = @{
-      kind = "COURSE"
-      parentId = $null
-      sourceLocale = "crh"
-      position = 0
-      payload = @{ type = "TEXT"; value = "Crimean Tatar basics" }
-      provenance = @{ sourceTitle = "Local MVP content"; copyrightStatus = "PUBLIC_DOMAIN"; authorName = "Local developer" }
-    } | ConvertTo-Json -Depth 10
-
-    $course = Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/nodes" -Headers $teacher -ContentType "application/json" -Body $courseBody
-
-    $lessonBody = @{
-      kind = "LESSON"
-      parentId = $course.id
-      sourceLocale = "crh"
-      position = 0
-      payload = @{ type = "TEXT"; value = "Greetings" }
-      provenance = @{ sourceTitle = "Local MVP content"; copyrightStatus = "PUBLIC_DOMAIN"; authorName = "Local developer" }
-    } | ConvertTo-Json -Depth 10
-
-    $lesson = Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/nodes" -Headers $teacher -ContentType "application/json" -Body $lessonBody
-
-    $exerciseBody = @{
-      id = "exercise-1"
-      prompt = "Translate hello."
-      position = 0
-      expectedAnswers = @("merhaba")
-    } | ConvertTo-Json -Depth 10
-
-    Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/$($lesson.id)/exercises" -Headers $teacher -ContentType "application/json" -Body $exerciseBody
-
-    Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/$($course.id)/submit" -Headers $teacher
-    Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/$($course.id)/review/start" -Headers $reviewer
-    Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/$($course.id)/review/approve" -Headers $reviewer
-    Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/$($course.id)/publish" -Headers $reviewer
-
-    Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/$($lesson.id)/submit" -Headers $teacher
-    Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/$($lesson.id)/review/start" -Headers $reviewer
-    Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/$($lesson.id)/review/approve" -Headers $reviewer
-    Invoke-RestMethod -Method Post -Uri "$base/api/v1/content/$($lesson.id)/publish" -Headers $reviewer
-
-Verify the learner package directly:
-
-    Invoke-RestMethod -Method Get -Uri "$base/api/v1/learning/catalog" -Headers $learner
-    Invoke-RestMethod -Method Get -Uri "$base/api/v1/learning/lessons/$($lesson.id)" -Headers $learner
-
-The lesson package must contain exercise-1 with type MANUAL_INPUT.
-
-## Run Desktop
-
-    $env:TILDASH_API_URL = "http://127.0.0.1:8080"
-    $env:TILDASH_DEVELOPMENT_ROLE = "learner"
-    .\gradlew.bat :app:desktopApp:run --no-configuration-cache
+The development identity is only for isolated local acceptance. Do not expose this backend to a public or shared network. The script uses the repository's local development database credentials.
 
 ## Manual product acceptance
 
-1. Catalog opens and displays the published course and lesson created above.
-2. Press Download. The lesson is stored locally and its action changes to Open.
-3. Open Downloaded and verify the lesson is present.
-4. Open the lesson, submit an incorrect answer, and verify the same exercise remains active with Try again feedback.
-5. Submit merhaba and verify the lesson advances or completes.
-6. Close and restart Desktop. Open the downloaded lesson and verify progress is restored.
-7. Press Remove and verify the lesson disappears from Downloaded.
-8. Return to Catalog, download it again, and verify the lesson opens with its exercises.
-9. Stop the backend after downloading, restart Desktop, and verify the downloaded lesson still opens and can be answered offline.
+In the Tildash Desktop window, verify each step:
 
-The final ai/integration -> develop promotion must not proceed until the owner has personally completed this acceptance against the exact promotion PR head.
+1. The Catalog tab displays the timestamped local demo course and the “Greetings” lesson.
+2. Click Download. Wait for the action to change to Open.
+3. Click Downloaded and verify that the lesson appears there.
+4. Click Open. The lesson screen must display the exercise prompt, answer field, progress indicator, and Check answer button.
+5. Submit an incorrect answer. “Try again” must appear, and the same exercise must remain active.
+6. Submit “merhaba”. The lesson must show Completed and “Lesson complete.”
+7. Return to lessons and click Remove. The downloaded lesson must disappear.
+8. Download the lesson again, open it, and verify that its exercise and expected answers are restored.
+9. Close and restart the Desktop app. Previously downloaded content must remain available.
+10. After downloading, stop the backend and restart Desktop. The downloaded lesson must still open and accept answers offline.
+
+Keep the backend PowerShell window open while testing catalog and download behavior. Close it after the UI run ends. PostgreSQL can be stopped with:
+
+    docker compose stop postgres
+
+Each run creates a timestamped demo course so the authoring and publication workflow is exercised rather than bypassed by inserting fixture rows directly into the database.
+
+## Integration gate
+
+The task branch and its automated checks are not proof of local acceptance. Do not merge this change into ai/integration until the owner has personally exercised the flow above. The final ai/integration-to-develop promotion additionally requires acceptance against the exact promotion PR head.
