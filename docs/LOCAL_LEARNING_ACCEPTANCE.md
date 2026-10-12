@@ -41,7 +41,7 @@ The development-role headers are only for local acceptance. The script binds the
 The local course now covers four beginner conversation situations:
 
 - choosing a greeting by formality and replying to “Selâm aleyküm!” with “Aleyküm selâm!”;
-- selecting greetings for morning, daytime, evening, and night, including a short fill-in-the-blank exercise;
+- selecting greetings for morning, daytime and evening, plus the correct farewell for night, including a short fill-in-the-blank exercise;
 - expressing informal/polite/strong thanks and choosing the correct farewell according to who is leaving;
 - introducing yourself, asking someone’s name politely, and composing a short introduction exchange.
 

@@ -268,22 +268,22 @@ $lessonPlans = @(
     @{
         Title = "Приветствия в разное время суток"
         Materials = @(
-            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель урока: выбрать приветствие с учётом времени суток. Вежливые формы могут быть длиннее обычного Meraba! и буквально не переводятся слово в слово. Запомните устойчивые выражения целиком и используйте соответствующее времени суток приветствие."; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXPLANATION"; Position = 0; Text = "Цель урока: выбрать приветствие или пожелание при прощании с учётом времени суток. Вежливые формы могут быть длиннее обычного Meraba! и буквально не переводятся слово в слово. Запомните устойчивые выражения целиком и используйте соответствующую ситуации фразу."; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 1; Term = "Sabahıñız hayırlı olsun!"; Gloss = "Доброго вам утра!"; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 2; Term = "Künüñiz hayırlı olsun!"; Gloss = "Доброго вам дня!"; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 3; Term = "Aqşamıñız hayırlı olsun!"; Gloss = "Доброго вам вечера!"; SourceLocator = $etiquetteSource }
-            @{ Kind = "VOCABULARY"; Position = 4; Term = "Geceler hayır!"; Gloss = "Доброй ночи!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "VOCABULARY"; Position = 4; Term = "Hayırlı gece bolsun!"; Gloss = "Доброй ночи!"; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 5; Term = "Selâm!"; Gloss = "Привет! (неформально)"; SourceLocator = $etiquetteSource }
             @{ Kind = "VOCABULARY"; Position = 6; Term = "Meraba!"; Gloss = "Привет! / Здравствуй!"; SourceLocator = $etiquetteSource }
-            @{ Kind = "EXPLANATION"; Position = 7; Text = "Сначала определите ситуацию: утро, день, вечер или прощание на ночь. Sabahıñız hayırlı olsun! относится к утру; Künüñiz hayırlı olsun! — ко дню; Aqşamıñız hayırlı olsun! — к вечеру; Geceler hayır! — пожелание доброй ночи. Selâm! и Meraba! — короткие приветствия, которые удобно использовать с друзьями и знакомыми."; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXPLANATION"; Position = 7; Text = "Сначала определите ситуацию: утро, день, вечер или прощание на ночь. Sabahıñız hayırlı olsun! относится к утру; Künüñiz hayırlı olsun! — ко дню; Aqşamıñız hayırlı olsun! — к вечеру; Hayırlı gece bolsun! — пожелание доброй ночи при прощании. Selâm! и Meraba! — короткие приветствия, которые удобно использовать с друзьями и знакомыми."; SourceLocator = $etiquetteSource }
             @{ Kind = "EXAMPLE"; Position = 8; Text = "Утром: A: Sabahıñız hayırlı olsun! — Доброго вам утра! / Днём: A: Künüñiz hayırlı olsun! — Доброго вам дня!"; SourceLocator = $etiquetteSource }
-            @{ Kind = "EXAMPLE"; Position = 9; Text = "Вечером: A: Aqşamıñız hayırlı olsun! — Доброго вам вечера! / Перед сном: Geceler hayır! — Доброй ночи!"; SourceLocator = $etiquetteSource }
+            @{ Kind = "EXAMPLE"; Position = 9; Text = "Вечером: A: Aqşamıñız hayırlı olsun! — Доброго вам вечера! / Перед сном: Hayırlı gece bolsun! — Доброй ночи!"; SourceLocator = $etiquetteSource }
         )
         Exercises = @(
             @{ Id = "daily-1"; Position = 0; Prompt = "Как вежливо пожелать доброго утра?"; ExpectedAnswers = @("Sabahıñız hayırlı olsun", "Sabahıñız hayırlı olsun!") }
             @{ Id = "daily-2"; Position = 1; Prompt = "Вы встречаете человека днём. Напишите подходящее приветствие."; ExpectedAnswers = @("Künüñiz hayırlı olsun", "Künüñiz hayırlı olsun!") }
             @{ Id = "daily-3"; Position = 2; Prompt = "Как сказать «Доброго вам вечера!»?"; ExpectedAnswers = @("Aqşamıñız hayırlı olsun", "Aqşamıñız hayırlı olsun!") }
-            @{ Id = "daily-4"; Position = 3; Prompt = "Как пожелать собеседнику доброй ночи?"; ExpectedAnswers = @("Geceler hayır", "Geceler hayır!") }
+            @{ Id = "daily-4"; Position = 3; Prompt = "Как пожелать собеседнику доброй ночи?"; ExpectedAnswers = @("Hayırlı gece bolsun", "Hayırlı gece bolsun!") }
             @{ Id = "daily-5"; Position = 4; Prompt = "Вы встретили друга днём. Напишите короткое неформальное приветствие."; ExpectedAnswers = @("Selâm", "Selâm!", "Meraba", "Meraba!") }
             @{ Id = "daily-6"; Position = 5; Prompt = "Заполните пропуск в пожелании доброго дня: Künüñiz ___ olsun!"; ExpectedAnswers = @("hayırlı") }
         )
