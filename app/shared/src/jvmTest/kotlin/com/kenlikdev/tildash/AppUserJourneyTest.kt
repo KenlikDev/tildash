@@ -216,7 +216,8 @@ class AppUserJourneyTest {
                                 ManualInputExercise(
                                     id = "exercise-2",
                                     contentId = lesson.id,
-                                    prompt = "Собеседник поздоровался словами «Selâm aleyküm!». Напишите правильный ответ на это приветствие.",
+                                    prompt =
+                                        "Собеседник поздоровался словами «Selâm aleyküm!». Напишите правильный ответ на это приветствие.",
                                     expectedAnswers = listOf("Aleyküm selâm", "Aleyküm selâm!"),
                                 ),
                                 ManualInputExercise(
