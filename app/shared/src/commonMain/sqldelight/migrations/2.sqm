@@ -1,0 +1,9 @@
+ALTER TABLE downloaded_lesson
+ADD COLUMN downloaded_at_epoch_millis INTEGER NOT NULL DEFAULT 0;
+
+UPDATE downloaded_lesson
+SET downloaded_at_epoch_millis = (
+    SELECT downloaded_course.downloaded_at_epoch_millis
+    FROM downloaded_course
+    WHERE downloaded_course.course_id = downloaded_lesson.course_id
+);

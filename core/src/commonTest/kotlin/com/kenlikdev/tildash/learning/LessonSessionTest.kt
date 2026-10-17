@@ -75,6 +75,27 @@ class LessonSessionTest {
     }
 
     @Test
+    fun attemptFromPreviousPublishedVersionDoesNotSkipCurrentExercise() {
+        val previousVersionProgress =
+            LearningEngine
+                .submit(
+                    progress = LearningProgress.empty(),
+                    exercise = first,
+                    lessonId = lessonId,
+                    attemptId = "attempt-version-one",
+                    response = LearnerResponse.Text("hello"),
+                    occurredAt = occurredAt,
+                    publishedVersion = 1,
+                ).progress
+
+        val updatedPlan = LearningPlan(lessonId, listOf(first), publishedVersion = 2)
+        val session = LessonSession.start(updatedPlan, previousVersionProgress)
+
+        assertEquals(LessonSessionState.ACTIVE, session.state)
+        assertEquals(first.id, session.nextExercise?.id)
+    }
+
+    @Test
     fun sessionSubmissionDelegatesToLearningEngine() {
         val session = LessonSession.start(plan)
 

@@ -1,0 +1,317 @@
+package com.kenlikdev.tildash
+
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.v2.runComposeUiTest
+import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.LanguageTag
+import com.kenlikdev.tildash.learning.AnswerOutcome
+import com.kenlikdev.tildash.learning.LearnerCourseCatalog
+import com.kenlikdev.tildash.learning.LearnerCourseSummary
+import com.kenlikdev.tildash.learning.LearnerLessonPackage
+import com.kenlikdev.tildash.learning.LearnerLessonSummary
+import com.kenlikdev.tildash.learning.LearnerResponse
+import com.kenlikdev.tildash.learning.LearningAttempt
+import com.kenlikdev.tildash.learning.LearningPlan
+import com.kenlikdev.tildash.learning.LearningProgress
+import com.kenlikdev.tildash.learning.ManualInputExercise
+import com.kenlikdev.tildash.learning.client.LearnerContentApplication
+import com.kenlikdev.tildash.learning.client.LearnerContentTransport
+import com.kenlikdev.tildash.learning.client.LearnerLessonApplication
+import com.kenlikdev.tildash.learning.client.LearnerLessonCoordinator
+import com.kenlikdev.tildash.storage.DownloadedLesson
+import com.kenlikdev.tildash.storage.DownloadedLessonStore
+import com.kenlikdev.tildash.storage.LearningProgressStore
+import kotlin.test.Test
+import kotlin.time.Clock
+import kotlin.time.Instant
+
+class AppUiTest {
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun learnerCanDownloadOpenAnswerRemoveAndRedownloadLesson() =
+        runComposeUiTest {
+            val fixture = Fixture()
+
+            setContent {
+                App(
+                    learnerApplication = fixture.learnerApplication(),
+                    contentApplication = fixture.contentApplication(),
+                )
+            }
+
+            waitForIdle()
+            onNodeWithText("Tildash Learning").assertIsDisplayed()
+            onNodeWithText("Crimean Tatar basics").assertIsDisplayed()
+            onNodeWithText("Greetings").assertIsDisplayed()
+            onNodeWithText("Download").performClick()
+
+            waitForIdle()
+            onNodeWithText("Downloaded (1)").performClick()
+            onNodeWithText("Open").performClick()
+
+            waitForIdle()
+            onNodeWithText("Translate hello.").assertIsDisplayed()
+            onNodeWithText("Your answer").assertIsDisplayed()
+            onNodeWithText("Check answer").assertIsDisplayed()
+            onNodeWithTag("learner-answer-input").performTextInput("wrong")
+            onNodeWithText("Check answer").performClick()
+
+            waitForIdle()
+            onNodeWithText("Try again").assertIsDisplayed()
+            onNodeWithTag("learner-answer-input").performTextInput("merhaba")
+            onNodeWithText("Check answer").performClick()
+
+            waitForIdle()
+            onNodeWithText("Lesson complete.").assertIsDisplayed()
+            kotlin.test.assertEquals(
+                AnswerOutcome.INCORRECT,
+                fixture
+                    .progressStore
+                    .loadProgress()
+                    .attempts[0]
+                    .outcome,
+            )
+            kotlin.test.assertEquals(
+                AnswerOutcome.CORRECT,
+                fixture
+                    .progressStore
+                    .loadProgress()
+                    .attempts[1]
+                    .outcome,
+            )
+
+            onNodeWithText("Back to lessons").performClick()
+            waitForIdle()
+            onNodeWithText("Downloaded (1)").assertIsDisplayed()
+            onNodeWithText("Remove").performClick()
+
+            waitForIdle()
+            onNodeWithText("Downloaded (0)").assertIsDisplayed()
+            onNodeWithText("Catalog").performClick()
+            waitForIdle()
+            onNodeWithText("Download").performClick()
+
+            waitForIdle()
+            onNodeWithText("Downloaded (1)").assertIsDisplayed()
+
+            val restartedFixture = fixture.learnerApplication()
+            setContent {
+                App(
+                    learnerApplication = restartedFixture,
+                    contentApplication = fixture.contentApplication(),
+                )
+            }
+
+            waitForIdle()
+            onNodeWithText("Downloaded (1)").performClick()
+            onNodeWithText("Open").performClick()
+            waitForIdle()
+            onNodeWithText("Lesson complete.").assertIsDisplayed()
+        }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun catalogOffersUpdateForOlderDownloadedLessonAndReplacesIt() =
+        runComposeUiTest {
+            val fixture = Fixture(currentPublishedVersion = 2)
+            fixture.seedDownloadedVersion(1)
+
+            setContent {
+                App(
+                    learnerApplication = fixture.learnerApplication(),
+                    contentApplication = fixture.contentApplication(),
+                )
+            }
+
+            waitForIdle()
+            onNodeWithText("Published version 2").assertIsDisplayed()
+            onNodeWithText("Update").assertIsDisplayed()
+            onNodeWithText("Update").performClick()
+
+            waitForIdle()
+            kotlin.test.assertEquals(
+                2,
+                fixture.store.loadLesson(fixture.lessonId)?.lesson?.publishedVersion,
+            )
+            onNodeWithText("Open").assertIsDisplayed()
+        }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun earlierPublishedAttemptDoesNotInflateCurrentVersionProgress() =
+        runComposeUiTest {
+            val priorAttempt =
+                LearningAttempt(
+                    attemptId = "attempt-v1-correct",
+                    lessonId = ContentId("550e8400-e29b-41d4-a716-446655440000"),
+                    publishedVersion = 1,
+                    exerciseId = "exercise-1",
+                    response = LearnerResponse.Text("merhaba"),
+                    outcome = AnswerOutcome.CORRECT,
+                    occurredAt = Instant.parse("2026-09-30T07:00:00Z"),
+                )
+            val fixture = Fixture(currentPublishedVersion = 2, initialAttempts = listOf(priorAttempt))
+
+            setContent {
+                App(
+                    learnerApplication = fixture.learnerApplication(),
+                    contentApplication = fixture.contentApplication(),
+                )
+            }
+
+            waitForIdle()
+            onNodeWithText("Download").performClick()
+            waitForIdle()
+            onNodeWithText("Downloaded (1)").performClick()
+            onNodeWithText("Open").performClick()
+            waitForIdle()
+
+            onNodeWithText("0 / 1").assertIsDisplayed()
+            onNodeWithText("In progress").assertIsDisplayed()
+        }
+
+    private class Fixture(
+        private val currentPublishedVersion: Int = 1,
+        initialAttempts: List<LearningAttempt> = emptyList(),
+    ) {
+        val lessonId = ContentId("550e8400-e29b-41d4-a716-446655440000")
+        private val courseId = ContentId("550e8400-e29b-41d4-a716-446655440001")
+        private val exerciseId = "exercise-1"
+        private val fixedInstant = Instant.parse("2026-10-01T08:00:00Z")
+        val store = FakeDownloadedLessonStore()
+        val progressStore = FakeLearningProgressStore(initialAttempts)
+        private var nextAttemptId = 0
+
+        private val lesson =
+            LearnerLessonSummary(
+                id = lessonId,
+                title = "Greetings",
+                sourceLocale = LanguageTag("crh"),
+                publishedVersion = currentPublishedVersion,
+                localizations = emptyList(),
+            )
+
+        private val course =
+            LearnerCourseSummary(
+                id = courseId,
+                title = "Crimean Tatar basics",
+                sourceLocale = LanguageTag("crh"),
+                publishedVersion = currentPublishedVersion,
+                lessons = listOf(lesson),
+            )
+
+        private val packageData =
+            LearnerLessonPackage(
+                course = course,
+                lesson = lesson,
+                plan =
+                    LearningPlan(
+                        lessonId = lessonId,
+                        exercises =
+                            listOf(
+                                ManualInputExercise(
+                                    id = exerciseId,
+                                    contentId = lessonId,
+                                    prompt = "Translate hello.",
+                                    expectedAnswers = listOf("merhaba"),
+                                ),
+                            ),
+                        publishedVersion = currentPublishedVersion,
+                    ),
+            )
+
+        private val transport =
+            object : LearnerContentTransport {
+                override suspend fun loadCatalog(): LearnerCourseCatalog = LearnerCourseCatalog(listOf(course))
+
+                override suspend fun loadLesson(lessonId: ContentId): LearnerLessonPackage {
+                    kotlin.test.assertEquals(this@Fixture.lessonId, lessonId)
+                    return packageData
+                }
+            }
+
+        fun contentApplication() =
+            LearnerContentApplication(
+                transport = transport,
+                downloadedLessonStore = store,
+                clock = fixedClock(),
+            )
+
+        fun seedDownloadedVersion(version: Int) {
+            val olderLesson = lesson.copy(publishedVersion = version)
+            val olderCourse =
+                course.copy(
+                    publishedVersion = version,
+                    lessons = listOf(olderLesson),
+                )
+            store.save(
+                DownloadedLesson(
+                    course = olderCourse,
+                    lesson = olderLesson,
+                    plan = packageData.plan.copy(publishedVersion = version),
+                    downloadedAt = fixedInstant,
+                    materials = packageData.materials,
+                ),
+            )
+        }
+
+
+        fun learnerApplication() =
+            LearnerLessonApplication(
+                downloadedLessonStore = store,
+                coordinator =
+                    LearnerLessonCoordinator(
+                        downloadedLessonStore = store,
+                        learningProgressStore = progressStore,
+                    ),
+                clock = fixedClock(),
+                attemptIdGenerator = { "attempt-" + (++nextAttemptId) },
+            )
+
+        private fun fixedClock() =
+            object : Clock {
+                override fun now(): Instant = fixedInstant
+            }
+    }
+
+    private class FakeDownloadedLessonStore : DownloadedLessonStore {
+        private val lessons = linkedMapOf<ContentId, DownloadedLesson>()
+
+        override fun save(downloadedLesson: DownloadedLesson) {
+            lessons[downloadedLesson.lesson.id] = downloadedLesson
+        }
+
+        override fun loadLesson(lessonId: ContentId): DownloadedLesson? = lessons[lessonId]
+
+        override fun listLessons(): List<DownloadedLesson> = lessons.values.toList()
+
+        override fun deleteLesson(lessonId: ContentId) {
+            lessons.remove(lessonId)
+        }
+
+        override fun countLessons(): Long = lessons.size.toLong()
+    }
+
+    private class FakeLearningProgressStore(
+        initialAttempts: List<LearningAttempt> = emptyList(),
+    ) : LearningProgressStore {
+        private var progress = LearningProgress.fromPersistedAttempts(initialAttempts)
+
+        override fun loadProgress(): LearningProgress = progress
+
+        override fun saveAttempt(attempt: LearningAttempt) {
+            progress = LearningProgress.fromPersistedAttempts(progress.attempts + attempt)
+        }
+
+        override fun loadPendingSyncAttempts(): List<LearningAttempt> = emptyList()
+
+        override fun acknowledgeAttempt(attemptId: String) = Unit
+
+        override fun pendingSyncCount(): Long = 0L
+    }
+}

@@ -203,10 +203,21 @@ class KtorLearningSyncTransport(
             ?.toIntOrNull()
 
     private fun validateBatch(batch: LearningProgressSyncBatch) {
+        if (batch.attempts.size > MAX_LEARNING_SYNC_BATCH_SIZE) {
+            throw LearningSyncValidationFailure(
+                "A learning sync batch cannot exceed $MAX_LEARNING_SYNC_BATCH_SIZE attempts.",
+            )
+        }
         batch.attempts.forEach { attempt ->
             if (attempt.lessonId == null) {
                 throw LearningSyncValidationFailure(
                     "Learning attempt '" + attempt.attemptId + "' is missing lesson scope.",
+                )
+            }
+            val publishedVersion = attempt.publishedVersion
+            if (publishedVersion == null || publishedVersion <= 0) {
+                throw LearningSyncValidationFailure(
+                    "Learning attempt '" + attempt.attemptId + "' is missing a valid published lesson version.",
                 )
             }
         }
@@ -228,7 +239,20 @@ class KtorLearningSyncTransport(
     private fun encodeAttempt(attempt: LearningAttempt): JsonObject =
         buildJsonObject {
             put("attemptId", JsonPrimitive(attempt.attemptId))
-            put("lessonId", JsonPrimitive(attempt.lessonId?.value ?: error("Learning attempt is missing lesson scope.")))
+            put(
+                "lessonId",
+                JsonPrimitive(
+                    attempt.lessonId?.value
+                        ?: error("Learning attempt is missing lesson scope."),
+                ),
+            )
+            put(
+                "publishedVersion",
+                JsonPrimitive(
+                    attempt.publishedVersion
+                        ?: error("Learning attempt is missing a published lesson version."),
+                ),
+            )
             put("exerciseId", JsonPrimitive(attempt.exerciseId))
             put(
                 "response",

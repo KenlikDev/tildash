@@ -55,7 +55,7 @@ LICENSED and PERMISSION_GRANTED require a license reference.
 
 IN_COPYRIGHT without a license or permission reference is a warning while content is still DRAFT or SUBMITTED, but blocks review for later states.
 
-RESTRICTED content cannot be published.
+RESTRICTED content cannot be published or included in a published course/lesson snapshot. When validating a target that is still DRAFT or SUBMITTED, a restricted descendant is reported as a warning so submission may proceed, but `canPublish` remains false. During review, approval, or publication of the target, the same descendant is a blocking error even when the descendant node itself is still in DRAFT.
 
 The validator does not infer ownership or legal permission from free-form text. It only evaluates the explicit content contract.
 
@@ -69,7 +69,7 @@ Duplicate (contentId, locale, revision) keys are rejected.
 
 Payload type must match the content kind:
 
-- COURSE, LESSON, and EXAMPLE use Text;
+- COURSE, LESSON, EXPLANATION, and EXAMPLE use Text;
 - VOCABULARY uses Vocabulary;
 - MEDIA_REFERENCE uses MediaReference.
 
@@ -79,6 +79,8 @@ Media references additionally require:
 - a media type using type/subtype syntax when present.
 
 The validator does not perform network access. Reachability and storage policy are separate infrastructure concerns.
+
+A lesson must have at least one direct-child EXPLANATION node before submission. This is the minimum instructional body shown before practice; a lesson with only a title and exercises is incomplete and cannot enter review. EXAMPLE nodes contain illustrative source text, while VOCABULARY nodes require a term and gloss.
 
 ### Exercises
 

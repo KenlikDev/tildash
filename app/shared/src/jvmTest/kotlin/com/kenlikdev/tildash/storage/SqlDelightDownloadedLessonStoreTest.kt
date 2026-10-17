@@ -2,12 +2,18 @@ package com.kenlikdev.tildash.storage
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentPayload
+import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
+import com.kenlikdev.tildash.learning.LearnerLessonMaterial
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
+import com.kenlikdev.tildash.learning.LearnerLocalizedText
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.ManualInputExercise
 import java.nio.file.Files
+import java.util.Properties
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -26,8 +32,31 @@ class SqlDelightDownloadedLessonStoreTest {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString()).use { store ->
-                store.save(downloadedLesson(firstLessonId, "Lesson one", 1))
+            open(databaseFile.toString(), createSchema = true).use { store ->
+                store.save(
+                    downloadedLesson(
+                        firstLessonId,
+                        "Lesson one",
+                        1,
+                        courseLessons =
+                            listOf(
+                                lessonSummary(
+                                    firstLessonId,
+                                    "Lesson one",
+                                    1,
+                                    localizations =
+                                        listOf(
+                                            LearnerLocalizedText(
+                                                locale = LanguageTag("ru"),
+                                                value = "Урок один",
+                                                variant = ContentVariantType.LITERARY,
+                                            ),
+                                        ),
+                                ),
+                                lessonSummary(secondLessonId, "Lesson two", 2),
+                            ),
+                    ),
+                )
                 assertEquals(1L, store.countLessons())
 
                 val loaded = store.loadLesson(firstLessonId)
@@ -37,11 +66,26 @@ class SqlDelightDownloadedLessonStoreTest {
                 assertEquals(downloadedAt, loaded?.downloadedAt)
             }
 
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = false).use { store ->
                 val loaded = store.loadLesson(firstLessonId)
 
                 assertEquals(firstLessonId, loaded?.lesson?.id)
                 assertEquals("Lesson one", loaded?.lesson?.title)
+                assertEquals(
+                    listOf(firstLessonId, secondLessonId),
+                    loaded?.course?.lessons?.map { it.id },
+                )
+                assertEquals(
+                    listOf("Урок один"),
+                    loaded?.lesson?.localizations?.map { it.value },
+                )
+                val restoredVariant =
+                    loaded
+                        ?.lesson
+                        ?.localizations
+                        ?.single()
+                        ?.variant
+                assertEquals(ContentVariantType.LITERARY, restoredVariant)
                 val exercise = loaded?.plan?.exercises?.single() as ManualInputExercise
                 assertEquals("Translate hello", exercise.prompt)
                 assertEquals(listOf("hello"), exercise.expectedAnswers)
@@ -53,24 +97,123 @@ class SqlDelightDownloadedLessonStoreTest {
     }
 
     @Test
+    fun downloadedTeachingMaterialsSurviveDatabaseReopen() {
+        val databaseFile = Files.createTempFile("tildash-offline-materials-", ".db")
+        val materials =
+            listOf(
+                LearnerLessonMaterial(
+                    id = ContentId("550e8400-e29b-41d4-a716-446655440104"),
+                    kind = ContentKind.EXPLANATION,
+                    position = 0,
+                    sourceLocale = LanguageTag("ru"),
+                    payload = ContentPayload.Text("Greetings depend on context."),
+                ),
+                LearnerLessonMaterial(
+                    id = ContentId("550e8400-e29b-41d4-a716-446655440105"),
+                    kind = ContentKind.VOCABULARY,
+                    position = 1,
+                    sourceLocale = LanguageTag("crh"),
+                    payload = ContentPayload.Vocabulary("Merhaba", "Привет"),
+                ),
+            )
+
+        try {
+            open(databaseFile.toString(), createSchema = true).use { store ->
+                store.save(
+                    downloadedLesson(
+                        firstLessonId,
+                        "Greetings",
+                        1,
+                        materials = materials,
+                    ),
+                )
+            }
+
+            open(databaseFile.toString(), createSchema = false).use { store ->
+                assertEquals(materials, store.loadLesson(firstLessonId)?.materials)
+            }
+        } finally {
+            Files.deleteIfExists(databaseFile)
+        }
+    }
+
+    @Test
     fun multipleLessonsRemainAvailableAsOneOfflineCourse() {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 val courseLessons =
                     listOf(
                         lessonSummary(firstLessonId, "Lesson one", 1),
                         lessonSummary(secondLessonId, "Lesson two", 2),
                     )
                 store.save(downloadedLesson(firstLessonId, "Lesson one", 1, courseLessons))
-                store.save(downloadedLesson(secondLessonId, "Lesson two", 2, courseLessons))
+                store.save(
+                    downloadedLesson(
+                        secondLessonId,
+                        "Lesson two",
+                        2,
+                        courseLessons,
+                        downloadedAt = Instant.parse("2026-09-29T09:00:00Z"),
+                    ),
+                )
 
-                val loaded = store.loadLesson(secondLessonId)
+                val firstLoaded = store.loadLesson(firstLessonId)
+                val secondLoaded = store.loadLesson(secondLessonId)
 
                 assertEquals(2L, store.countLessons())
-                assertEquals(listOf(firstLessonId, secondLessonId), loaded?.course?.lessons?.map { it.id })
-                assertEquals(listOf("Lesson one", "Lesson two"), loaded?.course?.lessons?.map { it.title })
+                assertEquals(listOf(firstLessonId, secondLessonId), secondLoaded?.course?.lessons?.map { it.id })
+                assertEquals(listOf("Lesson one", "Lesson two"), secondLoaded?.course?.lessons?.map { it.title })
+                assertEquals(Instant.parse("2026-09-29T08:00:00Z"), firstLoaded?.downloadedAt)
+                assertEquals(Instant.parse("2026-09-29T09:00:00Z"), secondLoaded?.downloadedAt)
+            }
+        } finally {
+            Files.deleteIfExists(databaseFile)
+        }
+    }
+
+    @Test
+    fun rehydratedLessonKeepsAnswersScopedToEachExercise() {
+        val databaseFile = Files.createTempFile("tildash-offline-", ".db")
+
+        try {
+            open(databaseFile.toString(), createSchema = true).use { store ->
+                store.save(
+                    downloadedLesson(
+                        firstLessonId,
+                        "Lesson one",
+                        1,
+                        exercises =
+                            listOf(
+                                ManualInputExercise(
+                                    id = "exercise-1",
+                                    contentId = contentId,
+                                    prompt = "First exercise",
+                                    expectedAnswers = listOf("first", "first alternative"),
+                                ),
+                                ManualInputExercise(
+                                    id = "exercise-2",
+                                    contentId = contentId,
+                                    prompt = "Second exercise",
+                                    expectedAnswers = listOf("second"),
+                                ),
+                            ),
+                    ),
+                )
+
+                val loadedExercises =
+                    store
+                        .loadLesson(firstLessonId)
+                        ?.plan
+                        ?.exercises
+                        ?.map { it as ManualInputExercise }
+
+                assertEquals(
+                    listOf("first", "first alternative"),
+                    loadedExercises?.get(0)?.expectedAnswers,
+                )
+                assertEquals(listOf("second"), loadedExercises?.get(1)?.expectedAnswers)
             }
         } finally {
             Files.deleteIfExists(databaseFile)
@@ -82,7 +225,7 @@ class SqlDelightDownloadedLessonStoreTest {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.save(downloadedLesson(firstLessonId, "Old lesson", 1))
                 store.save(
                     downloadedLesson(
@@ -118,7 +261,7 @@ class SqlDelightDownloadedLessonStoreTest {
         val databaseFile = Files.createTempFile("tildash-offline-", ".db")
 
         try {
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.save(downloadedLesson(firstLessonId, "Lesson one", 1))
                 store.deleteLesson(firstLessonId)
 
@@ -131,9 +274,21 @@ class SqlDelightDownloadedLessonStoreTest {
         }
     }
 
-    private fun open(path: String): TestStore {
-        val driver = JdbcSqliteDriver("jdbc:sqlite:" + path)
-        TildashDatabase.Schema.create(driver)
+    private fun open(
+        path: String,
+        createSchema: Boolean,
+    ): TestStore {
+        val driver =
+            JdbcSqliteDriver(
+                url = "jdbc:sqlite:" + path,
+                properties =
+                    Properties().apply {
+                        put("foreign_keys", "true")
+                    },
+            )
+        if (createSchema) {
+            TildashDatabase.Schema.create(driver)
+        }
         return TestStore(driver, SqlDelightDownloadedLessonStore(driver))
     }
 
@@ -142,6 +297,7 @@ class SqlDelightDownloadedLessonStoreTest {
         title: String,
         version: Int,
         courseLessons: List<LearnerLessonSummary> = listOf(lessonSummary(lessonId, title, version)),
+        downloadedAt: Instant = this.downloadedAt,
         exercises: List<ManualInputExercise> =
             listOf(
                 ManualInputExercise(
@@ -151,6 +307,7 @@ class SqlDelightDownloadedLessonStoreTest {
                     expectedAnswers = listOf("hello"),
                 ),
             ),
+        materials: List<LearnerLessonMaterial> = emptyList(),
     ) = DownloadedLesson(
         course =
             LearnerCourseSummary(
@@ -163,18 +320,20 @@ class SqlDelightDownloadedLessonStoreTest {
         lesson = courseLessons.first { it.id == lessonId },
         plan = LearningPlan(lessonId = lessonId, exercises = exercises),
         downloadedAt = downloadedAt,
+        materials = materials,
     )
 
     private fun lessonSummary(
         lessonId: ContentId,
         title: String,
         version: Int,
+        localizations: List<LearnerLocalizedText> = emptyList(),
     ) = LearnerLessonSummary(
         id = lessonId,
         title = title,
         sourceLocale = LanguageTag("crh"),
         publishedVersion = version,
-        localizations = emptyList(),
+        localizations = localizations,
     )
 
     private class TestStore(

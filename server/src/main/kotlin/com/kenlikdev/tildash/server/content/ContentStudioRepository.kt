@@ -14,6 +14,7 @@ import com.kenlikdev.tildash.content.model.PersonReference
 import com.kenlikdev.tildash.content.model.Provenance
 import com.kenlikdev.tildash.content.model.SourceContentRevision
 import com.kenlikdev.tildash.content.model.SourceReference
+import com.kenlikdev.tildash.content.validation.ExerciseDefinition
 import com.kenlikdev.tildash.content.workflow.ContentWorkflowEvent
 import com.kenlikdev.tildash.server.api.content.PayloadRequest
 import com.kenlikdev.tildash.server.api.content.PayloadType
@@ -96,6 +97,7 @@ data class ValidationData(
     val nodes: List<ContentNode>,
     val sourceRevisions: List<SourceContentRevision>,
     val localizations: List<LocalizedContentRevision>,
+    val exercisesByContentId: Map<ContentId, List<ExerciseDefinition>> = emptyMap(),
 )
 
 @Repository
@@ -192,16 +194,29 @@ class JdbcContentStudioRepository(
             ) { rs, _ -> mapNode(rs) }
             .firstOrNull()
 
-    override fun nextRevision(contentId: ContentId): Int =
+    override fun nextRevision(contentId: ContentId): Int {
+        val params = MapSqlParameterSource("id", UUID.fromString(contentId.value))
         jdbc.queryForObject(
+            """
+            select id
+            from tildash.content_nodes
+            where id = :id
+            for update
+            """.trimIndent(),
+            params,
+            UUID::class.java,
+        ) ?: throw ContentNotFoundException(contentId)
+
+        return jdbc.queryForObject(
             """
             select coalesce(max(revision_no), 0) + 1
             from tildash.content_source_revisions
             where content_node_id = :id
             """.trimIndent(),
-            MapSqlParameterSource("id", UUID.fromString(contentId.value)),
+            params,
             Int::class.java,
         ) ?: 1
+    }
 
     override fun updateState(
         contentId: ContentId,
@@ -321,7 +336,36 @@ class JdbcContentStudioRepository(
                 params,
             ) { rs, _ -> mapLocalizationRevision(rs) }
 
-        return ValidationData(nodes, revisions.map { it.revision }, localizations)
+        val exercisesByContentId =
+            jdbc
+                .query(
+                    """
+                    select content_node_id, prompt, exercise_id, expected_answers
+                    from tildash.content_exercise_definitions
+                    where content_node_id in (:contentIds)
+                    order by content_node_id, position, exercise_id
+                    """.trimIndent(),
+                    params,
+                ) { rs, _ ->
+                    val contentId = ContentId(rs.getObject("content_node_id", UUID::class.java).toString())
+                    val exerciseId = rs.getString("exercise_id")
+                    contentId to
+                        ExerciseDefinition(
+                            id = exerciseId,
+                            prompt = rs.getString("prompt"),
+                            expectedAnswers =
+                                buildList {
+                                    objectMapper.readTree(rs.getString("expected_answers")).forEach { add(it.asText()) }
+                                },
+                        )
+                }.groupBy({ it.first }, { it.second })
+
+        return ValidationData(
+            nodes = nodes,
+            sourceRevisions = revisions.map { it.revision },
+            localizations = localizations,
+            exercisesByContentId = exercisesByContentId,
+        )
     }
 
     override fun preview(contentId: ContentId): StoredPreview? =

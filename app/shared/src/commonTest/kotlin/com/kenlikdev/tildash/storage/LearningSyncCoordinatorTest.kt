@@ -7,6 +7,7 @@ import com.kenlikdev.tildash.learning.LearningProgress
 import com.kenlikdev.tildash.learning.LearningProgressSyncBatch
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.startCoroutine
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -67,6 +68,42 @@ class LearningSyncCoordinatorTest {
 
             assertEquals(listOf("attempt-a", "attempt-b"), received)
             assertEquals(listOf("attempt-a", "attempt-b"), report.acknowledgedAttemptIds)
+            assertEquals(emptyList(), store.pendingIds())
+        }
+
+    @Test
+    fun moreThanOneHundredPendingAttemptsAreSentInBoundedBatches() =
+        runTest {
+            val attempts =
+                (1..101).map { index ->
+                    attempt(
+                        id = "attempt-" + index.toString().padStart(3, '0'),
+                        timestamp = "2026-09-28T08:00:00Z",
+                    )
+                }
+            val store = FakeStore(*attempts.toTypedArray())
+            val receivedBatchSizes = mutableListOf<Int>()
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult {
+                        receivedBatchSizes += batch.attempts.size
+                        return LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = batch.attempts.map { it.attemptId },
+                        )
+                    }
+                }
+
+            val report =
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                ).synchronize("device-a")
+
+            assertEquals(listOf(100, 1), receivedBatchSizes)
+            assertEquals(101, report.submittedAttemptIds.size)
+            assertEquals(101, report.acknowledgedAttemptIds.size)
+            assertEquals(emptyList(), report.conflictAttemptIds)
             assertEquals(emptyList(), store.pendingIds())
         }
 
@@ -207,6 +244,30 @@ class LearningSyncCoordinatorTest {
         }
 
     @Test
+    fun coroutineCancellationIsPropagatedWithoutReportingFailure() =
+        runTest {
+            val store = FakeStore(first)
+            val states = mutableListOf<LearningSyncState>()
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch): LearningSyncTransportResult =
+                        throw CancellationException("cancelled")
+                }
+
+            assertFailsWith<CancellationException> {
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                    observer = LearningSyncObserver { states += it },
+                ).synchronize("device-a")
+            }
+
+            assertEquals(listOf<LearningSyncState>(LearningSyncState.Running(1L)), states)
+            assertEquals(listOf("attempt-b"), store.pendingIds())
+        }
+
+    @Test
     fun transportCannotAcknowledgeUnknownAttempt() =
         runTest {
             val store = FakeStore(first)
@@ -251,6 +312,29 @@ class LearningSyncCoordinatorTest {
             }
 
             assertEquals(listOf("attempt-b"), store.pendingIds())
+        }
+
+    @Test
+    fun transportMustClassifyEverySubmittedAttempt() =
+        runTest {
+            val store = FakeStore(first, second)
+            val transport =
+                object : LearningSyncTransport {
+                    override suspend fun synchronize(batch: LearningProgressSyncBatch) =
+                        LearningSyncTransportResult.Succeeded(
+                            acknowledgedAttemptIds = listOf("attempt-a"),
+                        )
+                }
+
+            assertFailsWith<IllegalArgumentException> {
+                LearningSyncCoordinator(
+                    store = store,
+                    transport = transport,
+                    delayBeforeRetry = {},
+                ).synchronize("device-a")
+            }
+
+            assertEquals(listOf("attempt-a", "attempt-b"), store.pendingIds())
         }
 
     @Test

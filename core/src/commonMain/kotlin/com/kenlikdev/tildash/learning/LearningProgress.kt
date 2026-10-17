@@ -1,6 +1,7 @@
 package com.kenlikdev.tildash.learning
 
 import com.kenlikdev.tildash.content.model.ContentId
+import kotlin.ConsistentCopyVisibility
 import kotlin.time.Instant
 
 interface LearningExercise {
@@ -25,6 +26,9 @@ data class ManualInputExercise(
         require(expectedAnswers.isNotEmpty()) {
             "Exercise must define at least one expected answer."
         }
+        require(expectedAnswers.all { it.isNotBlank() }) {
+            "Exercise expected answers must not be blank."
+        }
         require(expectedAnswers.map(::normalize).distinct().size == expectedAnswers.size) {
             "Exercise expected answers must be unique after normalization."
         }
@@ -38,8 +42,12 @@ data class ManualInputExercise(
 data class LearningPlan(
     val lessonId: ContentId,
     val exercises: List<LearningExercise>,
+    val publishedVersion: Int? = null,
 ) {
     init {
+        require(publishedVersion == null || publishedVersion > 0) {
+            "Published lesson version must be positive when provided."
+        }
         require(exercises.isNotEmpty()) {
             "Learning plan must contain at least one exercise."
         }
@@ -134,8 +142,12 @@ data class LearningAttempt(
     val response: LearnerResponse,
     val outcome: AnswerOutcome,
     val occurredAt: Instant,
+    val publishedVersion: Int? = null,
 ) {
     init {
+        require(publishedVersion == null || publishedVersion > 0) {
+            "Published lesson version must be positive when provided."
+        }
         require(attemptId.isNotBlank()) {
             "Attempt ID must not be blank."
         }
@@ -197,6 +209,7 @@ object ReviewScheduler {
         )
 }
 
+@ConsistentCopyVisibility
 data class LearningProgress private constructor(
     val attempts: List<LearningAttempt>,
 ) {
@@ -220,11 +233,15 @@ data class LearningProgress private constructor(
     fun reviewState(
         exerciseId: String,
         lessonId: ContentId,
+        publishedVersion: Int? = null,
     ): ReviewState {
         val exerciseAttempts =
             attempts
-                .filter { it.exerciseId == exerciseId && it.lessonId == lessonId }
-                .sortedWith(attemptComparator)
+                .filter {
+                    it.exerciseId == exerciseId &&
+                        it.lessonId == lessonId &&
+                        it.publishedVersion == publishedVersion
+                }.sortedWith(attemptComparator)
 
         require(exerciseAttempts.isNotEmpty()) {
             "Exercise $exerciseId has no attempts."
@@ -240,10 +257,12 @@ data class LearningProgress private constructor(
     fun mistakeCount(
         exerciseId: String,
         lessonId: ContentId,
+        publishedVersion: Int? = null,
     ): Int =
         attempts.count {
             it.exerciseId == exerciseId &&
                 it.lessonId == lessonId &&
+                it.publishedVersion == publishedVersion &&
                 it.outcome == AnswerOutcome.INCORRECT
         }
 
@@ -251,6 +270,7 @@ data class LearningProgress private constructor(
         plan.exercises.all { exercise ->
             attempts.any {
                 it.lessonId == plan.lessonId &&
+                    it.publishedVersion == plan.publishedVersion &&
                     it.exerciseId == exercise.id &&
                     it.outcome == AnswerOutcome.CORRECT
             }
@@ -265,6 +285,7 @@ data class LearningProgress private constructor(
         for (attempt in attempts.sortedWith(attemptComparator)) {
             if (
                 attempt.lessonId == plan.lessonId &&
+                attempt.publishedVersion == plan.publishedVersion &&
                 attempt.outcome == AnswerOutcome.CORRECT &&
                 attempt.exerciseId in requiredIds
             ) {
@@ -292,6 +313,7 @@ object LearningEngine {
         attemptId: String,
         response: LearnerResponse,
         occurredAt: Instant,
+        publishedVersion: Int? = null,
     ): LearningSubmission {
         require(attemptId.isNotBlank()) {
             "Attempt ID must not be blank."
@@ -303,7 +325,8 @@ object LearningEngine {
                 existing.lessonId != lessonId ||
                 existing.exerciseId != exercise.id ||
                 existing.response != response ||
-                existing.occurredAt != occurredAt
+                existing.occurredAt != occurredAt ||
+                existing.publishedVersion != publishedVersion
             ) {
                 throw AttemptIdConflict(attemptId)
             }
@@ -323,6 +346,7 @@ object LearningEngine {
                 response = response,
                 outcome = evaluation.outcome,
                 occurredAt = occurredAt,
+                publishedVersion = publishedVersion,
             )
 
         val canonicalAttempts =

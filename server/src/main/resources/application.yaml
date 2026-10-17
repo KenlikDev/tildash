@@ -11,6 +11,9 @@ spring:
   flyway:
     enabled: ${TILDASH_FLYWAY_ENABLED:true}
     locations: classpath:db/migration
+    default-schema: tildash
+    schemas:
+      - tildash
     validate-on-migrate: true
     clean-disabled: true
 
@@ -31,3 +34,6 @@ tildash:
       enabled: ${TILDASH_SECURITY_RESOURCE_SERVER_ENABLED:false}
     jwt:
       roles-claim: ${TILDASH_SECURITY_JWT_ROLES_CLAIM:roles}
+    development:
+      enabled: ${TILDASH_SECURITY_DEVELOPMENT_ENABLED:false}
+      subject: ${TILDASH_SECURITY_DEVELOPMENT_SUBJECT:local-developer}

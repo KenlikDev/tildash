@@ -15,9 +15,9 @@ The coordinator:
 
 - opens a lesson only from `DownloadedLessonStore`;
 - restores `LearningProgress` through `LearningProgressStore`;
-- starts the framework-independent `LessonSession` from the downloaded lesson plan;
+- starts the framework-independent `LessonSession` from the downloaded lesson plan, binding restored progress to the lesson's published version;
 - submits text through `LessonSession` and therefore reuses existing answer evaluation, progress, completion, and idempotency rules;
-- persists the resulting immutable `LearningAttempt` through `LearningProgressStore`;
+- persists the resulting immutable `LearningAttempt` through `LearningProgressStore`, including the published version so later sync can evaluate against the same immutable snapshot;
 - returns immutable `LearnerLessonState` for presentation.
 
 The coordinator does not:

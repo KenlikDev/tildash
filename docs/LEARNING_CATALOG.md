@@ -4,7 +4,7 @@
 
 The learner catalog is a deterministic read-side projection over the canonical content tree and immutable published snapshots.
 
-The projection lives in the shared core and does not depend on HTTP, Spring, JDBC, PostgreSQL, or UI code.
+The projection lives in the shared core and does not depend on HTTP, Spring, JDBC, PostgreSQL, or UI code. The server exposes this read model through the authenticated `/api/v1/learning/catalog` HTTP boundary.
 
 ## Input
 
@@ -13,7 +13,7 @@ The projector accepts:
 - content nodes defining hierarchy and source locale;
 - published content versions containing immutable source revisions and localizations.
 
-Only content with a published snapshot participates in the learner catalog.
+Only content with a published snapshot and a current `PUBLISHED` node state participates in the learner catalog. Archiving a lesson removes that lesson from the catalog while retaining its immutable history. Archiving a course also hides its lessons from the learner catalog, even when those lesson nodes still have `PUBLISHED` state.
 
 ## Version selection
 
@@ -32,9 +32,9 @@ COURSE
 
 A published course must be a root node.
 
-A published lesson must have a published COURSE parent.
+A visible published lesson must have a visible published COURSE parent. A lesson whose parent course is archived is hidden rather than treated as malformed. A visible lesson with a missing parent, a non-course parent, or a non-published non-archived course parent is rejected explicitly.
 
-Malformed hierarchy is rejected instead of being silently omitted.
+Malformed active hierarchy is rejected instead of being silently omitted.
 
 Other content kinds remain outside this catalog projection and may be exposed by later learner feature slices.
 
@@ -81,7 +81,6 @@ Keeping these responsibilities separate avoids mixing content browsing, publicat
 
 This slice does not implement:
 
-- HTTP catalog endpoints;
 - learner UI;
 - offline local persistence;
 - synchronization;

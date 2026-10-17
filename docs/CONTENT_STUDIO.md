@@ -12,6 +12,8 @@ Each source revision stores a provenance snapshot. Draft editing is append-only 
 
 Preview reads the latest source revision without changing workflow state.
 
+A lesson must contain at least one EXPLANATION child before it can be submitted for review. It can also contain EXAMPLE and VOCABULARY child nodes. The learner client renders these ordered materials before the lesson's executable exercises.
+
 ## Review lifecycle
 
 The canonical lesson state machine is:
@@ -56,7 +58,7 @@ HTTP authorization is enforced with Spring Security. The application service als
 
 Workflow events are stored in the tildash.content_workflow_events table and are append-only.
 
-Publishing creates an immutable row in content_published_versions and snapshot rows in content_published_localizations.
+Publishing creates an immutable row in content_published_versions and snapshot rows in content_published_localizations. Lesson publication also snapshots all descendant EXPLANATION, EXAMPLE, and VOCABULARY nodes into content_published_lesson_materials, ordered by content-tree position. Learner delivery reads these immutable snapshots, not the latest editable child revisions.
 
 PostgreSQL prevents mutation of published or archived content except the explicit PUBLISHED -> ARCHIVED transition.
 
@@ -72,4 +74,4 @@ Deterministic content validation is reused rather than duplicated in controllers
 
 ## Verification
 
-Integration tests exercise the full lifecycle, authorization boundary, validation failure, rejection reason, preview and revision editing, and database immutability.
+Integration tests exercise the full lifecycle, authorization boundary, validation failure, rejection reason, preview and revision editing, published material snapshot immutability, and database immutability.

@@ -45,6 +45,7 @@ class LearnerLessonApplicationTest {
             plan =
                 LearningPlan(
                     lessonId = lessonId,
+                    publishedVersion = 1,
                     exercises =
                         listOf(
                             ManualInputExercise(

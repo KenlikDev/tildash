@@ -50,6 +50,7 @@ class LearnerLessonCoordinatorTest {
             plan =
                 LearningPlan(
                     lessonId = lessonId,
+                    publishedVersion = 1,
                     exercises =
                         listOf(
                             ManualInputExercise(
@@ -77,6 +78,7 @@ class LearnerLessonCoordinatorTest {
                     LearningAttempt(
                         attemptId = "existing",
                         lessonId = lessonId,
+                        publishedVersion = 1,
                         exerciseId = "exercise-1",
                         response = LearnerResponse.Text("hello"),
                         outcome = AnswerOutcome.CORRECT,

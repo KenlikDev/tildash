@@ -30,6 +30,10 @@ The iOS application is opened from `/app/iosApp` in Xcode.
 - Web/JS tests: `./gradlew :app:shared:jsTest`
 - iOS simulator tests: `./gradlew :app:shared:iosSimulatorArm64Test`
 
+## Local learner acceptance
+
+The first learner vertical slice can be exercised locally with the published content workflow, Desktop catalog/download flow, lesson execution, persistence, removal, and offline restart scenario described in [Local Learning Acceptance](docs/LOCAL_LEARNING_ACCEPTANCE.md).
+
 ## Engineering documentation
 
 - [Architecture](docs/ARCHITECTURE.md) — current system boundaries and dependency direction.

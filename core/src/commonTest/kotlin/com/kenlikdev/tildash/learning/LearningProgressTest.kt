@@ -43,6 +43,18 @@ class LearningProgressTest {
     }
 
     @Test
+    fun blankExpectedAnswerIsRejected() {
+        assertFailsWith<IllegalArgumentException> {
+            ManualInputExercise(
+                id = "exercise-blank-answer",
+                contentId = lessonId,
+                prompt = "Translate hello",
+                expectedAnswers = listOf(" "),
+            )
+        }
+    }
+
+    @Test
     fun answerNormalizationIsCaseAndWhitespaceInsensitive() {
         val exercise =
             manualExercise(
@@ -151,6 +163,25 @@ class LearningProgressTest {
 
         assertTrue(second.progress.isLessonComplete(plan))
         assertEquals(later, second.progress.lessonCompletedAt(plan))
+    }
+
+    @Test
+    fun attemptsFromEarlierPublishedVersionDoNotCompleteNewerPlan() {
+        val submission =
+            LearningEngine.submit(
+                progress = LearningProgress.empty(),
+                exercise = firstExercise,
+                lessonId = lessonId,
+                attemptId = "attempt-version-one",
+                response = LearnerResponse.Text("hello"),
+                occurredAt = occurredAt,
+                publishedVersion = 1,
+            )
+
+        val newerPlan = LearningPlan(lessonId, listOf(firstExercise), publishedVersion = 2)
+
+        assertFalse(submission.progress.isLessonComplete(newerPlan))
+        assertEquals(0, submission.progress.mistakeCount(firstExercise.id, lessonId, publishedVersion = 2))
     }
 
     @Test

@@ -25,6 +25,7 @@ jobs:
   develop-source-policy:
     name: Develop source policy
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Validate pull request source
         env:
@@ -40,9 +41,160 @@ jobs:
 
           echo "Source-branch policy passed."
 
+  local-demo-script:
+    name: Windows PowerShell local-demo verification
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Parse demo script and verify native stderr handling
+        shell: powershell
+        run: |
+          if ($PSVersionTable.PSVersion.Major -ne 5) {
+            throw "This regression check must run under Windows PowerShell 5.1."
+          }
+
+          $scriptPath = Join-Path $env:GITHUB_WORKSPACE "scripts/run-local-learning-demo.ps1"
+          $tokens = $null
+          $parseErrors = $null
+          $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+            $scriptPath,
+            [ref]$tokens,
+            [ref]$parseErrors
+          )
+          if ($parseErrors.Count -gt 0) {
+            $parseErrors | Format-List *
+            throw "The local learning demo script contains PowerShell syntax errors."
+          }
+
+          $functionAst = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+              $node.Name -eq "Invoke-ExternalCommand"
+          }, $true)
+          if ($null -eq $functionAst) {
+            throw "Invoke-ExternalCommand was not found in the local demo script."
+          }
+
+          . ([scriptblock]::Create($functionAst.Extent.Text))
+          $ErrorActionPreference = "Stop"
+          $nativeCommand = Join-Path $env:SystemRoot "System32/cmd.exe"
+          $stderrMessage = "Tildash native stderr probe"
+
+          $failedResult = Invoke-ExternalCommand -FilePath $nativeCommand -Arguments @(
+            "/d", "/c", "echo $stderrMessage 1>&2 & exit /b 7"
+          )
+          if ($failedResult.ExitCode -ne 7) {
+            throw "Expected the native exit code 7, got $($failedResult.ExitCode)."
+          }
+
+          $successfulResult = Invoke-ExternalCommand -FilePath $nativeCommand -Arguments @(
+            "/d", "/c", "echo $stderrMessage 1>&2"
+          )
+          if ($successfulResult.ExitCode -ne 0) {
+            throw "Expected a zero exit code, got $($successfulResult.ExitCode)."
+          }
+          $capturedLines = @($successfulResult.Output | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+              $_.Exception.Message
+            } else {
+              [string]$_
+            }
+          })
+          if (-not (($capturedLines -join "`n").Contains($stderrMessage))) {
+            throw "Native stderr output was not captured by Invoke-ExternalCommand."
+          }
+
+          $scriptText = Get-Content -Raw -Encoding UTF8 $scriptPath
+          if ($scriptText -notmatch 'application/json; charset=utf-8' -or
+              $scriptText -notmatch '\[System\.Text\.Encoding\]::UTF8\.GetBytes\(\$jsonBody\)') {
+            throw "The local demo must send JSON request bodies as UTF-8 bytes."
+          }
+
+          $outputFunctionAst = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+              $node.Name -eq "Write-ExternalCommandOutput"
+          }, $true)
+          if ($null -eq $outputFunctionAst) {
+            throw "Write-ExternalCommandOutput was not found in the local demo script."
+          }
+          . ([scriptblock]::Create($outputFunctionAst.Extent.Text))
+
+          $databaseFunctionAst = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+              $node.Name -eq "Ensure-DemoDatabaseReady"
+          }, $true)
+          if ($null -eq $databaseFunctionAst) {
+            throw "Ensure-DemoDatabaseReady was not found in the local demo script."
+          }
+          . ([scriptblock]::Create($databaseFunctionAst.Extent.Text))
+
+          # Exercise the database helper without invoking Docker or mutating any real database.
+          $script:demoDatabaseExists = $false
+          $script:demoDatabaseHasLegacySchema = $false
+          $script:createdDemoDatabases = @()
+          function Invoke-ExternalCommand {
+            param(
+              [Parameter(Mandatory = $true)]
+              [string]$FilePath,
+              [Parameter(Mandatory = $true)]
+              [string[]]$Arguments
+            )
+
+            $commandText = [string]$Arguments[-1]
+            if ($commandText.Contains("FROM pg_database")) {
+              $output = if ($script:demoDatabaseExists) { @("1") } else { @() }
+              return [pscustomobject]@{ ExitCode = 0; Output = $output }
+            }
+            if ($commandText.Contains("information_schema.tables")) {
+              $output = if ($script:demoDatabaseHasLegacySchema) { @("1") } else { @("0") }
+              return [pscustomobject]@{ ExitCode = 0; Output = $output }
+            }
+            if ($Arguments -contains "createdb") {
+              $script:createdDemoDatabases += [string]$Arguments[-1]
+              $script:demoDatabaseExists = $true
+              return [pscustomobject]@{ ExitCode = 0; Output = @() }
+            }
+            throw "Unexpected command was executed by the database setup test: $($Arguments -join ' ')"
+          }
+
+          Ensure-DemoDatabaseReady -ContainerId "fake-container" -DatabaseName "tildash_demo" -Username "tildash"
+          if (-not $script:demoDatabaseExists -or $script:createdDemoDatabases.Count -ne 1) {
+            throw "The database helper did not create a missing demo database exactly once."
+          }
+          Ensure-DemoDatabaseReady -ContainerId "fake-container" -DatabaseName "tildash_demo" -Username "tildash"
+          if ($script:createdDemoDatabases.Count -ne 1) {
+            throw "The database helper did not reuse an already-existing demo database idempotently."
+          }
+
+          $script:demoDatabaseHasLegacySchema = $true
+          $legacySchemaFailureObserved = $false
+          try {
+            Ensure-DemoDatabaseReady -ContainerId "fake-container" -DatabaseName "tildash_demo" -Username "tildash"
+          } catch {
+            if ($_.Exception.Message.Contains("without tildash.flyway_schema_history")) {
+              $legacySchemaFailureObserved = $true
+            } else {
+              throw
+            }
+          }
+          if (-not $legacySchemaFailureObserved) {
+            throw "The database helper did not reject an untracked pre-existing schema."
+          }
+          if ($script:createdDemoDatabases.Count -ne 1) {
+            throw "The database helper attempted a destructive database reset."
+          }
+
+          Write-Host "PowerShell syntax, native stderr, UTF-8, and demo database regression checks passed."
+
   linux-verification:
     name: Linux verification
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v6
@@ -58,6 +210,9 @@ jobs:
 
       - name: Run full test suite
         run: ./gradlew clean test --no-configuration-cache
+
+      - name: Run Desktop UI tests
+        run: ./gradlew :app:shared:jvmTest --no-configuration-cache
 
       - name: Run KtLint
         run: ./gradlew ktlintCheck --no-configuration-cache
@@ -77,9 +232,33 @@ jobs:
             server/build/reports/jacoco/test/html/**
             server/build/reports/jacoco/test/jacocoTestReport.xml
 
+  web-verification:
+    name: Android host, Web JS and Wasm verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run Android host, JS and Wasm tests
+        run: ./gradlew :app:shared:testAndroidHostTest :app:shared:jsTest :app:shared:wasmJsTest --no-configuration-cache
+
+      - name: Compile Web JS and Wasm application targets
+        run: ./gradlew :app:webApp:compileKotlinJs :app:webApp:compileKotlinWasmJs --no-configuration-cache
+
   android:
     name: Android build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v6
@@ -108,6 +287,7 @@ jobs:
   ios:
     name: iOS simulator tests
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@v6
@@ -120,6 +300,9 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+
+      - name: Build native iOS application
+        run: xcodebuild -project app/iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO build
 
       - name: Run iOS simulator tests
         run: ./gradlew :app:shared:iosSimulatorArm64Test --no-configuration-cache

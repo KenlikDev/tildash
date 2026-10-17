@@ -28,6 +28,7 @@ class KtorLearningSyncTransportTest {
         LearningAttempt(
             attemptId = "attempt-1",
             lessonId = ContentId("550e8400-e29b-41d4-a716-446655440000"),
+            publishedVersion = 1,
             exerciseId = "exercise-1",
             response = LearnerResponse.Text("hello"),
             outcome = AnswerOutcome.CORRECT,
@@ -87,17 +88,54 @@ class KtorLearningSyncTransportTest {
                     "Bearer token-123",
                     request.headers[HttpHeaders.Authorization],
                 )
+                val body = request.body as TextContent
                 assertEquals(
                     ContentType.Application.Json.toString(),
-                    request.headers[HttpHeaders.ContentType],
+                    body.contentType.toString(),
                 )
-                val body = request.body as TextContent
                 assertTrue(body.text.contains("deviceId\":\"device-1"))
                 assertTrue(body.text.contains("attemptId\":\"attempt-1"))
+                assertTrue(body.text.contains("publishedVersion\":1"))
                 assertTrue(body.text.contains("exerciseId\":\"exercise-1"))
                 assertTrue(body.text.contains("type\":\"TEXT"))
                 assertTrue(body.text.contains("outcome\":\"CORRECT"))
                 assertTrue(body.text.contains("occurredAt\":\"2026-09-28T08:00:00Z"))
+            } finally {
+                client.close()
+            }
+        }
+
+    @Test
+    fun oversizedBatchFailsBeforeNetworkRequest() =
+        runTest {
+            var requests = 0
+            val client =
+                HttpClient(
+                    MockEngine {
+                        requests += 1
+                        respond("""{}""")
+                    },
+                )
+
+            try {
+                val transport =
+                    KtorLearningSyncTransport(
+                        client = client,
+                        baseUrl = "https://example.test",
+                        accessTokenProvider = AccessTokenProvider { "token" },
+                    )
+                val oversizedBatch =
+                    batch.copy(
+                        attempts =
+                            (1..101).map { index ->
+                                attempt.copy(attemptId = "attempt-" + index.toString().padStart(3, '0'))
+                            },
+                    )
+
+                assertFailsWith<LearningSyncValidationFailure> {
+                    transport.synchronize(oversizedBatch)
+                }
+                assertEquals(0, requests)
             } finally {
                 client.close()
             }
@@ -132,6 +170,37 @@ class KtorLearningSyncTransportTest {
 
                 assertFailsWith<LearningSyncValidationFailure> {
                     transport.synchronize(unscopedBatch)
+                }
+                assertEquals(0, requests)
+            } finally {
+                client.close()
+            }
+        }
+
+    @Test
+    fun missingPublishedVersionFailsBeforeNetworkRequest() =
+        runTest {
+            var requests = 0
+            val client =
+                HttpClient(
+                    MockEngine {
+                        requests += 1
+                        respond("""{}""")
+                    },
+                )
+
+            try {
+                val transport =
+                    KtorLearningSyncTransport(
+                        client = client,
+                        baseUrl = "https://example.test",
+                        accessTokenProvider = AccessTokenProvider { "token" },
+                    )
+
+                assertFailsWith<LearningSyncValidationFailure> {
+                    transport.synchronize(
+                        batch.copy(attempts = listOf(attempt.copy(publishedVersion = null))),
+                    )
                 }
                 assertEquals(0, requests)
             } finally {
@@ -175,7 +244,16 @@ class KtorLearningSyncTransportTest {
                 HttpClient(
                     MockEngine {
                         respond(
-                            content = """{"detail":"Token expired"}""",
+                            content =
+                                """
+                                {
+                                  "type": "urn:tildash:problem:unauthorized",
+                                  "title": "Unauthorized",
+                                  "status": 401,
+                                  "detail": "Token expired",
+                                  "instance": "/api/v1/learning/sync"
+                                }
+                                """.trimIndent(),
                             status = HttpStatusCode.Unauthorized,
                             headers =
                                 io.ktor.http.headersOf(
@@ -348,13 +426,15 @@ class KtorLearningSyncTransportTest {
 
             statuses.forEach { (status, detail) ->
                 val problemDetails =
-                    buildString {
-                        append("""{"type":"urn:tildash:problem:sync","title":"Temporary failure","status=""")
-                        append(status.value)
-                        append(""","detail":"""")
-                        append(detail)
-                        append(""","instance":"/api/v1/learning/sync"}""")
+                    """
+                    {
+                      "type": "urn:tildash:problem:sync",
+                      "title": "Temporary failure",
+                      "status": ${status.value},
+                      "detail": "$detail",
+                      "instance": "/api/v1/learning/sync"
                     }
+                    """.trimIndent()
 
                 val client =
                     HttpClient(

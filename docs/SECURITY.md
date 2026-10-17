@@ -48,6 +48,7 @@ Identity persistence is intentionally deferred to the persistence work in issue 
 | Threat | Risk | Foundation control | Remaining scope |
 | --- | --- | --- | --- |
 | Forged or modified bearer token | Unauthorized access | JWT signature validation through Spring Security resource-server support | Deployment must configure the correct trusted issuer |
+| Client forges a learner answer outcome | Corrupted learning history or analytics | The sync service recomputes the result using the exercise from the attempt's exact immutable published lesson version; client outcome is not authoritative | Local offline progress remains client-local until a user-visible reconciliation flow consumes server-authoritative outcomes |
 | Token issued by an untrusted provider | Unauthorized access | Configurable issuer URI; provider is not hard-coded | Deployment must use a trusted issuer |
 | Privilege escalation through arbitrary role claims | Unauthorized privileged access | Only known Tildash roles are mapped to `ROLE_*` authorities | Final role assignment remains an identity-provider policy |
 | Missing authentication | Unauthorized access | `/api/v1/**` requires authentication | None for the foundation |

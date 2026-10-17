@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines deterministic reconciliation for offline learner attempts, the client synchronization coordinator, and the implemented authenticated server synchronization transport. It does not implement downloaded-content storage or user-facing sync UI.
+This document defines deterministic reconciliation for offline learner attempts, the client synchronization coordinator, the implemented authenticated server synchronization transport, and their storage boundary. User-facing sync UI and some platform composition remain outside this contract.
 
 Implementation:
 
@@ -13,7 +13,7 @@ core/src/commonMain/kotlin/com/kenlikdev/tildash/learning/LearningProgressSync.k
 A LearningProgressSyncBatch contains:
 
 - `deviceId` — non-blank sender/device metadata;
-- `attempts` — immutable LearningAttempt values.
+- `attempts` — immutable LearningAttempt values including the published lesson version used for each attempt.
 
 Attempt IDs remain the idempotency keys. Device IDs do not change attempt identity. New attempts also carry the lesson ID that scopes the exercise identity.
 
@@ -38,6 +38,10 @@ Given local progress and an incoming batch:
 
 Conflict IDs are not acknowledged as successfully delivered.
 
+A successful transport response must classify every submitted attempt ID exactly once: an ID appears in either `acknowledgedAttemptIds` or `conflictAttemptIds`, never both. A response that omits a submitted ID is a protocol failure.
+
+The server caps each HTTP request at 100 attempts. The client coordinator divides the durable outbox into deterministic batches of at most 100 and processes each batch independently. Retry exhaustion in a batch preserves that batch's unacknowledged attempts; a conflict batch does not prevent later batches from being submitted. The final report aggregates submitted, acknowledged, conflicted, and retried attempts across the completed synchronization run.
+
 `canAcknowledgeBatch` is false whenever any conflict exists.
 
 The sender should keep unacknowledged/conflicted attempts in its durable outbox until a higher-level conflict workflow resolves them.
@@ -55,9 +59,10 @@ A conflict means the same canonical attempt ID has different immutable event dat
 Examples include a changed:
 
 - lesson ID;
+- published lesson version;
 - exercise ID;
 - response;
-- outcome;
+- server-derived outcome;
 - occurrence timestamp.
 
 Conflict handling is deliberately explicit. This slice does not invent a business rule that chooses a replacement event.
@@ -112,6 +117,12 @@ The authenticated server endpoint is `POST /api/v1/learning/sync`.
 
 The server accepts immutable attempts with an explicit `lessonId`, scopes persistence by the authenticated learner subject, acknowledges new or identical attempts, and reports payload conflicts without overwriting stored history. The device ID remains metadata and does not affect idempotency.
 
+Each attempt includes `publishedVersion`, identifying the exact immutable lesson snapshot used by the learner. The server resolves the exercise from that version and recomputes the outcome from the submitted text using the shared deterministic evaluator before idempotency comparison and persistence. The client's `CORRECT` / `INCORRECT` field is retained for the current API contract but is untrusted and is never used as the authoritative stored outcome.
+
+Using an explicit version prevents a later publication from changing the interpretation of an offline attempt made against an older snapshot. Attempts referring to an unknown lesson version or exercise are reported as conflicts and are not persisted.
+
+Existing local attempts created before version tracking may have no published version. The migration deliberately does not guess a version from the currently downloaded lesson because that could assign a false outcome to historical work. Such records require explicit recovery before they can be synchronized; the application still needs a user-visible recovery path.
+
 The endpoint uses the API-wide RFC 9457 Problem Details contract for invalid requests and authentication failures.
 
 ## Concrete client HTTP transport
@@ -140,8 +151,8 @@ The transport does not implement login, refresh-token storage, secure token pers
 The coordinator also exposes LearningSyncState and LearningSyncObserver for deterministic sync observability. State transitions include running, retrying, succeeded, conflicted, and failed outcomes. Observers are informational; they do not alter acknowledgement or retry semantics.
 
 
-## Future work under #16
+## Remaining offline-first work
 
-Remaining offline-first work includes wiring the client coordinator to a concrete HTTP client, retry/error presentation, sync observability, downloaded-content availability, secure-at-rest policy, and end-to-end offline recovery.
+The concrete learner content HTTP transport and lesson download flow are implemented. Remaining offline-first work is focused on user-facing authentication/session handling, retry/error presentation, sync UX, downloaded-content secure-at-rest policy, broader platform verification, and end-to-end recovery coverage beyond the current desktop/JVM slice.
 
-The durable design decision is recorded in ADR-0012.
+The durable design decisions are recorded in ADR-0012, ADR-0016, ADR-0017, and ADR-0019.

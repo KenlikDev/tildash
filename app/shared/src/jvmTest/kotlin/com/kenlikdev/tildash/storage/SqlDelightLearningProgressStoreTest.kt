@@ -1,4 +1,3 @@
-
 package com.kenlikdev.tildash.storage
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
@@ -24,13 +23,14 @@ class SqlDelightLearningProgressStoreTest {
                 LearningAttempt(
                     attemptId = "attempt-1",
                     lessonId = ContentId("550e8400-e29b-41d4-a716-446655440000"),
+                    publishedVersion = 1,
                     exerciseId = "exercise-1",
                     response = LearnerResponse.Text("hello"),
                     outcome = AnswerOutcome.CORRECT,
                     occurredAt = Instant.parse("2026-09-28T08:00:00Z"),
                 )
 
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.saveAttempt(attempt)
 
                 assertEquals(listOf(attempt), store.loadProgress().attempts)
@@ -38,7 +38,7 @@ class SqlDelightLearningProgressStoreTest {
                 assertEquals(1, store.pendingSyncCount())
             }
 
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = false).use { store ->
                 assertEquals(listOf(attempt), store.loadProgress().attempts)
                 assertEquals(listOf(attempt), store.loadPendingSyncAttempts())
 
@@ -48,6 +48,36 @@ class SqlDelightLearningProgressStoreTest {
                 assertEquals(0, store.pendingSyncCount())
                 assertEquals(listOf(attempt), store.loadProgress().attempts)
             }
+        } finally {
+            Files.deleteIfExists(databaseFile)
+        }
+    }
+
+    @Test
+    fun migrationRemovesUnversionedAttemptsFromOutboxButPreservesHistory() {
+        val databaseFile = Files.createTempFile("tildash-learning-migration-", ".db")
+        val legacyAttempt = attempt(id = "legacy-attempt").copy(publishedVersion = null)
+
+        try {
+            val driver = JdbcSqliteDriver("jdbc:sqlite:$databaseFile")
+            TildashDatabase.Schema.create(driver)
+            val store = SqlDelightLearningProgressStore(driver)
+            store.saveAttempt(legacyAttempt)
+
+            driver.execute(null, "PRAGMA user_version = 5", 0)
+            TildashDatabase.Schema.migrate(driver, 5L, 6L)
+
+            val migratedStore = SqlDelightLearningProgressStore(driver)
+            assertEquals(listOf(legacyAttempt), migratedStore.loadProgress().attempts)
+            assertTrue(migratedStore.loadPendingSyncAttempts().isEmpty())
+            assertEquals(0L, migratedStore.pendingSyncCount())
+
+            val newAttempt = attempt(id = "new-versioned-attempt")
+            migratedStore.saveAttempt(newAttempt)
+
+            assertEquals(listOf(newAttempt), migratedStore.loadPendingSyncAttempts())
+            assertEquals(listOf(legacyAttempt, newAttempt), migratedStore.loadProgress().attempts)
+            driver.close()
         } finally {
             Files.deleteIfExists(databaseFile)
         }
@@ -71,7 +101,7 @@ class SqlDelightLearningProgressStoreTest {
                     lessonId = secondLesson,
                 )
 
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.saveAttempt(first)
                 store.saveAttempt(second)
 
@@ -93,7 +123,7 @@ class SqlDelightLearningProgressStoreTest {
         try {
             val attempt = attempt()
 
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.saveAttempt(attempt)
                 store.saveAttempt(attempt)
 
@@ -113,7 +143,7 @@ class SqlDelightLearningProgressStoreTest {
             val stored = attempt()
             val conflicting = stored.copy(response = LearnerResponse.Text("wrong"))
 
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.saveAttempt(stored)
 
                 assertFailsWith<AttemptIdConflict> {
@@ -133,11 +163,11 @@ class SqlDelightLearningProgressStoreTest {
         val databaseFile = Files.createTempFile("tildash-learning-", ".db")
 
         try {
-            val first = attempt("attempt-b", Instant.parse("2026-09-28T09:00:00Z"))
-            val second = attempt("attempt-a", Instant.parse("2026-09-28T08:00:00Z"))
-            val third = attempt("attempt-c", Instant.parse("2026-09-28T09:00:00Z"))
+            val first = attempt(id = "attempt-b", occurredAt = Instant.parse("2026-09-28T09:00:00Z"))
+            val second = attempt(id = "attempt-a", occurredAt = Instant.parse("2026-09-28T08:00:00Z"))
+            val third = attempt(id = "attempt-c", occurredAt = Instant.parse("2026-09-28T09:00:00Z"))
 
-            open(databaseFile.toString()).use { store ->
+            open(databaseFile.toString(), createSchema = true).use { store ->
                 store.saveAttempt(first)
                 store.saveAttempt(second)
                 store.saveAttempt(third)
@@ -153,9 +183,14 @@ class SqlDelightLearningProgressStoreTest {
         }
     }
 
-    private fun open(path: String): TestStore {
+    private fun open(
+        path: String,
+        createSchema: Boolean,
+    ): TestStore {
         val driver = JdbcSqliteDriver("jdbc:sqlite:$path")
-        TildashDatabase.Schema.create(driver)
+        if (createSchema) {
+            TildashDatabase.Schema.create(driver)
+        }
         return TestStore(driver, SqlDelightLearningProgressStore(driver))
     }
 
@@ -166,6 +201,7 @@ class SqlDelightLearningProgressStoreTest {
     ) = LearningAttempt(
         attemptId = id,
         lessonId = lessonId,
+        publishedVersion = 1,
         exerciseId = "exercise-1",
         response = LearnerResponse.Text("hello"),
         outcome = AnswerOutcome.CORRECT,

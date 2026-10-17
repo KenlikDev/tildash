@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.server
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -10,12 +11,15 @@ import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
@@ -32,10 +36,315 @@ class ContentStudioIntegrationTests {
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
 
+    @BeforeEach
+    fun clearFixtures() {
+        jdbcTemplate.execute("TRUNCATE tildash.content_nodes CASCADE")
+    }
+
+    @Test
+    fun nonLessonContentCannotEnterContentWorkflow() {
+        val courseId = createNode("COURSE", null, "Course")
+        val exampleId = createNode("EXAMPLE", courseId, "Example")
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$exampleId/submit")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isConflict())
+    }
+
+    @Test
+    fun lessonWithoutExercisesCannotBeSubmitted() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId =
+            createNode(
+                kind = "LESSON",
+                parentId = courseId,
+                value = "Empty lesson",
+                seedExercise = false,
+            )
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/submit")
+                    .with(user("teacher").roles("TEACHER"))
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON),
+            ).andExpect(status().isConflict())
+            .andExpect(jsonPath("$.type").value("urn:tildash:problem:validation-failed"))
+            .andExpect(jsonPath("$.errors[0].code").value("EMPTY_LESSON_EXERCISES"))
+    }
+
+    @Test
+    fun teacherCanCreateUpdateAndDeleteDraftLessonExerciseAndPublishedSnapshotKeepsIt() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+
+        mockMvc
+            .perform(
+                put("/api/v1/content/$lessonId/exercises/exercise-1")
+                    .with(user("teacher").roles("TEACHER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        objectMapper.writeValueAsString(
+                            mapOf(
+                                "prompt" to "Write the greeting.",
+                                "position" to 0,
+                                "expectedAnswers" to listOf("merhaba", "selam"),
+                            ),
+                        ),
+                    ),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.prompt").value("Write the greeting."))
+            .andExpect(jsonPath("$.expectedAnswers[1]").value("selam"))
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/exercises")
+                    .with(user("teacher").roles("TEACHER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        objectMapper.writeValueAsString(
+                            mapOf(
+                                "id" to "exercise-2",
+                                "prompt" to "Write goodbye.",
+                                "position" to 1,
+                                "expectedAnswers" to listOf("hoşça qal"),
+                            ),
+                        ),
+                    ),
+            ).andExpect(status().isCreated)
+
+        mockMvc
+            .perform(
+                get("/api/v1/content/$lessonId/exercises")
+                    .with(user("teacher").roles("TEACHER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[1].id").value("exercise-2"))
+
+        mockMvc
+            .perform(
+                delete("/api/v1/content/$lessonId/exercises/exercise-2")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isOk)
+
+        publishCourse(courseId)
+        publishLesson(lessonId)
+
+        mockMvc
+            .perform(
+                get("/api/v1/content/$lessonId/exercises")
+                    .with(user("teacher").roles("TEACHER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].expectedAnswers.length()").value(2))
+
+        assertEquals(
+            1,
+            jdbcTemplate.queryForObject(
+                """
+                select count(*)
+                from tildash.content_published_exercises cpe
+                join tildash.content_published_versions pv on pv.id = cpe.published_version_id
+                where pv.content_node_id = ?::uuid
+                """.trimIndent(),
+                Int::class.java,
+                lessonId,
+            ),
+        )
+
+        mockMvc
+            .perform(
+                put("/api/v1/content/$lessonId/exercises/exercise-1")
+                    .with(user("teacher").roles("TEACHER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        objectMapper.writeValueAsString(
+                            mapOf(
+                                "prompt" to "Tamper after publish.",
+                                "position" to 0,
+                                "expectedAnswers" to listOf("tampered"),
+                            ),
+                        ),
+                    ),
+            ).andExpect(status().isConflict())
+
+        mockMvc
+            .perform(
+                delete("/api/v1/content/$lessonId/exercises/exercise-1")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isConflict())
+    }
+
+    @Test
+    fun publishedLessonIsExposedThroughLearnerPackageAfterAuthoringLifecycle() {
+        val courseId = createNode("COURSE", null, "Course", seedExercise = false)
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+
+        publishCourse(courseId)
+        publishLesson(lessonId)
+
+        mockMvc
+            .perform(
+                get("/api/v1/learning/lessons/$lessonId")
+                    .with(user("learner").roles("LEARNER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.course.id").value(courseId))
+            .andExpect(jsonPath("$.lesson.id").value(lessonId))
+            .andExpect(jsonPath("$.lesson.title").value("Lesson"))
+            .andExpect(jsonPath("$.exercises.length()").value(1))
+            .andExpect(jsonPath("$.exercises[0].id").value("exercise-1"))
+            .andExpect(jsonPath("$.exercises[0].prompt").value("Translate hello."))
+            .andExpect(jsonPath("$.exercises[0].expectedAnswers[0]").value("merhaba"))
+    }
+
+    @Test
+    fun publishedLessonIncludesImmutableTeachingMaterials() {
+        val courseId = createNode("COURSE", null, "Crimean Tatar greetings", seedExercise = false)
+        val lessonId = createNode("LESSON", courseId, "Greetings", seedExplanation = false)
+        val explanationId =
+            createNode(
+                kind = "EXPLANATION",
+                parentId = lessonId,
+                value = "Learn the phrase before practising.",
+                position = 0,
+                sourceLocale = "ru",
+            )
+        createNode(
+            kind = "EXAMPLE",
+            parentId = lessonId,
+            value = "A: Merhaba! B: Selâm!",
+            position = 1,
+        )
+        createNode(
+            kind = "VOCABULARY",
+            parentId = lessonId,
+            value = "Merhaba",
+            position = 2,
+            payloadOverride = mapOf("type" to "VOCABULARY", "term" to "Merhaba", "gloss" to "Привет"),
+        )
+
+        publishCourse(courseId)
+        publishLesson(lessonId)
+
+        fun requestPackage() =
+            mockMvc
+                .perform(
+                    get("/api/v1/learning/lessons/$lessonId")
+                        .with(user("learner").roles("LEARNER"))
+                        .accept(MediaType.APPLICATION_JSON),
+                ).andExpect(status().isOk)
+                .andExpect(jsonPath("$.materials.length()").value(3))
+                .andExpect(jsonPath("$.materials[0].kind").value("EXPLANATION"))
+                .andExpect(jsonPath("$.materials[0].sourceLocale").value("ru"))
+                .andExpect(jsonPath("$.materials[0].text").value("Learn the phrase before practising."))
+                .andExpect(jsonPath("$.materials[1].kind").value("EXAMPLE"))
+                .andExpect(jsonPath("$.materials[1].sourceLocale").value("crh"))
+                .andExpect(jsonPath("$.materials[2].sourceLocale").value("crh"))
+                .andExpect(jsonPath("$.materials[2].term").value("Merhaba"))
+                .andExpect(jsonPath("$.materials[2].gloss").value("Привет"))
+
+        requestPackage()
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$explanationId/source-revisions")
+                    .with(user("teacher").roles("TEACHER"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(revisionRequest("A changed draft, not the published lesson."))),
+            ).andExpect(status().isCreated)
+
+        requestPackage()
+    }
+
+    @Test
+    fun teacherCanPublishCourseThroughSameReviewLifecycle() {
+        val courseId = createNode("COURSE", null, "Course")
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/submit")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("SUBMITTED"))
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/review/start")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/review/approve")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("APPROVED"))
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/publish")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("PUBLISHED"))
+    }
+
+    @Test
+    fun lessonCannotBePublishedBeforeItsParentCourse() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/submit")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/review/start")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/review/approve")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$lessonId/publish")
+                    .with(user("reviewer").roles("REVIEWER"))
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON),
+            ).andExpect(status().isConflict)
+            .andExpect(jsonPath("$.type").value("urn:tildash:problem:content-workflow-conflict"))
+
+        mockMvc
+            .perform(
+                get("/api/v1/content/$lessonId/preview")
+                    .with(user("reviewer").roles("REVIEWER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("APPROVED"))
+
+        mockMvc
+            .perform(
+                get("/api/v1/learning/catalog")
+                    .with(user("learner").roles("LEARNER"))
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.courses.length()").value(0))
+    }
+
     @Test
     fun teacherCanCreatePreviewSubmitAndReviewerCanPublishLesson() {
         val courseId = createNode("COURSE", null, "Course")
         val lessonId = createNode("LESSON", courseId, "Lesson")
+        publishCourse(courseId)
 
         mockMvc
             .perform(
@@ -175,9 +484,55 @@ class ContentStudioIntegrationTests {
     }
 
     @Test
+    fun publishedExercisesAreImmutableAtDatabaseBoundary() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+        publishCourse(courseId)
+        publishLesson(lessonId)
+
+        val publishedVersionId =
+            jdbcTemplate.queryForObject(
+                """
+                select pv.id::text
+                from tildash.content_published_versions pv
+                where pv.content_node_id = ?::uuid
+                order by pv.version_no desc
+                limit 1
+                """.trimIndent(),
+                String::class.java,
+                lessonId,
+            )
+        assertNotNull(publishedVersionId)
+
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
+                """
+                update tildash.content_published_exercises
+                set prompt = 'Tampered'
+                where published_version_id = ?::uuid
+                  and exercise_id = 'exercise-1'
+                """.trimIndent(),
+                publishedVersionId,
+            )
+        }
+
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
+                """
+                delete from tildash.content_published_exercises
+                where published_version_id = ?::uuid
+                  and exercise_id = 'exercise-1'
+                """.trimIndent(),
+                publishedVersionId,
+            )
+        }
+    }
+
+    @Test
     fun publishedNodeAndWorkflowHistoryAreImmutableAtDatabaseBoundary() {
         val courseId = createNode("COURSE", null, "Course")
         val lessonId = createNode("LESSON", courseId, "Lesson")
+        publishCourse(courseId)
         publishLesson(lessonId)
 
         assertFailsWith<DataAccessException> {
@@ -189,8 +544,64 @@ class ContentStudioIntegrationTests {
 
         assertFailsWith<DataAccessException> {
             jdbcTemplate.update(
+                """
+                update tildash.content_nodes
+                set state = 'ARCHIVED', position = 9
+                where id = ?::uuid
+                """.trimIndent(),
+                lessonId,
+            )
+        }
+
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
                 "delete from tildash.content_workflow_events where content_node_id = ?::uuid",
                 lessonId,
+            )
+        }
+    }
+
+    @Test
+    fun publishedExerciseMustBelongToItsPublishedVersionNode() {
+        val courseId = createNode("COURSE", null, "Course")
+        val lessonId = createNode("LESSON", courseId, "Lesson")
+        val exampleId = createNode("EXAMPLE", lessonId, "Example")
+        publishCourse(courseId)
+        publishLesson(lessonId)
+
+        val publishedVersionId =
+            jdbcTemplate.queryForObject(
+                """
+                select pv.id::text
+                from tildash.content_published_versions pv
+                where pv.content_node_id = ?::uuid
+                order by pv.version_no desc
+                limit 1
+                """.trimIndent(),
+                String::class.java,
+                lessonId,
+            )
+        assertNotNull(publishedVersionId)
+
+        assertFailsWith<DataAccessException> {
+            jdbcTemplate.update(
+                """
+                insert into tildash.content_published_exercises (
+                    published_version_id,
+                    content_node_id,
+                    exercise_id,
+                    position,
+                    exercise_type,
+                    prompt,
+                    expected_answers
+                )
+                values (?::uuid, ?::uuid, ?, 1, 'MANUAL_INPUT', ?, cast(? as jsonb))
+                """.trimIndent(),
+                publishedVersionId,
+                exampleId,
+                "mis-scoped-exercise",
+                "Translate hello.",
+                """["merhaba"]""",
             )
         }
     }
@@ -213,6 +624,7 @@ class ContentStudioIntegrationTests {
             ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.revision").value(2))
 
+        publishCourse(courseId)
         publishLesson(lessonId)
 
         mockMvc
@@ -222,6 +634,32 @@ class ContentStudioIntegrationTests {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(revisionRequest("Illegal update"))),
             ).andExpect(status().isConflict)
+    }
+
+    private fun publishCourse(courseId: String) {
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/submit")
+                    .with(user("teacher").roles("TEACHER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/review/start")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/review/approve")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/api/v1/content/$courseId/publish")
+                    .with(user("reviewer").roles("REVIEWER")),
+            ).andExpect(status().isOk)
     }
 
     private fun publishLesson(lessonId: String) {
@@ -256,7 +694,18 @@ class ContentStudioIntegrationTests {
         value: String,
         copyrightStatus: String = "LICENSED",
         includeLicense: Boolean = true,
+        seedExercise: Boolean = true,
+        seedExplanation: Boolean = true,
+        position: Int = 0,
+        sourceLocale: String = "crh",
+        payloadOverride: Map<String, Any?>? = null,
     ): String {
+        val payload =
+            payloadOverride ?: when (kind) {
+                "VOCABULARY" -> mapOf("type" to "VOCABULARY", "term" to value, "gloss" to "Gloss for $value")
+                "MEDIA_REFERENCE" -> mapOf("type" to "MEDIA_REFERENCE", "uri" to value, "mediaType" to "text/plain")
+                else -> mapOf("type" to "TEXT", "value" to value)
+            }
         val result =
             mockMvc
                 .perform(
@@ -268,13 +717,9 @@ class ContentStudioIntegrationTests {
                                 mapOf(
                                     "kind" to kind,
                                     "parentId" to parentId,
-                                    "sourceLocale" to "crh",
-                                    "position" to 0,
-                                    "payload" to
-                                        mapOf(
-                                            "type" to "TEXT",
-                                            "value" to value,
-                                        ),
+                                    "sourceLocale" to sourceLocale,
+                                    "position" to position,
+                                    "payload" to payload,
                                     "provenance" to
                                         mapOf(
                                             "sourceTitle" to "Test source",
@@ -291,6 +736,37 @@ class ContentStudioIntegrationTests {
         val response = objectMapper.readTree(result.response.contentAsString)
         val id = response.get("id")?.asText()
         assertNotNull(id)
+
+        if (kind == "LESSON" && seedExplanation) {
+            createNode(
+                kind = "EXPLANATION",
+                parentId = id,
+                value = "Study the lesson material before practice.",
+                position = 1000,
+                seedExercise = false,
+                seedExplanation = false,
+            )
+        }
+
+        if (kind == "LESSON" && seedExercise) {
+            mockMvc
+                .perform(
+                    post("/api/v1/content/$id/exercises")
+                        .with(user("teacher").roles("TEACHER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            objectMapper.writeValueAsString(
+                                mapOf(
+                                    "id" to "exercise-1",
+                                    "prompt" to "Translate hello.",
+                                    "position" to 0,
+                                    "expectedAnswers" to listOf("merhaba"),
+                                ),
+                            ),
+                        ),
+                ).andExpect(status().isCreated)
+        }
+
         return id
     }
 

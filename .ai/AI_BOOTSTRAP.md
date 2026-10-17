@@ -4,19 +4,21 @@
 
 Before substantive work:
 
-1. Read `00-core/ENGINEERING_CONSTITUTION.md`.
-2. Read `00-core/INTEGRITY.md`.
-3. Read `00-core/EVIDENCE.md`.
-4. Read exactly one active role from `01-roles/`.
-5. Read only the standards and processes required by that role and task.
-6. Inspect the actual Git state, target branch, repository structure, relevant source, tests, build files, and configuration before editing.
-7. For behavior changes, read `03-processes/CHANGE_WORKFLOW.md` and the testing/TDD standard.
-8. For full repository reviews, read `03-processes/FULL_REPOSITORY_REVIEW.md` before inspecting findings or making review conclusions.
-9. For branch, commit, PR, merge, or release operations, read `02-standards/GIT_AND_REPO.md`.
-10. For build, dependency, Kotlin, KMP, or JVM changes, read `02-standards/BUILD_AND_KMP.md`.
-11. For backend work, read `02-standards/SPRING_BACKEND.md`.
-12. Never infer unseen files, logs, command output, dependency state, or runtime behavior.
-
+1. Read `.ai/AI_INSTRUCTIONS.md` and use it together with this bootstrap as the startup contract.
+2. Read `00-core/ENGINEERING_CONSTITUTION.md`.
+3. Read `00-core/INTEGRITY.md`.
+4. Read `00-core/EVIDENCE.md`.
+5. Select exactly one primary role from `01-roles/` for the current engineering phase.
+6. For code or developer-documentation changes, read `02-standards/CODE_AND_DOCS.md`.
+7. Read only the standards and processes required by that role and task.
+8. Inspect the actual Git state, target branch, repository structure, relevant source, tests, build files, and configuration before editing.
+9. For behavior changes, read `03-processes/CHANGE_WORKFLOW.md` and the testing/TDD standard.
+10. For code review, read `.ai/AI_REVIEW_PROMPT.md`.
+11. For full repository reviews, read `03-processes/FULL_REPOSITORY_REVIEW.md` before inspecting findings or making review conclusions.
+12. For branch, commit, PR, merge, or release operations, read `02-standards/GIT_AND_REPO.md`.
+13. For build, dependency, Kotlin, KMP, or JVM changes, read `02-standards/BUILD_AND_KMP.md`.
+14. For backend work, read `02-standards/SPRING_BACKEND.md`.
+15. Never infer unseen files, logs, command output, dependency state, or runtime behavior.
 For branch, commit, PR, merge, or release operations:
 - treat `ai/integration` as the permanent AI integration branch;
 - never merge task branches directly into `develop`;
@@ -27,6 +29,21 @@ For branch, commit, PR, merge, or release operations:
 - never tell the project owner to merge the final promotion PR until local acceptance has been explicitly confirmed;
 - always provide concrete local synchronization, verification, and manual UI/behavior acceptance steps for the final promotion;
 - never bypass the repository rules protecting `ai/integration` or `develop`.
+
+## Instruction reread checkpoints
+
+Re-read `.ai/AI_BOOTSTRAP.md` and `.ai/AI_INSTRUCTIONS.md` at these checkpoints:
+
+1. after context compaction, reconnect, or a long interruption;
+2. when switching engineering roles or technical domains;
+3. before the first repository mutation in a task;
+4. before any commit, branch, pull request, merge, or release operation;
+5. before final diff review and final verification;
+6. whenever the task expands beyond its original acceptance criteria.
+
+Re-read the relevant role, standard, and process file immediately before work in that domain when the task has crossed a checkpoint.
+
+These rereads are mandatory even when the same files were read earlier in the same conversation. They prevent stale working context from silently overriding repository instructions.
 
 ## Evidence states
 
@@ -40,7 +57,17 @@ If missing evidence could change the implementation or diagnosis, stop and reque
 
 ## Role discipline
 
-One primary role is active per engineering phase. Switching roles requires reading the new role instructions.
+One primary role is active per engineering phase.
+
+Select the role from the current phase:
+- architecture or boundary decisions -> `ARCHITECT.md`;
+- diagnosis and reproduction -> `DEBUGGER.md`;
+- implementation and behavior changes -> `IMPLEMENTER.md`;
+- code or repository review -> `REVIEWER.md`;
+- security threat-model or security review -> `SECURITY_REVIEWER.md`;
+- release and controlled integration -> `RELEASE_ENGINEER.md`.
+
+Switching roles requires rereading the new role instructions and treating the new role as the active role. Reading another role file as part of an audit does not make it active.
 
 ## Output discipline
 

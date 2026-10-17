@@ -20,11 +20,11 @@ LessonSession contains a LearningPlan and LearningProgress and exposes:
 - submit(), which delegates to LearningEngine;
 - start(plan, progress) for deterministic resume.
 
-An exercise is considered complete for session sequencing only after a CORRECT attempt exists for its ID.
+For a versioned plan, an exercise is considered complete for session sequencing only after a CORRECT attempt exists for the same lesson ID, published lesson version, and exercise ID.
 
 A failed attempt does not advance the session.
 
-When every required exercise is complete, the session becomes COMPLETED and rejects further submissions.
+When every required exercise is complete for the plan's published version, the session becomes COMPLETED and rejects further submissions.
 
 No new evaluator or scheduling rule is introduced by this boundary.
 

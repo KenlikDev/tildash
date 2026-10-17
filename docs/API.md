@@ -105,7 +105,7 @@ Every public endpoint should document:
 - request parameters/body;
 - successful response schemas;
 - validation/client errors;
-- authorization requirements once security is introduced.
+- authorization requirements.
 
 ## Compatibility
 
@@ -242,6 +242,66 @@ Malformed content requests use RFC 9457 Problem Details. Validation and workflow
 
 
 
+## Content exercises
+
+GET /api/v1/content/{contentId}/exercises
+
+Lists the current exercise definitions for a draft content node.
+
+Requires TEACHER, REVIEWER, or ADMINISTRATOR.
+
+POST /api/v1/content/{contentId}/exercises
+
+Creates a manual-input exercise on a DRAFT lesson.
+
+Requires TEACHER or ADMINISTRATOR.
+
+Request:
+
+    {
+      "id": "exercise-1",
+      "prompt": "Translate hello.",
+      "position": 0,
+      "expectedAnswers": ["merhaba"]
+    }
+
+PUT /api/v1/content/{contentId}/exercises/{exerciseId}
+
+Updates a manual-input exercise while the lesson is DRAFT.
+
+Requires TEACHER or ADMINISTRATOR.
+
+DELETE /api/v1/content/{contentId}/exercises/{exerciseId}
+
+Deletes a manual-input exercise while the lesson is DRAFT.
+
+Requires TEACHER or ADMINISTRATOR.
+
+A lesson cannot be submitted, approved, or published without at least one executable exercise. Exercise definitions are validated together with lesson content and copied into an immutable publication snapshot.
+
+## Published learner lesson package
+
+GET /api/v1/learning/lessons/{lessonId}
+
+Returns the immutable published package required for offline lesson execution.
+
+Requires the LEARNER application role.
+
+A successful response contains the published course and lesson summaries plus executable manual-input exercises. The package is read from the publication snapshot, not from mutable draft exercise definitions.
+
+## Local development authentication
+
+Production authentication remains bearer-token based. For local manual acceptance only, the server supports an explicitly opt-in development identity:
+
+    TILDASH_SECURITY_DEVELOPMENT_ENABLED=true
+
+With this setting enabled, a loopback client may authenticate by sending:
+
+    X-Tildash-Development-Role: learner
+
+or another known application role. An optional X-Tildash-Development-Subject header overrides the configured development subject.
+
+The development identity is disabled by default, ignores requests that already contain an Authorization header, and is restricted to local development client addresses. It is not a production authentication mechanism.
 ## Learning catalog
 
 GET /api/v1/learning/catalog
@@ -281,7 +341,7 @@ Successful response:
 
 The response contains only explicit learner-facing DTOs. It does not expose persistence records, provenance objects, Spring types, JDBC types, or database-specific identifiers.
 
-The server loads the published snapshots required by the shared LearningCatalogProjector. The projector selects the highest published version per content ID, rejects ambiguous duplicate versions and malformed hierarchy, and applies deterministic course/lesson ordering.
+The server loads the published snapshots required by the shared LearningCatalogProjector. The projector selects the highest published version per content ID, exposes only nodes whose current state is `PUBLISHED`, excludes archived lessons and lessons belonging to archived courses, rejects ambiguous duplicate versions and malformed active hierarchy, and applies deterministic course/lesson ordering.
 
 An empty published catalog returns:
 
@@ -308,6 +368,7 @@ Request:
     {
       "attemptId": "attempt-1",
       "lessonId": "550e8400-e29b-41d4-a716-446655440000",
+      "publishedVersion": 1,
       "exerciseId": "exercise-1",
       "response": {
         "type": "TEXT",
@@ -320,13 +381,15 @@ Request:
 }
 ```
 
-The endpoint requires the LEARNER application role. An authenticated user without LEARNER is forbidden from using the learner synchronization endpoint. The authenticated identity subject, not device ID, scopes the server-side attempt record. `lessonId` identifies the lesson containing the exercise and is part of immutable payload conflict comparison.
+The endpoint requires the LEARNER application role. An authenticated user without LEARNER is forbidden from using the learner synchronization endpoint. The authenticated identity subject, not device ID, scopes the server-side attempt record. `lessonId` and `publishedVersion` identify the exact published lesson snapshot used for the attempt and are part of immutable payload conflict comparison.
+
+The `outcome` field is retained in the current request shape for compatibility but is untrusted. The server recalculates the outcome by evaluating the submitted text against the exercise in the specified immutable published version. It stores the server-derived result rather than the client-reported value. An unknown lesson version or exercise is reported as a conflict and is not persisted.
 
 Successful responses contain two explicit ID sets:
 
 - `acknowledgedAttemptIds` — newly stored or already-identical attempts;
 - `conflictAttemptIds` — attempt IDs whose immutable payload differs from the stored record, or which are contradictory duplicates inside the same request batch.
 
-A conflicting attempt is never overwritten. Unknown or unsupported payloads are rejected as client errors using RFC 9457 Problem Details.
+Every submitted attempt ID appears exactly once across these two sets. A conflicting attempt is never overwritten. Unknown or unsupported payloads are rejected as client errors using RFC 9457 Problem Details.
 
-The server persists attempts under `(learner_subject, attempt_id)`. The immutable payload also stores `lesson_id`, so a reused `exercise_id` in another lesson never shares learner progress.
+The server persists attempts under `(learner_subject, attempt_id)`. The immutable payload also stores `lesson_id` and `published_version`, so a reused `exercise_id` in another lesson or published version never shares attempt identity.

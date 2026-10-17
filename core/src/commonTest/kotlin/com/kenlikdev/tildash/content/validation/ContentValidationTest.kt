@@ -27,6 +27,7 @@ class ContentValidationTest {
     private val exampleId = ContentId("550e8400-e29b-41d4-a716-446655440002")
     private val vocabularyId = ContentId("550e8400-e29b-41d4-a716-446655440003")
     private val mediaId = ContentId("550e8400-e29b-41d4-a716-446655440004")
+    private val explanationId = ContentId("550e8400-e29b-41d4-a716-446655440005")
     private val author = PersonReference("Author")
 
     @Test
@@ -239,6 +240,30 @@ class ContentValidationTest {
     }
 
     @Test
+    fun restrictedDescendantBlocksPublicationBeforeItsOwnNodeIsPublished() {
+        val revisions =
+            validInput().sourceRevisions.map { revision ->
+                if (revision.contentId == mediaId) {
+                    revision.copy(
+                        provenance =
+                            revision.provenance.copy(
+                                copyrightStatus = CopyrightStatus.RESTRICTED,
+                            ),
+                    )
+                } else {
+                    revision
+                }
+            }
+
+        val result = validator.validateLesson(validInput(sourceRevisions = revisions))
+
+        assertEquals(ReviewOutcome.PASS_WITH_WARNINGS, result.outcome)
+        assertTrue(result.canSubmit)
+        assertFalse(result.canPublish)
+        assertHasCode(result, ValidationCode.RESTRICTED_CONTENT_PUBLISHED)
+    }
+
+    @Test
     fun payloadKindMustMatchContentKind() {
         val revisions =
             validInput().sourceRevisions.map { revision ->
@@ -365,11 +390,58 @@ class ContentValidationTest {
         assertHasCode(result, ValidationCode.DUPLICATE_EXERCISE_ID)
     }
 
+    @Test
+    fun lessonWithoutExercisesIsRejected() {
+        val result = validator.validateLesson(validInput(exercisesByContentId = emptyMap()))
+
+        assertEquals(ReviewOutcome.FAIL, result.outcome)
+        assertHasCode(result, ValidationCode.EMPTY_LESSON_EXERCISES)
+        assertFalse(result.canPublish)
+    }
+
+    @Test
+    fun lessonWithoutExplanationIsRejected() {
+        val input =
+            validInput(
+                nodes = defaultNodes().filterNot { it.id == explanationId },
+                sourceRevisions = defaultRevisions().filterNot { it.contentId == explanationId },
+            )
+
+        val result = validator.validateLesson(input)
+
+        assertEquals(ReviewOutcome.FAIL, result.outcome)
+        assertHasCode(result, ValidationCode.MISSING_LESSON_EXPLANATION)
+        assertFalse(result.canSubmit)
+        assertFalse(result.canPublish)
+    }
+
+    @Test
+    fun validCoursePassesWithoutRequiringLessonExercises() {
+        val result = validator.validateCourse(validCourseInput())
+
+        assertEquals(ReviewOutcome.PASS, result.outcome)
+        assertTrue(result.canSubmit)
+        assertTrue(result.canPublish)
+    }
+
+    private fun validCourseInput(
+        nodes: List<ContentNode> = defaultNodes(),
+        sourceRevisions: List<SourceContentRevision> = defaultRevisions(),
+        localizationRevisions: List<LocalizedContentRevision> = emptyList(),
+        exercisesByContentId: Map<ContentId, List<ExerciseDefinition>> = validExercises(),
+    ) = LessonValidationInput(
+        lessonId = courseId,
+        nodes = nodes,
+        sourceRevisions = sourceRevisions,
+        localizationRevisions = localizationRevisions,
+        exercisesByContentId = exercisesByContentId,
+    )
+
     private fun validInput(
         nodes: List<ContentNode> = defaultNodes(),
         sourceRevisions: List<SourceContentRevision> = defaultRevisions(),
         localizationRevisions: List<LocalizedContentRevision> = emptyList(),
-        exercisesByContentId: Map<ContentId, List<ExerciseDefinition>> = emptyMap(),
+        exercisesByContentId: Map<ContentId, List<ExerciseDefinition>> = validExercises(),
     ) = LessonValidationInput(
         lessonId = lessonId,
         nodes = nodes,
@@ -378,6 +450,18 @@ class ContentValidationTest {
         exercisesByContentId = exercisesByContentId,
     )
 
+    private fun validExercises() =
+        mapOf(
+            lessonId to
+                listOf(
+                    ExerciseDefinition(
+                        id = "exercise-1",
+                        prompt = "Write the greeting.",
+                        expectedAnswers = listOf("merhaba"),
+                    ),
+                ),
+        )
+
     private fun defaultNodes() =
         listOf(
             node(courseId, ContentKind.COURSE, null, 0),
@@ -385,6 +469,7 @@ class ContentValidationTest {
             node(exampleId, ContentKind.EXAMPLE, lessonId, 1),
             node(vocabularyId, ContentKind.VOCABULARY, lessonId, 2),
             node(mediaId, ContentKind.MEDIA_REFERENCE, lessonId, 3),
+            node(explanationId, ContentKind.EXPLANATION, lessonId, 4),
         )
 
     private fun defaultRevisions() =
@@ -403,6 +488,12 @@ class ContentValidationTest {
                 1,
                 CopyrightStatus.LICENSED,
                 ContentPayload.MediaReference("https://example.com/audio.mp3", "audio/mpeg"),
+            ),
+            sourceRevision(
+                explanationId,
+                1,
+                CopyrightStatus.LICENSED,
+                ContentPayload.Text("Study the phrase before practice."),
             ),
         )
 

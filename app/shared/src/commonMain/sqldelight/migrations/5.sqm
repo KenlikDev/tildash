@@ -1,0 +1,6 @@
+DELETE FROM learning_sync_outbox
+WHERE attempt_id IN (
+    SELECT attempt_id
+    FROM learning_attempt
+    WHERE lesson_id IS NULL OR published_version IS NULL
+);

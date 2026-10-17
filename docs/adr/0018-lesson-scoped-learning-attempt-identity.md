@@ -1,7 +1,9 @@
-# ADR-0018: Scope Learner Attempts to Lesson Identity
+# ADR-0018: Scope Learner Attempts to Lesson Identity and Published Version
 
 - Status: Accepted
 - Date: 2026-09-29
+
+The published-version extension is specified in ADR-0020, which extends the lesson-scoped contract below.
 
 ## Context
 
@@ -15,9 +17,9 @@ The synchronization boundary also persisted and compared attempts without the le
 
 A new learner attempt is scoped to the lesson that contains the exercise.
 
-The logical exercise identity is:
+The logical exercise identity for a versioned plan is:
 
-(lessonId, exerciseId)
+(lessonId, publishedVersion, exerciseId)
 
 The immutable idempotency key remains:
 
@@ -27,20 +29,21 @@ Therefore:
 
 - attemptId identifies one immutable learner event for idempotency;
 - lessonId identifies the lesson in which the event occurred;
-- exerciseId identifies the exercise within that lesson;
-- all immutable fields, including lessonId, participate in conflict detection.
+- publishedVersion identifies the immutable published snapshot used by the learner;
+- exerciseId identifies the exercise within that lesson snapshot;
+- all immutable fields, including lessonId and publishedVersion, participate in conflict detection.
 
 New attempts produced through LessonSession and LearningEngine carry the lesson ID.
 
-Lesson completion, review state, and mistake counts use the lesson scope when evaluating progress.
+Lesson completion and session sequencing use lesson and published-version scope when evaluating progress. Review state and mistake counts can be queried for the same exact scope.
 
-The local SQLDelight attempt table stores lesson_id.
+The local SQLDelight attempt table stores lesson_id and the nullable published_version for legacy compatibility.
 
 The authenticated synchronization API requires lessonId in every new request.
 
-The PostgreSQL attempt table stores lesson_id, while (learner_subject, attempt_id) remains the idempotency key.
+The PostgreSQL attempt table stores lesson_id and published_version, while (learner_subject, attempt_id) remains the idempotency key. The server derives the stored outcome from the exercise in the specified immutable published version; it does not trust the client-reported outcome.
 
-Legacy persisted rows created before this decision may contain a null lesson ID. They remain historical records and are not eligible for the new authenticated sync transport or lesson-scoped completion calculations.
+Legacy persisted rows may contain a null lesson ID or published version. They remain historical records and are not eligible for authenticated synchronization or version-scoped completion until an explicit recovery workflow can establish their original scope safely.
 
 ## Alternatives considered
 
@@ -72,9 +75,9 @@ Positive:
 
 Trade-offs:
 
-- the local schema requires a forward migration;
-- legacy unscoped attempts need explicit handling;
-- all new sync clients must send lessonId.
+- the local schema requires forward migrations;
+- legacy unscoped or unversioned attempts need explicit handling;
+- all new sync clients must send lessonId and publishedVersion.
 
 ## Verification
 
@@ -83,8 +86,9 @@ Tests cover:
 - cross-lesson exercise ID reuse in the learning core;
 - lesson-scoped local persistence;
 - lesson-scoped sync conflicts;
-- wire serialization of lessonId;
-- server-side cross-lesson conflict detection;
+- wire serialization of lessonId and publishedVersion;
+- server-side cross-lesson and cross-version conflict detection;
+- server-derived outcome verification against the exact published version;
 - immutable PostgreSQL persistence remains intact.
 
 The implementation is documented in docs/LEARNING_CORE.md, docs/LEARNING_SYNC.md, docs/LOCAL_STORAGE.md, docs/API.md, and docs/DATABASE.md.

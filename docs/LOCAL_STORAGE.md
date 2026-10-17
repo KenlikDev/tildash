@@ -2,11 +2,12 @@
 
 ## Scope
 
-This slice provides durable local persistence for immutable learner attempts and the synchronization outbox.
+This slice provides durable local persistence for immutable learner attempts, the synchronization outbox, and downloaded learner lesson packages.
 
-Implementation:
+Implementations:
 
-app/shared/src/commonMain/kotlin/com/kenlikdev/tildash/storage/LearningProgressStore.kt
+- `app/shared/src/commonMain/kotlin/com/kenlikdev/tildash/storage/LearningProgressStore.kt`
+- `app/shared/src/commonMain/kotlin/com/kenlikdev/tildash/storage/DownloadedLessonStore.kt`
 
 Database schema:
 
@@ -16,11 +17,11 @@ The storage implementation is client-side infrastructure. The domain model remai
 
 ## Persistence model
 
-Each immutable LearningAttempt is stored as one row. New attempts include the lesson ID so the same exercise ID can be reused safely across different lessons without sharing progress.
+Each immutable LearningAttempt is stored as one row. New attempts include the lesson ID and published lesson version so the same exercise ID can be reused safely across lessons and content revisions without sharing progress or changing how an offline answer is evaluated.
 
 The current response contract supports the existing `LearnerResponse.Text` variant with an explicit response type discriminator. The discriminator is intentionally persisted so future response variants can be introduced without changing the idempotency key.
 
-Attempt timestamps are stored as epoch milliseconds and reconstructed as kotlin.time.Instant.
+Attempt timestamps are stored as epoch milliseconds and reconstructed as kotlin.time.Instant. The nullable `published_version` column preserves pre-version-tracking rows without guessing which snapshot the learner used. New client attempts require a positive published version before they can be sent to the authenticated sync endpoint.
 
 ## Downloaded learning content
 
@@ -29,9 +30,13 @@ The local client also persists downloaded lesson packages required for offline d
 A downloaded package contains:
 
 - course metadata and published version;
+- the complete course lesson-summary snapshot supplied by the published catalog;
 - lesson metadata and published version;
+- lesson localizations from that published package;
 - the lesson's executable learning plan;
 - the exercise type, content ID, prompt, and expected answers.
+
+The course lesson summaries and lesson localizations are persisted with each downloaded package so reopening the local database reconstructs the same learner-facing package metadata rather than deriving it only from currently downloaded rows.
 
 The current persisted exercise contract covers ManualInputExercise. Unknown future exercise types fail closed during rehydration instead of being silently downgraded.
 
@@ -47,7 +52,7 @@ The outbox stores only the canonical attempt ID because the complete immutable a
 
 A successful remote acknowledgement removes the outbox row but never deletes the attempt history.
 
-Conflicting reuse of an attempt ID is rejected with the existing AttemptIdConflict contract when any immutable field differs, including lesson ID, and does not overwrite the stored attempt or its outbox state.
+Conflicting reuse of an attempt ID is rejected with the existing AttemptIdConflict contract when any immutable field differs, including lesson ID or published version, and does not overwrite the stored attempt or its outbox state.
 
 ## Transactions
 
@@ -55,7 +60,7 @@ Persisting a new attempt and enqueueing it for synchronization happen in one dat
 
 Acknowledging an attempt is a separate transaction that only removes its outbox entry.
 
-Loading progress is deterministic and ordered by occurrence timestamp and attempt ID, matching the canonical ordering defined in the learning core. Legacy rows created before lesson scoping may have a null lesson ID and are retained as history but are not eligible for the new authenticated sync transport.
+Loading progress is deterministic and ordered by occurrence timestamp and attempt ID, matching the canonical ordering defined in the learning core. Legacy rows created before lesson scoping or published-version tracking may have a null lesson ID or version and are retained as history. Local migration 5 removes unversioned legacy rows from the sync outbox without deleting their history, so they cannot block newly recorded, versioned attempts. They remain ineligible for authenticated synchronization until an explicit recovery workflow establishes their original scope safely.
 
 ## Database technology
 

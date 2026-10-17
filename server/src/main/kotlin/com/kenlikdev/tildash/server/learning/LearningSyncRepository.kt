@@ -33,6 +33,7 @@ class LearningSyncRepository(
                 .addValue("learnerSubject", learnerSubject)
                 .addValue("attemptId", attempt.attemptId)
                 .addValue("lessonId", java.util.UUID.fromString(lessonId.value))
+                .addValue("publishedVersion", attempt.publishedVersion)
                 .addValue("exerciseId", attempt.exerciseId)
                 .addValue("responseType", "TEXT")
                 .addValue("responseValue", response.value)
@@ -43,11 +44,11 @@ class LearningSyncRepository(
             jdbc.update(
                 """
                 insert into tildash.learning_attempts (
-                    learner_subject, attempt_id, lesson_id, exercise_id, response_type,
+                    learner_subject, attempt_id, lesson_id, published_version, exercise_id, response_type,
                     response_value, outcome, occurred_at
                 )
                 values (
-                    :learnerSubject, :attemptId, :lessonId, :exerciseId, :responseType,
+                    :learnerSubject, :attemptId, :lessonId, :publishedVersion, :exerciseId, :responseType,
                     :responseValue, :outcome, :occurredAt
                 )
                 on conflict (learner_subject, attempt_id) do nothing
@@ -62,7 +63,7 @@ class LearningSyncRepository(
         return jdbc
             .query(
                 """
-                select attempt_id, lesson_id, exercise_id, response_type, response_value,
+                select attempt_id, lesson_id, published_version, exercise_id, response_type, response_value,
                        outcome, occurred_at
                 from tildash.learning_attempts
                 where learner_subject = :learnerSubject
@@ -75,6 +76,7 @@ class LearningSyncRepository(
                 LearningAttemptRecord(
                     attemptId = rs.getString("attempt_id"),
                     lessonId = rs.getString("lesson_id")?.let(::ContentId),
+                    publishedVersion = rs.getObject("published_version")?.let { (it as Number).toInt() },
                     exerciseId = rs.getString("exercise_id"),
                     responseType = rs.getString("response_type"),
                     responseValue = rs.getString("response_value"),
@@ -89,6 +91,7 @@ class LearningSyncRepository(
 data class LearningAttemptRecord(
     val attemptId: String,
     val lessonId: ContentId?,
+    val publishedVersion: Int?,
     val exerciseId: String,
     val responseType: String,
     val responseValue: String,
@@ -98,6 +101,7 @@ data class LearningAttemptRecord(
     fun matches(attempt: LearningAttempt): Boolean =
         responseType == "TEXT" &&
             attempt.lessonId == lessonId &&
+            attempt.publishedVersion == publishedVersion &&
             attempt.exerciseId == exerciseId &&
             (attempt.response as? LearnerResponse.Text)?.value == responseValue &&
             attempt.outcome == outcome &&
@@ -112,6 +116,7 @@ data class LearningAttemptRecord(
             return LearningAttemptRecord(
                 attemptId = attempt.attemptId,
                 lessonId = attempt.lessonId,
+                publishedVersion = attempt.publishedVersion,
                 exerciseId = attempt.exerciseId,
                 responseType = "TEXT",
                 responseValue = response.value,

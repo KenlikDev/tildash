@@ -20,7 +20,7 @@ An ACTIVE session always has a next exercise. A COMPLETED session has no next ex
 Next-exercise selection is deterministic:
 
 1. traverse LearningPlan exercises in their declared order;
-2. skip exercises that already have a CORRECT attempt in LearningProgress;
+2. skip exercises that already have a CORRECT attempt in LearningProgress for the plan's lesson and published version;
 3. return the first remaining exercise.
 
 The session does not reorder the plan, invent exercises, or derive a second ordering policy.
@@ -45,13 +45,13 @@ A failed attempt leaves the current exercise pending. A successful attempt advan
 
 ## Resume
 
-A session can be recreated from an existing LearningPlan and LearningProgress without changing the progress history.
+A session can be recreated from an existing LearningPlan and LearningProgress without changing the progress history. For a versioned plan, an attempt only completes an exercise when its lesson ID, published lesson version, and exercise ID all match the plan.
 
 This is intentionally equivalent to restoring persisted progress later. Persistence and synchronization are separate infrastructure concerns.
 
 ## Completion
 
-When the final required exercise receives a correct attempt, the returned session is explicitly COMPLETED and exposes no next exercise.
+When the final required exercise receives a correct attempt for the plan's published version, the returned session is explicitly COMPLETED and exposes no next exercise.
 
 A COMPLETED session rejects further submissions.
 

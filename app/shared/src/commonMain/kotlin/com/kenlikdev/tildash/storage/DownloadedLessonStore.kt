@@ -2,12 +2,26 @@ package com.kenlikdev.tildash.storage
 
 import app.cash.sqldelight.db.SqlDriver
 import com.kenlikdev.tildash.content.model.ContentId
+import com.kenlikdev.tildash.content.model.ContentKind
+import com.kenlikdev.tildash.content.model.ContentPayload
+import com.kenlikdev.tildash.content.model.ContentVariantType
 import com.kenlikdev.tildash.content.model.LanguageTag
 import com.kenlikdev.tildash.learning.LearnerCourseSummary
+import com.kenlikdev.tildash.learning.LearnerLessonMaterial
 import com.kenlikdev.tildash.learning.LearnerLessonSummary
+import com.kenlikdev.tildash.learning.LearnerLocalizedText
 import com.kenlikdev.tildash.learning.LearningExercise
 import com.kenlikdev.tildash.learning.LearningPlan
 import com.kenlikdev.tildash.learning.ManualInputExercise
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.time.Instant
 
 data class DownloadedLesson(
@@ -15,6 +29,7 @@ data class DownloadedLesson(
     val lesson: LearnerLessonSummary,
     val plan: LearningPlan,
     val downloadedAt: Instant,
+    val materials: List<LearnerLessonMaterial> = emptyList(),
 ) {
     init {
         require(course.lessons.any { it.id == lesson.id }) {
@@ -22,6 +37,9 @@ data class DownloadedLesson(
         }
         require(plan.lessonId == lesson.id) {
             "Learning plan lesson ID must match the downloaded lesson."
+        }
+        require(plan.publishedVersion == null || plan.publishedVersion == lesson.publishedVersion) {
+            "Learning plan published version must match the downloaded lesson."
         }
     }
 }
@@ -54,13 +72,24 @@ class SqlDelightDownloadedLessonStore(
                 queries.deleteDownloadedCourseIfOrphaned(existing.course_id)
             }
 
-            queries.upsertDownloadedCourse(
-                course_id = downloadedLesson.course.id.value,
-                title = downloadedLesson.course.title,
-                source_locale = downloadedLesson.course.sourceLocale.value,
-                published_version = downloadedLesson.course.publishedVersion.toLong(),
-                downloaded_at_epoch_millis = downloadedLesson.downloadedAt.toEpochMilliseconds(),
-            )
+            val courseId = downloadedLesson.course.id.value
+            if (queries.selectDownloadedCourse(courseId).executeAsOneOrNull() == null) {
+                queries.insertDownloadedCourse(
+                    course_id = courseId,
+                    title = downloadedLesson.course.title,
+                    source_locale = downloadedLesson.course.sourceLocale.value,
+                    published_version = downloadedLesson.course.publishedVersion.toLong(),
+                    downloaded_at_epoch_millis = downloadedLesson.downloadedAt.toEpochMilliseconds(),
+                )
+            } else {
+                queries.updateDownloadedCourse(
+                    title = downloadedLesson.course.title,
+                    source_locale = downloadedLesson.course.sourceLocale.value,
+                    published_version = downloadedLesson.course.publishedVersion.toLong(),
+                    downloaded_at_epoch_millis = downloadedLesson.downloadedAt.toEpochMilliseconds(),
+                    course_id = courseId,
+                )
+            }
 
             queries.insertDownloadedLesson(
                 lesson_id = lessonId,
@@ -69,6 +98,9 @@ class SqlDelightDownloadedLessonStore(
                 source_locale = downloadedLesson.lesson.sourceLocale.value,
                 published_version = downloadedLesson.lesson.publishedVersion.toLong(),
                 position = downloadedLesson.position().toLong(),
+                downloaded_at_epoch_millis = downloadedLesson.downloadedAt.toEpochMilliseconds(),
+                course_lessons_json = encodeCourseLessons(downloadedLesson.course.lessons),
+                materials_json = encodeMaterials(downloadedLesson.materials),
             )
 
             downloadedLesson.plan.exercises.forEachIndexed { index, exercise ->
@@ -112,30 +144,36 @@ class SqlDelightDownloadedLessonStore(
             queries.selectDownloadedCourse(lessonRow.course_id).executeAsOneOrNull()
                 ?: error("Downloaded lesson '" + lessonId + "' has no downloaded course.")
 
-        val courseLessonRows =
-            queries.selectDownloadedLessonsForCourse(course.course_id).executeAsList()
-
         val lessonSummaries =
-            courseLessonRows.map { row ->
-                LearnerLessonSummary(
-                    id = ContentId(row.lesson_id),
-                    title = row.title,
-                    sourceLocale = LanguageTag(row.source_locale),
-                    publishedVersion = row.published_version.toInt(),
-                    localizations = emptyList(),
+            decodeCourseLessons(lessonRow.course_lessons_json).ifEmpty {
+                listOf(
+                    LearnerLessonSummary(
+                        id = ContentId(lessonRow.lesson_id),
+                        title = lessonRow.title,
+                        sourceLocale = LanguageTag(lessonRow.source_locale),
+                        publishedVersion = lessonRow.published_version.toInt(),
+                        localizations = emptyList(),
+                    ),
                 )
             }
 
         val lessonSummary =
-            lessonSummaries.first { it.id.value == lessonRow.lesson_id }
+            lessonSummaries.firstOrNull { it.id.value == lessonRow.lesson_id }
+                ?: error(
+                    "Downloaded lesson '$lessonId' is missing from its persisted course snapshot.",
+                )
+
+        val answersByExercise =
+            queries
+                .selectDownloadedManualAnswers(lessonRow.lesson_id)
+                .executeAsList()
+                .groupBy { it.exercise_id }
 
         val exercises =
             queries.selectDownloadedExercises(lessonRow.lesson_id).executeAsList().map { row ->
                 val answers =
-                    queries
-                        .selectDownloadedManualAnswers(row.lesson_id)
-                        .executeAsList()
-                        .filter { it.exercise_id == row.exercise_id }
+                    answersByExercise[row.exercise_id]
+                        .orEmpty()
                         .sortedBy { it.position }
                         .map { it.answer }
 
@@ -175,8 +213,10 @@ class SqlDelightDownloadedLessonStore(
                 LearningPlan(
                     lessonId = lessonSummary.id,
                     exercises = exercises,
+                    publishedVersion = lessonRow.published_version.toInt(),
                 ),
-            downloadedAt = Instant.fromEpochMilliseconds(course.downloaded_at_epoch_millis),
+            downloadedAt = Instant.fromEpochMilliseconds(lessonRow.downloaded_at_epoch_millis),
+            materials = decodeMaterials(lessonRow.materials_json),
         )
     }
 
@@ -215,6 +255,132 @@ class SqlDelightDownloadedLessonStore(
         }
     }
 
+    private fun encodeCourseLessons(lessons: List<LearnerLessonSummary>): String =
+        buildJsonArray {
+            lessons.forEach { lesson ->
+                add(
+                    buildJsonObject {
+                        put("id", JsonPrimitive(lesson.id.value))
+                        put("title", JsonPrimitive(lesson.title))
+                        put("sourceLocale", JsonPrimitive(lesson.sourceLocale.value))
+                        put("publishedVersion", JsonPrimitive(lesson.publishedVersion))
+                        put(
+                            "localizations",
+                            buildJsonArray {
+                                lesson.localizations.forEach { localization ->
+                                    add(
+                                        buildJsonObject {
+                                            put("locale", JsonPrimitive(localization.locale.value))
+                                            put("value", JsonPrimitive(localization.value))
+                                            localization.variant?.let { variant ->
+                                                put("variant", JsonPrimitive(variant.name))
+                                            }
+                                        },
+                                    )
+                                }
+                            },
+                        )
+                    },
+                )
+            }
+        }.toString()
+
+    private fun decodeCourseLessons(serialized: String): List<LearnerLessonSummary> =
+        storageJson.parseToJsonElement(serialized).jsonArray.map { element ->
+            val lesson = element.jsonObject
+            LearnerLessonSummary(
+                id = ContentId(lesson.requiredText("id")),
+                title = lesson.requiredText("title"),
+                sourceLocale = LanguageTag(lesson.requiredText("sourceLocale")),
+                publishedVersion =
+                    lesson.requiredText("publishedVersion").toIntOrNull()
+                        ?: error("Downloaded lesson published version is not an integer."),
+                localizations =
+                    lesson["localizations"]
+                        ?.jsonArray
+                        ?.map { localizationElement ->
+                            val localization = localizationElement.jsonObject
+                            LearnerLocalizedText(
+                                locale = LanguageTag(localization.requiredText("locale")),
+                                value = localization.requiredText("value"),
+                                variant =
+                                    localization["variant"]
+                                        ?.takeUnless { variant -> variant == JsonNull }
+                                        ?.jsonPrimitive
+                                        ?.content
+                                        ?.takeIf(String::isNotBlank)
+                                        ?.let(ContentVariantType::valueOf),
+                            )
+                        }.orEmpty(),
+            )
+        }
+
+    private fun encodeMaterials(materials: List<LearnerLessonMaterial>): String =
+        buildJsonArray {
+            materials.sortedBy { it.position }.forEach { material ->
+                add(
+                    buildJsonObject {
+                        put("id", JsonPrimitive(material.id.value))
+                        put("kind", JsonPrimitive(material.kind.name))
+                        put("position", JsonPrimitive(material.position))
+                        put("sourceLocale", JsonPrimitive(material.sourceLocale.value))
+                        when (val payload = material.payload) {
+                            is ContentPayload.Text -> {
+                                put("text", JsonPrimitive(payload.value))
+                            }
+
+                            is ContentPayload.Vocabulary -> {
+                                put("term", JsonPrimitive(payload.term))
+                                put("gloss", JsonPrimitive(payload.gloss))
+                            }
+
+                            is ContentPayload.MediaReference -> {
+                                error("Media references are not learner lesson materials.")
+                            }
+                        }
+                    },
+                )
+            }
+        }.toString()
+
+    private fun decodeMaterials(serialized: String): List<LearnerLessonMaterial> =
+        storageJson.parseToJsonElement(serialized).jsonArray.map { element ->
+            val material = element.jsonObject
+            val kind = ContentKind.valueOf(material.requiredText("kind"))
+            val payload =
+                when (kind) {
+                    ContentKind.EXPLANATION,
+                    ContentKind.EXAMPLE,
+                    -> {
+                        ContentPayload.Text(material.requiredText("text"))
+                    }
+
+                    ContentKind.VOCABULARY -> {
+                        ContentPayload.Vocabulary(
+                            term = material.requiredText("term"),
+                            gloss = material.requiredText("gloss"),
+                        )
+                    }
+
+                    else -> {
+                        error("Unsupported stored lesson material kind '$kind'.")
+                    }
+                }
+            LearnerLessonMaterial(
+                id = ContentId(material.requiredText("id")),
+                kind = kind,
+                position =
+                    material.requiredText("position").toIntOrNull()
+                        ?: error("Stored lesson material position is not an integer."),
+                sourceLocale = LanguageTag(material.requiredText("sourceLocale")),
+                payload = payload,
+            )
+        }
+
+    private fun JsonObject.requiredText(name: String): String =
+        get(name)?.jsonPrimitive?.content?.takeIf { it.isNotBlank() }
+            ?: error("Downloaded lesson metadata is missing '$name'.")
+
     private fun DownloadedLesson.position(): Int =
         course.lessons.indexOfFirst { it.id == lesson.id }.also {
             check(it >= 0) {
@@ -224,5 +390,6 @@ class SqlDelightDownloadedLessonStore(
 
     private companion object {
         const val MANUAL_INPUT = "MANUAL_INPUT"
+        val storageJson = Json { ignoreUnknownKeys = false }
     }
 }

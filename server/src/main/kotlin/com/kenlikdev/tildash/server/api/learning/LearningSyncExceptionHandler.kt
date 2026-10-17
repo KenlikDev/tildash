@@ -1,5 +1,6 @@
 package com.kenlikdev.tildash.server.api.learning
 
+import com.kenlikdev.tildash.server.learning.LearningSyncInvalidRequestException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
@@ -11,13 +12,13 @@ import java.net.URI
 
 @RestControllerAdvice(assignableTypes = [LearningSyncController::class])
 class LearningSyncExceptionHandler {
-    @ExceptionHandler(IllegalArgumentException::class, IllegalStateException::class)
-    fun handleInvalidRequest(exception: RuntimeException): ResponseEntity<ProblemDetail> {
+    @ExceptionHandler(LearningSyncInvalidRequestException::class)
+    fun handleInvalidRequest(): ResponseEntity<ProblemDetail> {
         val problem =
             ProblemDetail
                 .forStatusAndDetail(
                     HttpStatus.BAD_REQUEST,
-                    exception.message ?: "The learning synchronization request is invalid.",
+                    "The learning synchronization request is invalid.",
                 ).apply {
                     type = URI.create("urn:tildash:problem:learning-sync-invalid-request")
                     title = "Invalid learning synchronization request"
