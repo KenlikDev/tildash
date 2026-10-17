@@ -102,7 +102,9 @@ function Ensure-DemoDatabaseReady {
         $createDatabaseResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
             "exec", $ContainerId, "createdb", "-U", $Username, $DatabaseName
         )
-        Write-ExternalCommandOutput -Lines $createDatabaseResult.Output
+        if ($createDatabaseResult.Output) {
+            Write-ExternalCommandOutput -Lines $createDatabaseResult.Output
+        }
         if ($createDatabaseResult.ExitCode -ne 0) {
             throw "Could not create local demo database '$DatabaseName'. Existing databases and volumes were not deleted."
         }

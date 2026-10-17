@@ -113,6 +113,16 @@ jobs:
             throw "The local demo must send JSON request bodies as UTF-8 bytes."
           }
 
+          $outputFunctionAst = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+              $node.Name -eq "Write-ExternalCommandOutput"
+          }, $true)
+          if ($null -eq $outputFunctionAst) {
+            throw "Write-ExternalCommandOutput was not found in the local demo script."
+          }
+          . ([scriptblock]::Create($outputFunctionAst.Extent.Text))
+
           $databaseFunctionAst = $ast.Find({
             param($node)
             $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
