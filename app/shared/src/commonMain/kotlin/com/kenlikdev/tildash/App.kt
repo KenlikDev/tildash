@@ -230,7 +230,11 @@ private fun CatalogContent(
                         Text(course.title, style = MaterialTheme.typography.titleLarge)
                     }
                     items(course.lessons, key = { it.id.value }) { lesson ->
-                        val isDownloaded = downloaded.any { it.lesson.id == lesson.id }
+                        val downloadedLesson = downloaded.firstOrNull { it.lesson.id == lesson.id }
+                        val updateAvailable =
+                            downloadedLesson != null &&
+                                downloadedLesson.lesson.publishedVersion < lesson.publishedVersion
+                        val canOpenDownloadedLesson = downloadedLesson != null && !updateAvailable
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -245,7 +249,16 @@ private fun CatalogContent(
                                     CircularProgressIndicator()
                                 }
 
-                                isDownloaded -> {
+                                updateAvailable -> {
+                                    Button(
+                                        onClick = { onDownload(lesson.id) },
+                                        enabled = downloadingLessonId == null,
+                                    ) {
+                                        Text("Update")
+                                    }
+                                }
+
+                                canOpenDownloadedLesson -> {
                                     Button(onClick = { onOpen(lesson.id) }) {
                                         Text("Open")
                                     }

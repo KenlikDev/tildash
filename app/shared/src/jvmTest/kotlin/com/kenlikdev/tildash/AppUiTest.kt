@@ -116,6 +116,33 @@ class AppUiTest {
 
     @OptIn(ExperimentalTestApi::class)
     @Test
+    fun catalogOffersUpdateForOlderDownloadedLessonAndReplacesIt() =
+        runComposeUiTest {
+            val fixture = Fixture(currentPublishedVersion = 2)
+            fixture.seedDownloadedVersion(1)
+
+            setContent {
+                App(
+                    learnerApplication = fixture.learnerApplication(),
+                    contentApplication = fixture.contentApplication(),
+                )
+            }
+
+            waitForIdle()
+            onNodeWithText("Published version 2").assertIsDisplayed()
+            onNodeWithText("Update").assertIsDisplayed()
+            onNodeWithText("Update").performClick()
+
+            waitForIdle()
+            kotlin.test.assertEquals(
+                2,
+                fixture.store.loadLesson(fixture.lessonId)?.lesson?.publishedVersion,
+            )
+            onNodeWithText("Open").assertIsDisplayed()
+        }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
     fun earlierPublishedAttemptDoesNotInflateCurrentVersionProgress() =
         runComposeUiTest {
             val priorAttempt =
@@ -214,6 +241,25 @@ class AppUiTest {
                 downloadedLessonStore = store,
                 clock = fixedClock(),
             )
+
+        fun seedDownloadedVersion(version: Int) {
+            val olderLesson = lesson.copy(publishedVersion = version)
+            val olderCourse =
+                course.copy(
+                    publishedVersion = version,
+                    lessons = listOf(olderLesson),
+                )
+            store.save(
+                DownloadedLesson(
+                    course = olderCourse,
+                    lesson = olderLesson,
+                    plan = packageData.plan.copy(publishedVersion = version),
+                    downloadedAt = fixedInstant,
+                    materials = packageData.materials,
+                ),
+            )
+        }
+
 
         fun learnerApplication() =
             LearnerLessonApplication(
