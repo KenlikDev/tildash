@@ -48,6 +48,10 @@ Shared and production environments must provide `TILDASH_DATABASE_URL`, `TILDASH
 
 The default development password is not a production credential.
 
+Flyway stores its migration history in the application schema, `tildash.flyway_schema_history`. The schema is configured explicitly so history-table placement does not depend on PostgreSQL's session search path. Existing non-empty schemas without a migration history are not automatically baselined.
+
+The one-command local acceptance demo uses a separate `tildash_demo` database and leaves the default development database untouched.
+
 Flyway can be controlled with `TILDASH_FLYWAY_ENABLED`; it should remain enabled in normal deployments.
 
 ## Local development

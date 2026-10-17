@@ -18,11 +18,13 @@ Then run:
 
 The script publishes a timestamped four-lesson beginner course through the real authoring, validation, review, and publication API. Each lesson has Russian explanation blocks (locale `ru`), Crimean Tatar vocabulary and example blocks (locale `crh`), two example dialogues, and six exercises. It verifies the source-locale metadata and checks all four learner packages before launching Desktop.
 
-The development-role headers are only for local acceptance. The script binds the backend and database to loopback; do not expose the development backend to a shared or public network.
+The development-role headers are only for local acceptance. The script binds the backend and database to loopback; do not expose the development backend to a shared or public network. The backend uses a dedicated PostgreSQL database named `tildash_demo`, creating it if absent. The existing `tildash` database is not modified or deleted.
 
 **Content provenance:** the seeded materials are local-acceptance content, not a production curriculum. Their provenance points to the language phrases used as references; they no longer claim that the cited curriculum is public domain. See docs/LOCAL_DEMO_CONTENT_TERMS.md. Do not redistribute the seed course as production content without a content-owner review.
 
 **Database caution:** this branch corrects the PostgreSQL 18 data mount. If Compose recreates a container created with the old mount target, its old database cluster may not be found at the new expected path, and the new container may initialize a fresh local demo database. Back up any valuable local database data before rerunning. The script does not run docker compose down -v and does not delete named volumes.
+
+The script connects the backend only to `tildash_demo`. It creates this database when missing, leaves the existing `tildash` database untouched, and never automatically baselines or drops a schema. If `tildash_demo` already has Tildash tables without `tildash.flyway_schema_history`, the script stops and asks for explicit database inspection rather than destroying or adopting that data.
 
 ## What to test in Desktop
 

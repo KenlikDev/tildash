@@ -14,7 +14,7 @@ class PersistenceMigrationTests {
     private lateinit var jdbcTemplate: JdbcTemplate
 
     @Test
-    fun applicationSchemaIsCreatedByMigration() {
+    fun applicationSchemaExistsAfterFlywaySetup() {
         val schemaCount =
             jdbcTemplate.queryForObject(
                 """
@@ -34,7 +34,7 @@ class PersistenceMigrationTests {
             jdbcTemplate.queryForObject(
                 """
                 select count(*)
-                from flyway_schema_history
+                from tildash.flyway_schema_history
                 where version = '1'
                   and script = 'V1__create_application_schema.sql'
                   and success = true

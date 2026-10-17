@@ -1,5 +1,6 @@
 ﻿# Use loopback only: this script sends local development-role headers.
 $BaseUrl = "http://127.0.0.1:8080"
+$demoDatabaseName = "tildash_demo"
 $environmentNames = @(
     "TILDASH_DATABASE_NAME",
     "TILDASH_DATABASE_USERNAME",
@@ -66,25 +67,86 @@ function Write-ExternalCommandOutput {
     }
 }
 
+
+function Ensure-DemoDatabaseReady {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ContainerId,
+        [Parameter(Mandatory = $true)]
+        [string]$DatabaseName,
+        [Parameter(Mandatory = $true)]
+        [string]$Username
+    )
+
+    if ($DatabaseName -notmatch '^[A-Za-z_][A-Za-z0-9_]*$') {
+        throw "The local demo database name contains unsupported characters."
+    }
+
+    $databaseQuery = "SELECT 1 FROM pg_database WHERE datname = '$DatabaseName'"
+    $databaseResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
+        "exec", $ContainerId, "psql", "-U", $Username, "-d", "postgres", "-tAc", $databaseQuery
+    )
+    if ($databaseResult.ExitCode -ne 0) {
+        Write-ExternalCommandOutput -Lines $databaseResult.Output
+        throw "Could not inspect local PostgreSQL databases. No existing database was reset or deleted."
+    }
+
+    $databaseExists = @(
+        $databaseResult.Output |
+            ForEach-Object { ([string]$_).Trim() } |
+            Where-Object { $_ -eq "1" }
+    ).Count -gt 0
+
+    if (-not $databaseExists) {
+        Write-Host "Creating dedicated local demo database '$DatabaseName'..."
+        $createDatabaseResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
+            "exec", $ContainerId, "createdb", "-U", $Username, $DatabaseName
+        )
+        Write-ExternalCommandOutput -Lines $createDatabaseResult.Output
+        if ($createDatabaseResult.ExitCode -ne 0) {
+            throw "Could not create local demo database '$DatabaseName'. Existing databases and volumes were not deleted."
+        }
+    }
+
+    $migrationStateQuery = "SELECT CASE WHEN EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'tildash' AND table_name <> 'flyway_schema_history') AND NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'tildash' AND table_name = 'flyway_schema_history') THEN 1 ELSE 0 END"
+    $migrationStateResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
+        "exec", $ContainerId, "psql", "-U", $Username, "-d", $DatabaseName, "-tAc", $migrationStateQuery
+    )
+    if ($migrationStateResult.ExitCode -ne 0) {
+        Write-ExternalCommandOutput -Lines $migrationStateResult.Output
+        throw "Could not inspect Flyway history in local demo database '$DatabaseName'. No existing tables were changed."
+    }
+
+    $hasUntrackedSchema = @(
+        $migrationStateResult.Output |
+            ForEach-Object { ([string]$_).Trim() } |
+            Where-Object { $_ -eq "1" }
+    ).Count -gt 0
+
+    if ($hasUntrackedSchema) {
+        throw "The local demo database '$DatabaseName' already contains Tildash tables without tildash.flyway_schema_history. The script will not baseline, drop, or modify them. Back up and inspect this database or choose a new empty demo database before retrying."
+    }
+
+    Write-Host "Local demo database '$DatabaseName' is ready for Flyway-managed initialization."
+}
+
 $serverResponding = $false
-$alreadyRunning = $false
 try {
-    $existingHealth = Invoke-RestMethod -Uri ($BaseUrl.TrimEnd("/") + "/actuator/health") -TimeoutSec 2
+    $null = Invoke-RestMethod -Uri ($BaseUrl.TrimEnd("/") + "/actuator/health") -TimeoutSec 2
     $serverResponding = $true
-    $alreadyRunning = $existingHealth.status -eq "UP"
 } catch {
     # A refused connection is expected before the local backend starts.
 }
-if ($serverResponding -and -not $alreadyRunning) {
-    throw "A server is responding at $BaseUrl but is not healthy. Stop it and retry the local demo."
+if ($serverResponding) {
+    throw "A server is already responding at $BaseUrl. Stop it before running the local demo so acceptance uses this checkout and its isolated database."
 }
 
-# Use isolated, documented local-development credentials for this demo process only.
+# Keep the PostgreSQL service configuration stable while using a separate database for the demo.
 $env:TILDASH_DATABASE_NAME = "tildash"
 $env:TILDASH_DATABASE_USERNAME = "tildash"
 $env:TILDASH_DATABASE_PASSWORD = "tildash-dev"
 $env:TILDASH_DATABASE_PORT = "5432"
-$env:TILDASH_DATABASE_URL = "jdbc:postgresql://127.0.0.1:5432/tildash"
+$env:TILDASH_DATABASE_URL = "jdbc:postgresql://127.0.0.1:5432/$demoDatabaseName"
 
 Write-Host "Starting the local PostgreSQL service..."
 $composeResult = Invoke-ExternalCommand -FilePath "docker" -Arguments @(
@@ -165,16 +227,19 @@ if (-not $databaseReady) {
     throw "PostgreSQL did not become healthy. Last observed container state: '$lastContainerState'; health: '$lastHealthState'. Resolve the reported container error and rerun the demo."
 }
 
+Ensure-DemoDatabaseReady -ContainerId $containerId -DatabaseName $demoDatabaseName -Username $env:TILDASH_DATABASE_USERNAME
+
 $escapedRoot = $repoRoot.Replace("'", "''")
 $serverCommand = @'
 $env:TILDASH_SECURITY_DEVELOPMENT_ENABLED = "true"
 $env:SERVER_ADDRESS = "127.0.0.1"
-$env:TILDASH_DATABASE_URL = "jdbc:postgresql://127.0.0.1:5432/tildash"
+$env:TILDASH_DATABASE_URL = "jdbc:postgresql://127.0.0.1:5432/__DATABASE_NAME__"
 $env:TILDASH_DATABASE_USERNAME = "tildash"
 $env:TILDASH_DATABASE_PASSWORD = "tildash-dev"
 Set-Location -LiteralPath '__REPO_ROOT__'
 & ".\gradlew.bat" ":server:bootRun" "--no-configuration-cache"
 '@
+$serverCommand = $serverCommand.Replace("__DATABASE_NAME__", $demoDatabaseName)
 $serverCommand = $serverCommand.Replace("__REPO_ROOT__", $escapedRoot)
 
 $windowsPowerShell = Join-Path $env:WINDIR "System32\WindowsPowerShell\v1.0\powershell.exe"
@@ -182,19 +247,15 @@ if (-not (Test-Path $windowsPowerShell)) {
     $windowsPowerShell = (Get-Command powershell.exe -ErrorAction Stop).Source
 }
 $encodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($serverCommand))
-if ($alreadyRunning) {
-    Write-Host "Reusing the healthy local backend already listening on 127.0.0.1:8080..."
-} else {
-    Write-Host "Starting the backend in a separate PowerShell window..."
-    Start-Process -FilePath $windowsPowerShell -WorkingDirectory $repoRoot -ArgumentList @(
-        "-NoExit",
-        "-ExecutionPolicy", "Bypass",
-        "-EncodedCommand", $encodedCommand
-    )
-}
+Write-Host "Starting the backend in a separate PowerShell window..."
+Start-Process -FilePath $windowsPowerShell -WorkingDirectory $repoRoot -ArgumentList @(
+    "-NoExit",
+    "-ExecutionPolicy", "Bypass",
+    "-EncodedCommand", $encodedCommand
+)
 
 $serverReady = $false
-$healthAttempts = if ($alreadyRunning) { 1 } else { 180 }
+$healthAttempts = 180
 for ($attempt = 1; $attempt -le $healthAttempts; $attempt++) {
     try {
         $health = Invoke-RestMethod -Uri ($BaseUrl.TrimEnd("/") + "/actuator/health") -TimeoutSec 2
@@ -230,8 +291,9 @@ function Invoke-TildashRequest {
         TimeoutSec = 20
     }
     if ($null -ne $Body) {
-        $parameters.ContentType = "application/json"
-        $parameters.Body = ConvertTo-Json -InputObject $Body -Depth 20
+        $parameters.ContentType = "application/json; charset=utf-8"
+        $jsonBody = ConvertTo-Json -InputObject $Body -Depth 20
+        $parameters.Body = [System.Text.Encoding]::UTF8.GetBytes($jsonBody)
     }
     Invoke-RestMethod @parameters
 }
@@ -426,12 +488,31 @@ $publishedCourse = @($catalog.courses | Where-Object { $_.id -eq $course.id }) |
 if ($null -eq $publishedCourse) {
     throw "The newly published course was not returned by the learner catalog."
 }
+if ($publishedCourse.title -cne $demoTitle) {
+    throw "The published course title was not preserved exactly; check the UTF-8 HTTP request body."
+}
 if (@($publishedCourse.lessons).Count -ne 4) {
     throw "Expected four published lessons; learner catalog returned $(@($publishedCourse.lessons).Count)."
 }
 
 foreach ($record in $createdLessons) {
     $package = Invoke-TildashRequest -Method "GET" -Path ("/api/v1/learning/lessons/" + $record.Id) -Headers $learner
+    foreach ($expectedMaterial in $record.Plan.Materials) {
+        if ($expectedMaterial.Kind -eq "VOCABULARY") {
+            $matchingMaterials = @(
+                $package.materials |
+                    Where-Object { $_.term -ceq $expectedMaterial.Term -and $_.gloss -ceq $expectedMaterial.Gloss }
+            )
+        } else {
+            $matchingMaterials = @(
+                $package.materials |
+                    Where-Object { $_.text -ceq $expectedMaterial.Text }
+            )
+        }
+        if ($matchingMaterials.Count -ne 1) {
+            throw "Lesson '$($record.Plan.Title)' did not preserve its expected Unicode teaching material exactly."
+        }
+    }
     if (@($package.materials).Count -lt 8) {
         throw "Lesson '$($record.Plan.Title)' did not return its complete ordered teaching material."
     }

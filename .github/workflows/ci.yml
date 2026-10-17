@@ -107,7 +107,79 @@ jobs:
             throw "Native stderr output was not captured by Invoke-ExternalCommand."
           }
 
-          Write-Host "PowerShell syntax and native stderr regression checks passed."
+          $scriptText = Get-Content -Raw -Encoding UTF8 $scriptPath
+          if ($scriptText -notmatch 'application/json; charset=utf-8' -or
+              $scriptText -notmatch '\[System\.Text\.Encoding\]::UTF8\.GetBytes\(\$jsonBody\)') {
+            throw "The local demo must send JSON request bodies as UTF-8 bytes."
+          }
+
+          $databaseFunctionAst = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+              $node.Name -eq "Ensure-DemoDatabaseReady"
+          }, $true)
+          if ($null -eq $databaseFunctionAst) {
+            throw "Ensure-DemoDatabaseReady was not found in the local demo script."
+          }
+          . ([scriptblock]::Create($databaseFunctionAst.Extent.Text))
+
+          # Exercise the database helper without invoking Docker or mutating any real database.
+          $script:demoDatabaseExists = $false
+          $script:demoDatabaseHasLegacySchema = $false
+          $script:createdDemoDatabases = @()
+          function Invoke-ExternalCommand {
+            param(
+              [Parameter(Mandatory = $true)]
+              [string]$FilePath,
+              [Parameter(Mandatory = $true)]
+              [string[]]$Arguments
+            )
+
+            $commandText = [string]$Arguments[-1]
+            if ($commandText.Contains("FROM pg_database")) {
+              $output = if ($script:demoDatabaseExists) { @("1") } else { @() }
+              return [pscustomobject]@{ ExitCode = 0; Output = $output }
+            }
+            if ($commandText.Contains("information_schema.tables")) {
+              $output = if ($script:demoDatabaseHasLegacySchema) { @("1") } else { @("0") }
+              return [pscustomobject]@{ ExitCode = 0; Output = $output }
+            }
+            if ($Arguments -contains "createdb") {
+              $script:createdDemoDatabases += [string]$Arguments[-1]
+              $script:demoDatabaseExists = $true
+              return [pscustomobject]@{ ExitCode = 0; Output = @() }
+            }
+            throw "Unexpected command was executed by the database setup test: $($Arguments -join ' ')"
+          }
+
+          Ensure-DemoDatabaseReady -ContainerId "fake-container" -DatabaseName "tildash_demo" -Username "tildash"
+          if (-not $script:demoDatabaseExists -or $script:createdDemoDatabases.Count -ne 1) {
+            throw "The database helper did not create a missing demo database exactly once."
+          }
+          Ensure-DemoDatabaseReady -ContainerId "fake-container" -DatabaseName "tildash_demo" -Username "tildash"
+          if ($script:createdDemoDatabases.Count -ne 1) {
+            throw "The database helper did not reuse an already-existing demo database idempotently."
+          }
+
+          $script:demoDatabaseHasLegacySchema = $true
+          $legacySchemaFailureObserved = $false
+          try {
+            Ensure-DemoDatabaseReady -ContainerId "fake-container" -DatabaseName "tildash_demo" -Username "tildash"
+          } catch {
+            if ($_.Exception.Message.Contains("without tildash.flyway_schema_history")) {
+              $legacySchemaFailureObserved = $true
+            } else {
+              throw
+            }
+          }
+          if (-not $legacySchemaFailureObserved) {
+            throw "The database helper did not reject an untracked pre-existing schema."
+          }
+          if ($script:createdDemoDatabases.Count -ne 1) {
+            throw "The database helper attempted a destructive database reset."
+          }
+
+          Write-Host "PowerShell syntax, native stderr, UTF-8, and demo database regression checks passed."
 
   linux-verification:
     name: Linux verification
